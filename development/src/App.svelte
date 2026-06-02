@@ -16,7 +16,7 @@
   } from './lib/game/assessment'
   import {
     getApproachNodes, getPreHandNode, getDrawComment,
-    getPostHandNode, getPatternReveal,
+    getPostHandNode, getPatternReveal, getGamblersReveal,
     getHankActionNode, getHankDrawNode,
     restoreFiredOnce, getFiredOnce, getNode, getChain,
   } from './lib/dialog/engine'
@@ -251,8 +251,9 @@
     game = startHand(game)
     discardSet = new Set()
     const pattern = getPatternReveal(game.handsPlayed)
+    const gamblers = getGamblersReveal(game.handsPlayed)
     const preHand = getPreHandNode(game.handNumber)
-    enqueue([...pattern, preHand])
+    enqueue([...pattern, ...gamblers, preHand])
     doSave()
   }
 
@@ -371,9 +372,15 @@
         <span class="player-name you">You ({avatar})</span>
         <span class="seed-count">🌰 {game.playerSeeds}</span>
       </div>
-      <div class="pot-display">
-        <span class="pot-label">Pot</span>
-        <span class="pot-amount">🌰 {game.pot}</span>
+      <div class="center-display">
+        <div class="pot-display">
+          <span class="pot-label">Pot</span>
+          <span class="pot-amount">🌰 {game.pot}</span>
+        </div>
+        <div class="bet-display">
+          <span class="bet-label">Bet</span>
+          <span class="bet-amount">🌰 {game.betAmount}</span>
+        </div>
       </div>
       <div class="player-info right">
         <span class="seed-count">🌰 {game.hankSeeds}</span>
@@ -620,9 +627,13 @@
   .player-name.you   { color: #7ac87a; }
   .player-name.hank  { color: #c87a7a; }
   .seed-count { color: #a0c070; font-size: 0.95rem; }
-  .pot-display { text-align: center; }
-  .pot-label   { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a6a4a; }
-  .pot-amount  { font-size: 1.2rem; font-weight: bold; color: #f0ead6; }
+  .center-display { display: flex; gap: 24px; align-items: center; }
+  .pot-display  { text-align: center; }
+  .pot-label    { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a6a4a; }
+  .pot-amount   { font-size: 1.2rem; font-weight: bold; color: #f0ead6; }
+  .bet-display  { text-align: center; }
+  .bet-label    { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a6a4a; }
+  .bet-amount   { font-size: 1.2rem; font-weight: bold; color: #a0a090; }
 
   .hand-area {
     padding: 18px 24px;

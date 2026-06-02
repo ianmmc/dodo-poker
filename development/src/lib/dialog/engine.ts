@@ -105,9 +105,15 @@ export function getPostHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | 
 }
 
 export function getPatternReveal(handsPlayed: number): DialogNode[] {
-  if (firedOnce.has('t1a-pattern-001') || handsPlayed < 5) return []
+  if (firedOnce.has('t1a-pattern-001') || handsPlayed < 3) return []
   firedOnce.add('t1a-pattern-001')
   return chain('t1a-pattern-001')
+}
+
+export function getGamblersReveal(handsPlayed: number): DialogNode[] {
+  if (firedOnce.has('t1a-fallacy-001') || handsPlayed < 8) return []
+  firedOnce.add('t1a-fallacy-001')
+  return chain('t1a-fallacy-001')
 }
 
 export function getHankActionNode(action: 'call' | 'bet' | 'raise'): DialogNode | null {

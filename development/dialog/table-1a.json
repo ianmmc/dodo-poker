@@ -10,6 +10,13 @@
       "speaker": "chief-dodo",
       "text": "This is the simplest version of poker there is. Five cards. You decide how many to trade in. Best hand wins.",
       "responseType": "none",
+      "followUp": { "default": "t1a-approach-001b" }
+    },
+    {
+      "id": "t1a-approach-001b",
+      "speaker": "chief-dodo",
+      "text": "Bets here are fixed — five seeds to open, five seeds to call. Keeps it clean while you're learning the hands.",
+      "responseType": "none",
       "followUp": { "default": "t1a-approach-002" }
     },
     {
@@ -187,7 +194,7 @@
 
     {
       "id": "t1a-pattern-001",
-      "trigger": { "minHandsPlayed": 5, "once": true },
+      "trigger": { "minHandsPlayed": 3, "once": true },
       "speaker": "chief-dodo",
       "text": "You've played a few hands with Hank now. You may be noticing a few things.",
       "responseType": "none",
@@ -234,7 +241,7 @@
       "speaker": "chief-dodo",
       "text": "That's exactly it. Bets every hand, never folds, same no matter what's in his cards. Once you know that, you know everything you need to play against him.",
       "responseType": "none",
-      "followUp": { "default": "t1a-fallacy-001" }
+      "followUp": { "returnToGame": true }
     },
     {
       "id": "t1a-assess-hank-hint1",
@@ -255,11 +262,12 @@
       "speaker": "chief-dodo",
       "text": "Here's what I see: he bets every hand, never folds, and his cards don't change how he plays. Every time. That's the whole picture.",
       "responseType": "none",
-      "followUp": { "default": "t1a-fallacy-001" }
+      "followUp": { "returnToGame": true }
     },
 
     {
       "id": "t1a-fallacy-001",
+      "trigger": { "minHandsPlayed": 8, "once": true },
       "speaker": "chief-dodo",
       "text": "Now — one more thing Hank shows you. He keeps losing, but he always thinks he's about to turn it around.",
       "responseType": "none",
