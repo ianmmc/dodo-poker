@@ -327,28 +327,38 @@
 
 <!-- ── AVATAR ─────────────────────────────────────────────────────────────── -->
 {:else if screen === 'avatar'}
-  <div class="screen center">
-    {#if currentLine}
-      <div class="dodo-quote">"{currentLine.text}"</div>
-    {/if}
-    <div class="avatar-grid">
-      {#each AVATARS as { id, label, desc }, i}
-        <button class="avatar-btn" on:click={() => selectAvatar(id)}>
-          <span class="num">{i + 1}.</span>
-          <span class="label">{label}</span>
-          <span class="desc">{desc}</span>
-        </button>
-      {/each}
+  <div class="screen with-dodo">
+    <div class="dodo-content">
+      {#if currentLine}
+        <div class="dodo-quote">"{currentLine.text}"</div>
+      {/if}
+      <div class="avatar-grid">
+        {#each AVATARS as { id, label, desc }, i}
+          <button class="avatar-btn" on:click={() => selectAvatar(id)}>
+            <span class="num">{i + 1}.</span>
+            <span class="label">{label}</span>
+            <span class="desc">{desc}</span>
+          </button>
+        {/each}
+      </div>
+    </div>
+    <div class="dodo-portrait">
+      <img src="/chief-dodo.png" alt="Chief Dodo" />
     </div>
   </div>
 
 <!-- ── INTRO ──────────────────────────────────────────────────────────────── -->
 {:else if screen === 'intro'}
-  <div class="screen center">
-    <div class="dodo-quote">"{AVATAR_RESPONSES[avatar]}"</div>
-    <div class="dodo-quote">"The Nest has a few different tables. Each one runs a different game. You move through them as you're ready — I'll let you know when."</div>
-    <div class="dodo-quote">"Table 1 is where we start. Come on."</div>
-    <button class="action-btn primary" on:click={sitDown}>Sit down at Table 1</button>
+  <div class="screen with-dodo">
+    <div class="dodo-content">
+      <div class="dodo-quote">"{AVATAR_RESPONSES[avatar]}"</div>
+      <div class="dodo-quote">"The Nest has a few different tables. Each one runs a different game. You move through them as you're ready — I'll let you know when."</div>
+      <div class="dodo-quote">"Table 1 is where we start. Come on."</div>
+      <button class="action-btn primary" on:click={sitDown}>Sit down at Table 1</button>
+    </div>
+    <div class="dodo-portrait">
+      <img src="/chief-dodo.png" alt="Chief Dodo" />
+    </div>
   </div>
 
 <!-- ── TABLE 1B ────────────────────────────────────────────────────────────── -->
@@ -536,13 +546,39 @@
   .screen {
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    padding: 40px 20px;
+    padding: 40px 48px;
   }
-  .center { text-align: center; }
+  .center {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  .with-dodo {
+    flex-direction: row;
+    gap: 56px;
+  }
+
+  .dodo-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 480px;
+    flex: 1;
+  }
+
+  .dodo-portrait {
+    flex-shrink: 0;
+    width: 300px;
+    display: flex;
+    align-items: center;
+  }
+  .dodo-portrait img {
+    width: 100%;
+    border-radius: 14px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  }
 
   .dodo-quote {
     max-width: 560px;
