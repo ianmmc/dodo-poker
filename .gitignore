@@ -13,6 +13,9 @@ development/dist/
 *.swp
 *.swo
 
+# QA / debugging artifacts
+development/quality-assurance/
+
 # Logs
 *.log
 

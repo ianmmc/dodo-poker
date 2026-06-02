@@ -1,0 +1,104 @@
+{
+  "id": "start-of-game",
+  "version": "1.0",
+  "description": "Entry experience: Chief Dodo greeting, avatar selection, Nest orientation, transition to Table 1A.",
+  "entry": "sog-001",
+  "nodes": [
+    {
+      "id": "sog-001",
+      "speaker": "chief-dodo",
+      "text": "Like I told you last night — The Nest is the best spot to play in LA. Come on in.",
+      "responseType": "none",
+      "followUp": { "default": "sog-002" }
+    },
+    {
+      "id": "sog-002",
+      "speaker": "chief-dodo",
+      "text": "Every member here has their bird. What are you?",
+      "responseType": "action",
+      "options": [
+        {
+          "id": "seagull",
+          "text": "Seagull",
+          "description": "Scrappy and opportunistic. Always looking for an angle."
+        },
+        {
+          "id": "finch",
+          "text": "Finch",
+          "description": "Cheerful and curious."
+        },
+        {
+          "id": "quail",
+          "text": "Quail",
+          "description": "Calm and methodical. Doesn't rush."
+        },
+        {
+          "id": "sparrow",
+          "text": "Sparrow",
+          "description": "Understated and relatable. Easy to underestimate."
+        },
+        {
+          "id": "crow",
+          "text": "Crow",
+          "description": "Sharp and a little edgy. Remembers everything."
+        }
+      ],
+      "followUp": {
+        "ifSelected:seagull": "sog-avatar-seagull",
+        "ifSelected:finch": "sog-avatar-finch",
+        "ifSelected:quail": "sog-avatar-quail",
+        "ifSelected:sparrow": "sog-avatar-sparrow",
+        "ifSelected:crow": "sog-avatar-crow"
+      }
+    },
+    {
+      "id": "sog-avatar-seagull",
+      "speaker": "chief-dodo",
+      "text": "Seagull. You'll fit right in — The Nest gets all kinds.",
+      "responseType": "none",
+      "followUp": { "default": "sog-003" }
+    },
+    {
+      "id": "sog-avatar-finch",
+      "speaker": "chief-dodo",
+      "text": "Finch. Always watching, always thinking. Good choice.",
+      "responseType": "none",
+      "followUp": { "default": "sog-003" }
+    },
+    {
+      "id": "sog-avatar-quail",
+      "speaker": "chief-dodo",
+      "text": "Quail. California's state bird! You're already home.",
+      "responseType": "none",
+      "followUp": { "default": "sog-003" }
+    },
+    {
+      "id": "sog-avatar-sparrow",
+      "speaker": "chief-dodo",
+      "text": "Sparrow. Don't let anyone underestimate you.",
+      "responseType": "none",
+      "followUp": { "default": "sog-003" }
+    },
+    {
+      "id": "sog-avatar-crow",
+      "speaker": "chief-dodo",
+      "text": "Crow. Sharp choice. They remember everything, you know.",
+      "responseType": "none",
+      "followUp": { "default": "sog-003" }
+    },
+    {
+      "id": "sog-003",
+      "speaker": "chief-dodo",
+      "text": "The Nest has a few different tables. Each one runs a different game. You move through them as you're ready — I'll let you know when.",
+      "responseType": "none",
+      "followUp": { "default": "sog-004" }
+    },
+    {
+      "id": "sog-004",
+      "speaker": "chief-dodo",
+      "text": "Table 1 is where we start. Come on.",
+      "responseType": "none",
+      "followUp": { "next": { "tree": "table-1a", "node": "t1a-approach-001" } }
+    }
+  ]
+}
