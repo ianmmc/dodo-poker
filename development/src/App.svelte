@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import CardImage from './lib/components/CardImage.svelte'
+  import ReferenceCard from './lib/components/ReferenceCard.svelte'
   import {
     createGame, startHand,
     playerCheck, playerBet, playerCall, playerFold, playerDraw
@@ -8,10 +9,16 @@
   import type { GameState } from './lib/game/fiveCardDraw'
   import { save, load, clear } from './lib/game/storage'
   import {
+    evaluateChecklist,
+    recordAssessment,
+    getAssessmentLog,
+    restoreAssessmentLog,
+  } from './lib/game/assessment'
+  import {
     getApproachNodes, getPreHandNode, getDrawComment,
     getPostHandNode, getPatternReveal,
     getHankActionNode, getHankDrawNode,
-    restoreFiredOnce, getFiredOnce
+    restoreFiredOnce, getFiredOnce, getNode,
   } from './lib/dialog/engine'
   import type { DialogNode } from './lib/dialog/engine'
 
@@ -22,6 +29,13 @@
   interface DisplayLine {
     speaker: string
     text: string
+    openReferenceCard?: boolean
+    assessmentNode?: DialogNode
+  }
+
+  interface AssessmentState {
+    node: DialogNode
+    selectedIds: Set<string>
   }
 
   const AVATARS = [
@@ -47,11 +61,16 @@
   let savedSession = false
   let game: GameState = createGame(100, 5, 5)
   let discardSet = new Set<number>()
+  let refCardOpen = false
+  let assessmentState: AssessmentState | null = null
 
   // Dialog queue — shown one at a time; action menu hidden while non-empty
   let dialogQueue: DisplayLine[] = []
   $: inDialog = dialogQueue.length > 0
   $: currentLine = dialogQueue[0] ?? null
+
+  // Auto-open reference card when Chief Dodo's handoff line is displayed
+  $: if (currentLine?.openReferenceCard) refCardOpen = true
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -69,24 +88,67 @@
 
   // ── Dialog helpers ───────────────────────────────────────────────────────
 
-  function toLine(node: DialogNode): DisplayLine {
+  function interpolate(text: string, vars: Record<string, string | number>): string {
+    return text.replace(/\{\{(\w+)\}\}/g, (_, key) => String(vars[key] ?? '?'))
+  }
+
+  function toLine(node: DialogNode, vars?: Record<string, string | number>): DisplayLine {
+    const rawText = node.text ?? ''
+    const isInteractive = node.responseType === 'checklist' || node.responseType === 'numeric'
     return {
       speaker: node.speaker === 'chief-dodo' ? 'Chief Dodo'
              : node.speaker === 'hank'        ? 'Hank'
              : 'Narrator',
-      text: node.text ?? ''
+      text: vars ? interpolate(rawText, vars) : rawText,
+      openReferenceCard: node.followUp.openReferenceCard === true,
+      assessmentNode: isInteractive ? node : undefined,
     }
   }
 
-  function enqueue(nodes: (DialogNode | null)[]): void {
+  function enqueue(nodes: (DialogNode | null)[], vars?: Record<string, string | number>): void {
     const lines = nodes
       .filter((n): n is DialogNode => n !== null && !n.silent && n.text !== null)
-      .map(toLine)
+      .map(n => toLine(n, vars))
     if (lines.length) dialogQueue = [...dialogQueue, ...lines]
   }
 
   function advance(): void {
+    const current = dialogQueue[0]
     dialogQueue = dialogQueue.slice(1)
+    if (current?.assessmentNode) {
+      assessmentState = { node: current.assessmentNode, selectedIds: new Set() }
+    }
+  }
+
+  // ── Assessment ───────────────────────────────────────────────────────────
+
+  function toggleChecklistOption(id: string): void {
+    if (!assessmentState) return
+    const s = new Set(assessmentState.selectedIds)
+    s.has(id) ? s.delete(id) : s.add(id)
+    assessmentState = { ...assessmentState, selectedIds: s }
+  }
+
+  function submitChecklist(): void {
+    if (!assessmentState) return
+    const node = assessmentState.node
+    const correctIds = (node.options ?? []).filter(o => o.correct).map(o => o.id)
+    const selectedIds = [...assessmentState.selectedIds]
+
+    const result = evaluateChecklist(node.id, selectedIds, correctIds, node.feedback ?? {})
+
+    if (result.feedbackNodeId) {
+      const feedbackNode = getNode(result.feedbackNodeId)
+      if (feedbackNode) enqueue([feedbackNode], result.templateVars)
+    }
+
+    if (result.correct || result.exhausted) {
+      recordAssessment({ nodeId: node.id, responseType: 'checklist', attempts: result.attemptNumber, correct: result.correct })
+      assessmentState = null
+      doSave()
+    } else {
+      assessmentState = { ...assessmentState, selectedIds: new Set() }
+    }
   }
 
   // ── Screen transitions ───────────────────────────────────────────────────
@@ -102,6 +164,7 @@
     if (!saved) { freshStart(); return }
     avatar = saved.avatar
     restoreFiredOnce(saved.firedOnce)
+    restoreAssessmentLog(saved.assessmentLog ?? [])
     game = {
       ...createGame(saved.playerSeeds, saved.betAmount, saved.ante),
       playerSeeds: saved.playerSeeds,
@@ -200,13 +263,14 @@
   function doSave(): void {
     save({
       avatar,
-      playerSeeds: game.playerSeeds,
-      hankSeeds:   game.hankSeeds,
-      handNumber:  game.handNumber,
-      handsPlayed: game.handsPlayed,
-      betAmount:   game.betAmount,
-      ante:        game.ante,
-      firedOnce:   getFiredOnce(),
+      playerSeeds:   game.playerSeeds,
+      hankSeeds:     game.hankSeeds,
+      handNumber:    game.handNumber,
+      handsPlayed:   game.handsPlayed,
+      betAmount:     game.betAmount,
+      ante:          game.ante,
+      firedOnce:     getFiredOnce(),
+      assessmentLog: getAssessmentLog(),
     })
     savedSession = true
   }
@@ -276,7 +340,9 @@
 
 <!-- ── TABLE ──────────────────────────────────────────────────────────────── -->
 {:else if screen === 'table'}
-  <div class="table-screen">
+  <div class="table-screen" class:ref-card-open={refCardOpen}>
+
+    <ReferenceCard open={refCardOpen} onToggle={() => refCardOpen = !refCardOpen} />
 
     <!-- Header bar -->
     <div class="header">
@@ -344,6 +410,32 @@
           <p class="dialog-text">"{currentLine.text}"</p>
           <span class="dialog-hint">Press Space, Enter, or click to continue</span>
         </button>
+
+      {:else if assessmentState}
+        <!-- Checklist assessment -->
+        <div class="assessment-area">
+          <p class="assessment-prompt">"{assessmentState.node.text}"</p>
+          <p class="assessment-hint">Check all that apply.</p>
+          <div class="assessment-options">
+            {#each assessmentState.node.options ?? [] as option}
+              <button
+                class="checklist-option"
+                class:selected={assessmentState.selectedIds.has(option.id)}
+                on:click={() => toggleChecklistOption(option.id)}
+              >
+                <span class="check-icon">{assessmentState.selectedIds.has(option.id) ? '☑' : '☐'}</span>
+                {option.text}
+              </button>
+            {/each}
+          </div>
+          <button
+            class="action-btn primary"
+            on:click={submitChecklist}
+            disabled={assessmentState.selectedIds.size === 0}
+          >
+            Submit
+          </button>
+        </div>
 
       {:else if game.phase === 'done'}
         <!-- Result -->
@@ -477,6 +569,12 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    margin-right: 0;
+    transition: margin-right 0.25s ease;
+  }
+
+  .table-screen.ref-card-open {
+    margin-right: 280px;
   }
 
   .header {
@@ -549,6 +647,34 @@
 
   .prompt { font-size: 0.9rem; color: #7a8a6a; }
   .hank-bet-notice { font-size: 0.9rem; color: #c87a7a; font-style: italic; }
+
+  /* ── Assessment / checklist ── */
+  .assessment-area { display: flex; flex-direction: column; gap: 10px; }
+  .assessment-prompt { font-style: italic; color: #c8a84a; line-height: 1.55; font-size: 1rem; }
+  .assessment-hint { font-size: 0.78rem; color: #4a6a4a; }
+  .assessment-options { display: flex; flex-direction: column; gap: 6px; }
+
+  .checklist-option {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    background: #1a2a1a;
+    border: 1px solid #2a4a2a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.92rem;
+    font-family: inherit;
+    color: #d4c89a;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .checklist-option:hover { background: #1e331e; }
+  .checklist-option.selected { background: #1a2e10; border-color: #c8a84a; color: #f0ead6; }
+
+  .check-icon { color: #c8a84a; font-size: 1.05rem; flex-shrink: 0; }
+
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .result-area { display: flex; flex-direction: column; gap: 14px; }
   .result-text { font-size: 1.15rem; color: #c8a84a; }

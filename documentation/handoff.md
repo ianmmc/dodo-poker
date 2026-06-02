@@ -37,28 +37,31 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 
 ## Current State
 
-**Phase:** Implementation — proof-of-concept built and running locally; ready for deployment and feedback collection.
+**Phase:** Implementation — proof-of-concept deployed; reference card and assessment system built.
 
 ### Completed
 
 - Project concept, design principles, and all documentation complete
-- User stories: `requirements.md`, 28 stories across 8 themes
-- Game design: `design.md` — Chief Dodo persona, 13-NPC roster, seed tokens, input model, 5 starting avatars
+- User stories: `requirements.md`, 37 stories across 9 themes (Assessment theme added)
+- Game design: `design.md` — Chief Dodo persona, 13-NPC roster, seed tokens, input model, 5 starting avatars, reference card system, assessment system
 - Research: `research.md` and `research-scope-sequence.md` — CCSS, pedagogy, poker variants, competency gates
 - Scope and sequence: `scope-sequence.md` — 5 phases, 14 tables, variant justifications, concept spiral map, CCSS alignment
-- Tech stack and dialog schema: `tech-spec.md`
+- Tech stack, dialog schema, assessment architecture: `tech-spec.md`
 - Dialog voice samples and interaction type spec: `dialog-samples.md`
-- Dialog trees: `development/dialog/start-of-game.json` and `table-1a.json` (39 nodes total, JSON-validated)
+- Dialog trees: `development/dialog/start-of-game.json` and `table-1a.json` (36 nodes, JSON-validated)
 - **Project scaffold**: TypeScript + Svelte 5 + Vite 6, Vitest 4; zero vulnerabilities
 - **Game logic** (`development/src/lib/game/`):
   - `card.ts` — Card type, 52-card deck, Fisher-Yates shuffle, SVG path mapping
   - `hand.ts` — Hand evaluation wrapper around `pokersolver`
   - `npc.ts` — Hank decision logic (always bets/calls; weighted-random draw 0–3 cards)
   - `fiveCardDraw.ts` — Complete Five Card Draw state machine (idle → bet1 → draw → bet2 → done)
-  - `storage.ts` — localStorage save/load/clear
-- **Dialog engine** (`development/src/lib/dialog/engine.ts`): loads `table-1a.json`; serves approach sequence, pre-hand pool, draw comments, post-hand pool, pattern reveal, Hank NPC lines
-- **UI** (`development/src/App.svelte`): title (with image), avatar selection, intro, full Table 1A game loop; dialog queue with Space/Enter/click to advance
-- **Test suite**: 45 tests across card, hand evaluation, and Five Card Draw state machine — all passing
+  - `storage.ts` — localStorage save/load/clear; includes `assessmentLog`
+  - `assessment.ts` — Standalone evaluation engine: `evaluateChecklist`, `evaluateNumeric`, 3-attempt scaffolding, assessment log with restore
+- **Dialog engine** (`development/src/lib/dialog/engine.ts`): loads `table-1a.json`; serves approach sequence, pre-hand pool, draw comments, post-hand pool, pattern reveal, Hank NPC lines, arbitrary node by ID (`getNode`)
+- **UI** (`development/src/App.svelte`): title, avatar selection, intro, full Table 1A game loop; dialog queue; checklist assessment UI; reference card panel
+- **Reference card** (`development/src/lib/components/ReferenceCard.svelte`): sliding panel, 9 hand blocks each with SVG card strip + description + hover highlight; tab always visible at right edge; Chief Dodo opens it programmatically via `openReferenceCard` flag
+- **Test suite**: 63 tests across 4 files (card, hand evaluation, Five Card Draw state machine, assessment engine) — all passing
+- **Deployed**: live at `dodo-poker.mccullough.com`
 - **Known issue with pokersolver**: Royal Flush is returned as "Straight Flush" — technically correct, noted in tests
 
 ### Key Implementation Details
@@ -66,17 +69,22 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 - `publicDir: '../assets'` in `vite.config.ts` serves card SVGs at `/svg-cards/` and title image at `/title-screen-image.png`
 - Svelte 5 requires `mount()` not `new App()` — `main.ts` uses `mount`
 - Dialog queue drives the game rhythm: all Chief Dodo and Hank text is queued; action menu hidden while queue is non-empty
-- Pattern reveal (t1a-pattern-001 sequence) fires once after 5 completed hands, between deals
-- localStorage saves after every completed hand; title screen shows "Continue previous session" when save exists
+- Pattern reveal (t1a-pattern-001 sequence) fires once after 5 completed hands, then chains into the first checklist assessment node
+- localStorage saves after every completed hand and after assessment resolution; title screen shows "Continue previous session" when save exists
 - `pokersolver` has no official TypeScript types; declaration file at `src/types/pokersolver.d.ts`
+- Assessment state machine: interactive dialog nodes (`checklist`/`numeric`) activate `assessmentState` when the student advances past them; checklist UI shows while `assessmentState !== null && !inDialog`; feedback dialog queued between attempts; `assessmentState = null` on correct or exhausted
+- Template interpolation: `{{varName}}` placeholders in dialog node text are replaced at `DisplayLine` creation time using `result.templateVars` (e.g. `{{needToCheck}}`, `{{needToUncheck}}` for attempt-2 checklist feedback)
+- Reference card panel: `openReferenceCard: true` in a node's `followUp` opens the panel reactively; table content uses `margin-right: 280px` (with transition) when panel is open so content is never obscured
 
 ---
 
 ## Open Questions
 
+- **Gameplay observation (passive assessment)**: The system records explicit checklist responses but does not yet passively observe bets, draws, and folds to infer reasoning patterns — this is a separate system to build
+- **Scripted hands**: Chief Dodo needs the ability to deal predetermined cards to put the student in specific assessment situations; `dealScriptedHand` flag in dialog `followUp` is the planned hook, not yet implemented
+- **Numeric input UI**: `evaluateNumeric` is built and tested; the UI block in `App.svelte` and numeric dialog nodes are not yet implemented
+- **Competency gate mechanics**: Assessment record exists; the gate logic that reads it and triggers table advancement is not yet built
 - **NPC personality beyond reasoning pattern**: Names and bird species set; fuller speech patterns, flavor text, win/loss reactions not yet written
-- **Gate implementation mechanics**: How the three-component competency gate is presented in-game without breaking immersion
-- **Analytics layer**: How the system tracks sub-skill gaps to inform Chief Dodo's adaptive coaching
 - **Table 1B and beyond**: Lucky (gambler's fallacy), Vivian (hot hand), Surveillance Room — not yet implemented
 
 ---
@@ -104,24 +112,28 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 | `development/src/lib/game/hand.ts` | Hand evaluation via pokersolver | Complete |
 | `development/src/lib/game/npc.ts` | Hank NPC decision logic | Complete |
 | `development/src/lib/game/fiveCardDraw.ts` | Five Card Draw state machine | Complete |
-| `development/src/lib/game/storage.ts` | localStorage persistence | Complete |
-| `development/src/lib/dialog/engine.ts` | Dialog engine: pool selection, triggers, sequences | Complete |
+| `development/src/lib/game/storage.ts` | localStorage persistence; includes assessmentLog | Complete |
+| `development/src/lib/game/assessment.ts` | Evaluation engine: checklist + numeric, 3-attempt scaffolding, assessment log | Complete |
+| `development/src/lib/game/assessment.test.ts` | 18 tests covering all evaluation branches and log | Complete |
+| `development/src/lib/dialog/engine.ts` | Dialog engine: pool selection, triggers, sequences, getNode() | Complete |
 | `development/src/lib/components/CardImage.svelte` | Card display component (face-up/down, selectable) | Complete |
-| `development/src/App.svelte` | Full application: all screens, game loop, dialog integration | Current |
+| `development/src/lib/components/ReferenceCard.svelte` | Sliding reference card panel: 9 hand blocks, SVG examples, hover highlight | Complete |
+| `development/src/App.svelte` | Full application: all screens, game loop, dialog queue, assessment state, reference card | Current |
 | `development/src/types/pokersolver.d.ts` | TypeScript declaration for pokersolver | Complete |
 
 ---
 
 ## Recommended Next Steps (in order)
 
-1. **Deploy to Hostinger** — `vite build` → static deploy to `dodo-poker.mccullough.com` via Hostinger MCP; share with Jacob and early testers
-2. **Collect feedback** — play with Jacob and friends; note what's confusing, what feels good, what's missing
-3. **Iterate on dialog and mechanics** — based on feedback; this may include draw UX, Chief Dodo timing, seed amounts
-4. **Table 1B** — add Lucky (gambler's fallacy) and Vivian (hot hand); introduce Surveillance Room
-5. **Competency gate for Table 1A** — design and implement the transition mechanic
+1. **Collect feedback** — share `dodo-poker.mccullough.com` with Jacob and early testers; note what's confusing, what feels good, what's missing
+2. **Gameplay observation** — passive assessment from betting and drawing decisions; rules engine that fires Chief Dodo coaching from observed patterns
+3. **Scripted hands** — `dealScriptedHand` flag in dialog `followUp`; game layer override to place student in specific situations for targeted assessment
+4. **Numeric input UI** — wire `evaluateNumeric` to a UI block; add first numeric dialog node at Table 1A
+5. **Competency gate for Table 1A** — reads `assessmentLog` + gameplay patterns; triggers Chief Dodo's table-advance suggestion
+6. **Table 1B** — Lucky (gambler's fallacy), Vivian (hot hand); introduce Surveillance Room
 
 ---
 
 ## Last Updated
 
-2026-06-02 — Proof-of-concept implementation complete. Full Table 1A game loop running: title screen, avatar selection, Five Card Draw vs Hank, dialog engine wired to JSON trees, localStorage persistence, SVG card display, 45 tests passing. Ready to deploy.
+2026-06-02 — Reference card and assessment system complete. Sliding reference card panel with SVG hand examples deployed. Assessment engine built (checklist 3-attempt scaffolding, numeric evaluation, assessment log). First checklist node live at Table 1A after pattern reveal. 63 tests passing. Site deployed at dodo-poker.mccullough.com.

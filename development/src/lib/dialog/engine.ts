@@ -4,7 +4,7 @@ export interface DialogNode {
   id: string
   speaker: string | null
   text: string | null
-  responseType: 'none' | 'action' | 'checklist' | 'numeric'
+  responseType: 'none' | 'action' | 'checklist' | 'numeric' | 'single-select' | 'estimate' | 'prediction'
   silent?: boolean
   pool?: string
   weight?: number
@@ -15,7 +15,20 @@ export interface DialogNode {
     once?: boolean
   }
   options?: Array<{ id: string; text: string; description?: string; correct?: boolean }>
-  followUp: Record<string, unknown>
+  feedback?: {
+    correct?: string
+    attempt1Wrong?: string
+    attempt2Wrong?: string
+    attempt3Wrong?: string
+    tooHigh?: string
+    tooLow?: string
+  }
+  correctAnswer?: number
+  followUp: {
+    default?: string
+    returnToGame?: boolean
+    openReferenceCard?: boolean
+  }
 }
 
 const nodes = new Map<string, DialogNode>()
@@ -53,8 +66,8 @@ function chain(startId: string): DialogNode[] {
     const n = nodes.get(id)
     if (!n) break
     if (!n.silent) seq.push(n)
-    if ((n.followUp as Record<string, unknown>).returnToGame || n.responseType !== 'none') break
-    id = (n.followUp as Record<string, string>).default
+    if (n.followUp.returnToGame || n.responseType !== 'none') break
+    id = n.followUp.default
   }
   return seq
 }
@@ -102,5 +115,9 @@ export function getHankActionNode(action: 'call' | 'bet' | 'raise'): DialogNode 
 
 export function getHankDrawNode(count: number): DialogNode | null {
   const id = count === 0 ? 't1a-hank-draw-0' : `t1a-hank-draw-${Math.min(count, 3)}`
+  return nodes.get(id) ?? null
+}
+
+export function getNode(id: string): DialogNode | null {
   return nodes.get(id) ?? null
 }

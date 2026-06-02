@@ -101,42 +101,109 @@ Chief Dodo's feedback triggers are rules applied to game events. Dialog content 
 
 ### Dialog tree JSON schema
 
-Each dialog node has a `responseType` that determines what the player sees after Chief Dodo speaks:
+Full reference at `development/dialog/schema.md`. Implemented fields:
 
 ```json
 {
   "id": "string",
-  "speaker": "chief-dodo | npc-id",
-  "text": "string",
-  "responseType": "none | action | checklist | numeric",
+  "speaker": "chief-dodo | npc-id | null",
+  "text": "string — supports {{varName}} template interpolation",
+  "responseType": "none | checklist | numeric | single-select | estimate | prediction",
+
+  "silent": true,
+  "pool": "pool-name",
+  "weight": 2,
+
+  "trigger": {
+    "handNumber": 1,
+    "minHandsPlayed": 5,
+    "playerDiscards": 0,
+    "once": true
+  },
 
   "options": [
     { "id": "string", "text": "string", "correct": true }
   ],
 
-  "fields": [
-    { "id": "string", "label": "string", "min": 0, "max": 47 }
-  ],
+  "feedback": {
+    "correct":       "dialog-node-id",
+    "attempt1Wrong": "dialog-node-id",
+    "attempt2Wrong": "dialog-node-id",
+    "attempt3Wrong": "dialog-node-id",
+    "tooHigh":       "dialog-node-id",
+    "tooLow":        "dialog-node-id"
+  },
+
+  "correctAnswer": 0,
 
   "followUp": {
-    "default": "dialog-node-id",
-    "ifSelected:option-id": "dialog-node-id",
-    "ifCorrect": "dialog-node-id",
-    "ifLow": "dialog-node-id",
-    "ifHigh": "dialog-node-id"
+    "default":          "dialog-node-id",
+    "returnToGame":     true,
+    "openReferenceCard": true
   }
 }
 ```
 
-- `none` — statement only; no response expected; engine advances automatically
-- `action` — numbered action menu (call/raise/fold/check/draw); `options` list drives the menu
-- `checklist` — 5–7 statements, multi-select; mix of correct reasoning and common misconceptions; `followUp` keys on specific selected option IDs to enable targeted responses to particular misconceptions
-- `numeric` — one or more labeled number fields (`fields`); `followUp` branches on correct / too-high / too-low
+**responseType values:**
+
+- `none` — statement only; engine advances to `followUp.default` or returns to game
+- `checklist` — multi-select from `options`; `feedback` nodes receive `{{needToCheck}}` and `{{needToUncheck}}` template vars
+- `numeric` — single number entry; `feedback.tooHigh` / `tooLow` / `correct` routing; feedback nodes receive `{{entered}}` and `{{correct}}` vars
+- `single-select`, `estimate`, `prediction` — reserved for future implementation
+
+**Pool / weighted random:** nodes sharing a `pool` name are sampled by weight. `silent: true` nodes return null (no dialog shown) — used to introduce probability of silence.
+
+**followUp.openReferenceCard:** when `true`, the reference card panel opens as the node is displayed. Used when Chief Dodo hands the student the reference card.
+
+---
+
+## Assessment Architecture
+
+Three cleanly separated concerns — content, evaluation, and record — so that new assessment modes can be added without touching existing infrastructure.
+
+### Content (dialog JSON)
+
+Interactive nodes carry `options` (with `correct` flags), a `feedback` map (node IDs per attempt outcome), and optional `correctAnswer`. Content authors write questions and flag correct answers; no evaluation logic lives in the JSON.
+
+### Evaluation (`src/lib/game/assessment.ts`)
+
+A standalone module with no dependencies on the dialog engine or UI. Accepts a node ID, response, and correct answer; returns an `AssessmentResult` (correct, attemptNumber, feedbackNodeId, exhausted, templateVars). Tracks attempt counts in memory per session. Fully unit-tested.
+
+Adding a new assessment mode requires: (1) adding the `responseType` string to the `DialogNode` union in `engine.ts`, (2) an evaluation function in `assessment.ts`, (3) a UI block in `App.svelte`. Attempt tracking, record-keeping, and feedback routing are shared infrastructure.
+
+### Record (`assessmentLog` in `localStorage`)
+
+Final outcomes (nodeId, responseType, attempts, correct) persisted alongside game state via `storage.ts`. The competency gate queries this log. Restored on session continue via `restoreAssessmentLog()`.
+
+### Checklist scaffolding (3-attempt ladder)
+
+- Attempt 1 wrong → directional hint node
+- Attempt 2 wrong → quantitative hint node (template vars: `{{needToCheck}}`, `{{needToUncheck}}`)
+- Attempt 3 wrong → reveal node; `exhausted: true` returned
+
+The ladder behavior is in the engine; the copy is in JSON. The two can evolve independently.
+
+### Module structure (established)
+
+| Path | Contents |
+| --- | --- |
+| `src/lib/game/` | Game logic: card, hand evaluation, Five Card Draw state machine, NPC, storage, assessment |
+| `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()` |
+| `src/lib/components/` | Svelte UI components: CardImage, ReferenceCard |
+| `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state |
+| `dialog/` | JSON dialog trees (content only — no logic) |
 
 ---
 
 ## Open Decisions
 
-- Module/package structure for game logic vs. UI
-- Testing approach for probability-heavy game logic
-- `localStorage` schema for player state persistence
+| Concern | Status | Notes |
+| --- | --- | --- |
+| Gameplay observation (passive assessment) | Not started | System needs to record bet/draw/fold patterns and trigger coaching from them |
+| Scripted hands (stacked deck) | Not started | `dealScriptedHand` flag in dialog `followUp`; game layer override for targeted assessment |
+| Numeric input UI | Engine done | `evaluateNumeric` built and tested; UI block in `App.svelte` not yet implemented |
+| CSS approach | Inline `<style>` per component | Working well for Phase 1; no external CSS framework needed |
+| Backend language | TBD (Phase 2) | Go is a known strength; Node shares TypeScript types with frontend |
+| Backend framework | TBD (Phase 2) | Express, Fastify, or Gin |
+| Database | TBD (Phase 2) | Postgres preferred; Supabase simplifies auth + realtime |
+| Real-time layer | TBD (Phase 2) | WebSockets or Supabase Realtime |

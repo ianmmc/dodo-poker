@@ -1,3 +1,5 @@
+import type { AssessmentRecord } from './assessment'
+
 const KEY = 'dodo-poker-v1'
 
 export interface SavedSession {
@@ -9,6 +11,7 @@ export interface SavedSession {
   betAmount: number
   ante: number
   firedOnce: string[]
+  assessmentLog: AssessmentRecord[]
 }
 
 export function save(data: SavedSession): void {

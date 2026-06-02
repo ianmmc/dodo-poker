@@ -17,7 +17,14 @@
       "speaker": "chief-dodo",
       "text": "That's Hank. California Condor. He's been a member here longer than I have. Doesn't mean he knows what he's doing at the table.",
       "responseType": "none",
-      "followUp": { "default": "t1a-approach-003" }
+      "followUp": { "default": "t1a-approach-ref" }
+    },
+    {
+      "id": "t1a-approach-ref",
+      "speaker": "chief-dodo",
+      "text": "Here — take this. Hand rankings. Best hand at the top, worst at the bottom. Keep it open if you want.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-approach-003", "openReferenceCard": true }
     },
     {
       "id": "t1a-approach-003",
@@ -197,6 +204,56 @@
       "id": "t1a-pattern-003",
       "speaker": "chief-dodo",
       "text": "That's useful. A player who never folds tells you exactly what to do when you have a strong hand.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-assess-hank-001" }
+    },
+
+    {
+      "id": "t1a-assess-hank-001",
+      "speaker": "chief-dodo",
+      "text": "What have you noticed about how Hank plays?",
+      "responseType": "checklist",
+      "options": [
+        { "id": "opt-a", "text": "He bets on every single hand.",              "correct": true  },
+        { "id": "opt-b", "text": "He raises when he has strong cards.",         "correct": false },
+        { "id": "opt-c", "text": "He never folds, no matter what.",             "correct": true  },
+        { "id": "opt-d", "text": "He folds when his cards are weak.",           "correct": false },
+        { "id": "opt-e", "text": "His bets stay the same regardless of his cards.", "correct": true  }
+      ],
+      "feedback": {
+        "correct":      "t1a-assess-hank-correct",
+        "attempt1Wrong":"t1a-assess-hank-hint1",
+        "attempt2Wrong":"t1a-assess-hank-hint2",
+        "attempt3Wrong":"t1a-assess-hank-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1a-assess-hank-correct",
+      "speaker": "chief-dodo",
+      "text": "That's exactly it. Bets every hand, never folds, same no matter what's in his cards. Once you know that, you know everything you need to play against him.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-hank-hint1",
+      "speaker": "chief-dodo",
+      "text": "Not quite. Look at what he does every time — without exception.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-hank-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-hank-reveal",
+      "speaker": "chief-dodo",
+      "text": "Here's what I see: he bets every hand, never folds, and his cards don't change how he plays. Every time. That's the whole picture.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },

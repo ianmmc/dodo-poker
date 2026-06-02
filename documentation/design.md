@@ -90,7 +90,33 @@ Chief Dodo has defined moments in each hand when he can (but doesn't always) spe
 
 ### The Reference Card System
 
-When the student enters The Nest, Chief Dodo hands them a **basic reference card**: poker hands organized by rank. This is an on-demand resource the student can pull up at any time.
+Chief Dodo hands the student a **basic reference card** as part of the Table 1A introduction — not at the start of the game, but in a natural coaching moment once the student is seated and oriented. The card is a persistent UI element that stays with the student for the rest of their session.
+
+#### UI: Sliding Panel
+
+The reference card lives in a **sliding panel** on the right side of the table screen. It is not a modal — it overlays the game without replacing it. A toggle control is always visible so the student can show or hide the panel at will. The student can have the panel open while actively playing: choosing which cards to draw, deciding whether to bet, watching Hank's response — all with the reference card in view.
+
+Chief Dodo can also open the panel **programmatically**, as part of his coaching dialog. A `openReferenceCard: true` flag in a dialog node's `followUp` payload triggers the panel to slide open. This lets Chief Dodo draw the student's attention to the card mid-coaching without requiring a separate player action.
+
+#### Content at Table 1A
+
+The Table 1A reference card contains the **nine poker hand rankings**, from highest to lowest, with a **qualitative rarity descriptor** for each. No probability fractions or combinatorial counts appear yet — those are earned at later tables, after the student has built intuition through observation.
+
+Rarity descriptors are qualitative only: terms like "common," "uncommon," "rare," and "very rare." The framing is relative and experiential, not mathematical.
+
+| Hand | Rarity |
+| --- | --- |
+| Straight Flush | Very rare |
+| Four of a Kind | Very rare |
+| Full House | Rare |
+| Flush | Rare |
+| Straight | Uncommon |
+| Three of a Kind | Uncommon |
+| Two Pair | Common |
+| One Pair | Common |
+| High Card | Common |
+
+#### Card Progression
 
 As the student acquires knowledge and demonstrates competency, Chief Dodo hands them additional cards. Later cards add:
 
@@ -158,7 +184,38 @@ All player interaction is menu-driven. Free text entry is limited to wager amoun
 
 **4. Numeric input** — used when Chief Dodo asks a quantitative question ("How many cards help you?", "What's in the pot?"). One or more labeled number fields; Chief Dodo's follow-up branches on the student's answer (correct, too high, too low, etc.). Wager entry is also numeric.
 
-**Early-table constraint:** checklist and numeric responses are not used at Table 1A. Chief Dodo's coaching in Phase 1 is observational — he points at things without asking the student to reason formally. These interaction types are introduced as the student acquires enough vocabulary to engage with them meaningfully.
+**Assessment timing:** Checklist responses are introduced at Table 1A but only after the student has accumulated sufficient gameplay experience. The first checklist question fires in the pattern reveal sequence — after at least 5 completed hands. The principle is the same: assessment follows observation. Chief Dodo does not ask students to reason formally until they have watched enough hands to have something to reason about. Numeric responses are introduced at later tables where quantitative reasoning is the explicit focus.
+
+### Assessment System
+
+The game assesses the student through multiple modes. The overarching principle: **assessment follows observation**. Students are never asked to reason about something they haven't had the chance to watch first.
+
+#### Assessment modes
+
+| Mode | Description | Status |
+| --- | --- | --- |
+| Gameplay observation | Passive — the system records bets, draws, and fold decisions to build a picture of the student's probability reasoning without interrupting play | Planned |
+| Checklist | Chief Dodo presents 5–7 statements (correct reasoning and common errors); student checks all that apply; follow-up keyed to which items were selected | Live |
+| Numeric input | Chief Dodo asks a quantitative question; student enters a number; feedback branches on correct / too high / too low | Engine built, UI pending |
+| Single-select decision | One best answer from 3–4 options; used for "what's the right move here?" moments | Planned |
+| Qualitative estimate | Student picks a probability bucket (very likely / possible / unlikely / very unlikely); bridges intuition and formal probability | Planned |
+| Prediction + reveal | Student commits to a prediction before an outcome resolves; the hand plays out and the result is the feedback | Planned |
+
+#### Checklist scaffolding
+
+Three-attempt ladder — built into the assessment engine, parameterized via each node's `feedback` field in the dialog JSON:
+
+- **Attempt 1 wrong** → directional hint ("look at what he does every time")
+- **Attempt 2 wrong** → quantitative hint: how many checked statements don't belong, how many correct ones are unchecked — without naming them
+- **Attempt 3 wrong** → Chief Dodo reveals the answer; student continues
+
+#### Assessment record
+
+Final outcomes (node ID, response type, attempts taken, correct/incorrect) are persisted alongside game state in `localStorage`. The competency gate queries this record. Chief Dodo's adaptive coaching can also query it to avoid repeating material the student has already demonstrated.
+
+#### Scripted hands (planned)
+
+To assess specific concepts reliably, the system needs to be able to override the random deck and deal predetermined cards — placing the student in a specific situation. This is triggered via dialog (Chief Dodo says "let me show you something") and handled at the game layer, not the assessment layer.
 
 ### Club Structure & Progression
 
