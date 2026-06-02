@@ -24,12 +24,12 @@ User stories organized by theme. Each story will gain acceptance criteria before
 
 | # | Story | Status |
 | --- | ------- | -------- |
-| L-01 | As a student, I want to advance to more complex game scenarios only after demonstrating competency at the current level. | `draft` |
+| L-01 | As a student, I want to advance to more complex game scenarios only after demonstrating competency at the current level. | `done` |
 | L-02 | As a student, I want the number of opponents I face to increase as I progress, from 1 NPC up to 5. | `draft` |
 | L-03 | As a student, I want to be introduced to new poker variants gradually, with Chief Dodo explaining the new rules each time. | `draft` |
 | L-04 | As a student, I want the poker variant I'm playing to match the mathematical concepts I'm currently learning. | `draft` |
 | L-05 | As a student, I want The Nest organized into distinct tables so I always know where I am in my progression and what comes next. | `draft` |
-| L-06 | As a student, I want Chief Dodo to suggest when I'm ready to move to the next table, based on what I've demonstrated — not how many hands I've played. | `draft` |
+| L-06 | As a student, I want Chief Dodo to suggest when I'm ready to move to the next table, based on what I've demonstrated — not how many hands I've played. | `done` |
 | L-07 | As a student, I want to track and record outcomes from my hands so I can compare what I observe to what the math predicts, building intuition about probability before formal numbers are introduced. | `draft` |
 
 ---
@@ -86,6 +86,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | A-06 | As a student, I want to answer numerical questions about what I'm observing and receive feedback on whether my answer was too high, too low, or correct. | `in-progress` |
 | A-07 | As a student, I want my assessment responses to be saved so the system can recognize what I've already demonstrated across sessions. | `done` |
 | A-08 | As a student, I want the game to sometimes put me in a specific hand situation to test a concept directly, rather than waiting for it to come up by chance. | `draft` |
+| A-09 | As a student, I want assessment questions to arise naturally during gameplay — interleaved with play, not batched at the end — so coaching feels like conversation, not a quiz. | `done` |
 
 ---
 
@@ -105,6 +106,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | T-01 | As a student, I want the game to function fully client-side in Phase 1, with no server required. | `done` |
 | T-02 | As a student (future), I want to play against other students in real-time multiplayer sessions. | `draft` |
 | T-03 | As a student, I want the game state to persist across browser sessions (local storage in Phase 1). | `done` |
+| T-04 | As a student, I want to see the current bet amount alongside the pot so I understand what each decision costs. | `done` |
 
 ---
 

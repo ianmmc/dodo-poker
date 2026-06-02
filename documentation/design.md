@@ -182,9 +182,9 @@ All player interaction is menu-driven. Free text entry is limited to wager amoun
 
 **3. Checklist response** — used when Chief Dodo asks a reflective or open question ("What does that tell you?", "Walk me through your thinking"). Player sees 5–7 statements — a mix of correct reasoning and common misconceptions — and checks any that match their thinking. Chief Dodo's follow-up is keyed to which specific items were selected, not just right/wrong. This keeps interaction menu-driven while allowing genuine formative assessment.
 
-**4. Numeric input** — used when Chief Dodo asks a quantitative question ("How many cards help you?", "What's in the pot?"). One or more labeled number fields; Chief Dodo's follow-up branches on the student's answer (correct, too high, too low, etc.). Wager entry is also numeric.
+**4. Numeric input** — used when Chief Dodo asks a quantitative question (wager entry is also numeric) ("How many cards help you?", "What's in the pot?"). One or more labeled number fields; Chief Dodo's follow-up branches on the student's answer (correct, too high, too low, etc.). Wager entry is also numeric.
 
-**Assessment timing:** Checklist responses are introduced at Table 1A but only after the student has accumulated sufficient gameplay experience. The first checklist question fires in the pattern reveal sequence — after at least 5 completed hands. The principle is the same: assessment follows observation. Chief Dodo does not ask students to reason formally until they have watched enough hands to have something to reason about. Numeric responses are introduced at later tables where quantitative reasoning is the explicit focus.
+**Assessment timing:** Assessment questions are interleaved with gameplay — never batched at the end. The principle: Chief Dodo reacts to moments as they arise, not on a fixed schedule. At Table 1A, the Hank pattern checklist fires after 3 completed hands (the student has seen Hank's always-bet behavior on every hand; 3 is enough to notice). Play then resumes uninterrupted. The gambler's fallacy coaching and its two checklists fire separately at hand 8 — after the student has experienced enough hands to have encountered a streak. Real gameplay separates each coaching moment; assessment never clusters. Numeric responses are introduced at later tables where quantitative reasoning is the explicit focus.
 
 ### Assessment System
 
@@ -247,6 +247,17 @@ In The Nest, the token used for placing bets is seeds (rather than chips). The v
 ### Poker Variants by Phase
 
 The poker variant at each table is selected to best serve the mathematical concepts of that phase. Chief Dodo walks the student through new variant rules when they arrive at a new table. See `scope-sequence.md` for the full mapping.
+
+### Fixed-Bet Tables
+
+Some early tables use a fixed bet amount rather than variable sizing. At Table 1A, bets are fixed at 5 seeds (open or call); there is no raise option. This is intentional:
+
+- The learning focus at Table 1A is observing Hank's pattern and building probability intuition — not optimizing bet sizing
+- Fixed amounts eliminate a dimension of complexity at the wrong pedagogical moment
+- Equal-sized bets make win/loss patterns easy to track and compare across hands
+- Chief Dodo names the fixed amount upfront so it reads as a deliberate rule, not a missing feature
+
+Variable bet sizing is introduced when it becomes the concept under study, not before.
 
 ### Know When to Hold 'Em, Know When to Fold 'Em
 

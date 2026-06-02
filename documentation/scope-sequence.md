@@ -85,9 +85,11 @@ The Nest is organized into four rooms, each deeper into the club:
 
 ### Table 1A — The Entry Table
 
-**Variant**: Five Card Draw (simplified — deal and observe; no draw mechanic, no betting decisions)
+**Variant**: Five Card Draw (simplified — draw mechanic and fixed-bet betting included; no variable bet sizing, no raises)
 
-**Why this variant, not another**: Five Card Draw's sample space is the cleanest in the set: 52 cards, C(52,5) equally likely hands, all private, no sequential updating required. There is no community information to track, no opponent-visible cards to condition on, no wild cards to complicate the space. The introductory table does not use the draw mechanic or real betting — just dealing and observing. No other variant gives a more direct, uncluttered demonstration that some outcomes are more likely than others and that the deck does not have memory.
+**Why this variant, not another**: Five Card Draw's sample space is the cleanest in the set: 52 cards, C(52,5) equally likely hands, all private, no sequential updating required. There is no community information to track, no opponent-visible cards to condition on, no wild cards to complicate the space. No other variant gives a more direct, uncluttered demonstration that some outcomes are more likely than others and that the deck does not have memory.
+
+**Implementation simplifications at Table 1A**: The draw mechanic is included — it gives the student agency and creates observational data about card exchange decisions. Betting is included but simplified: bets are fixed at 5 seeds (open or call), there is no raise option. Chief Dodo names the fixed amount upfront. Variable bet sizing is introduced when it becomes the concept under study.
 
 **Learning Objectives**
 
@@ -99,6 +101,8 @@ The Nest is organized into four rooms, each deeper into the club:
 
 **Chief Dodo's Focus**: Surfacing the gambler's fallacy before formal numbers arrive. When a student shows disappointment after several "bad" deals, Chief Dodo observes that the deck does not remember what just happened. Actively confronting this intuition before fractions appear is research-supported (Fischbein's primary intuitions are persistent and must be named, not ignored).
 
+**Assessment sequencing at Table 1A**: Following the predict→observe→compare cycle from research, coaching moments are interleaved with play — never batched. At hand 3, Chief Dodo prompts the student to describe Hank's pattern (checklist). Play resumes. At hand 8, Chief Dodo surfaces the gambler's fallacy directly (coaching + conceptual checklist), then immediately bridges to a transfer scenario (colored-seeds bag, same reasoning applied to a new context). Completing both assessments — correctly or after three attempts — triggers the gate-passed sequence and unlocks Table 1B.
+
 **NPCs**
 
 | NPC | Bird | Reasoning Pattern | Flaw / Lesson |
@@ -107,11 +111,13 @@ The Nest is organized into four rooms, each deeper into the club:
 
 **CCSS**: 7.SP.C.5 — *introduced* (probability as a number between 0 and 1; the student encounters the concept before the formal number is assigned)
 
-**Competency Gate**
+**Competency Gate** *(implemented)*
 
-- *Procedural*: Given a described scenario (a draw from a standard deck), correctly classify the event as impossible, possible, or certain
-- *Conceptual*: Explain in one or two sentences why getting five poor hands in a row does not make a good hand more likely next time
-- *Transfer*: Apply likelihood language to a non-card scenario (drawing from a bag of colored seeds) — same reasoning, different surface
+- *Procedural*: Given a described scenario (a draw from a standard deck), correctly classify the event as impossible, possible, or certain *(scaffolded via the Hank pattern checklist — hand 3)*
+- *Conceptual*: Explain why getting five poor hands in a row does not make a good hand more likely next time *(gambler's fallacy checklist — hand 8; 3-attempt ladder with directional and quantitative hints)*
+- *Transfer*: Apply the same reasoning to a non-card scenario (drawing from a bag of colored seeds with replacement) *(transfer checklist — fires immediately after conceptual, same coaching session)*
+
+Completing both the conceptual and transfer checklists (correctly or after three attempts on each) triggers Chief Dodo's gate-passed sequence and surfaces the "Move to Table 1B" control.
 
 ---
 
