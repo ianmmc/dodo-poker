@@ -28,6 +28,7 @@ export interface DialogNode {
     default?: string
     returnToGame?: boolean
     openReferenceCard?: boolean
+    advanceTable?: boolean
   }
 }
 
@@ -66,7 +67,7 @@ function chain(startId: string): DialogNode[] {
     const n = nodes.get(id)
     if (!n) break
     if (!n.silent) seq.push(n)
-    if (n.followUp.returnToGame || n.responseType !== 'none') break
+    if (n.followUp.returnToGame || n.followUp.advanceTable || n.responseType !== 'none') break
     id = n.followUp.default
   }
   return seq
@@ -116,6 +117,10 @@ export function getHankActionNode(action: 'call' | 'bet' | 'raise'): DialogNode 
 export function getHankDrawNode(count: number): DialogNode | null {
   const id = count === 0 ? 't1a-hank-draw-0' : `t1a-hank-draw-${Math.min(count, 3)}`
   return nodes.get(id) ?? null
+}
+
+export function getChain(startId: string): DialogNode[] {
+  return chain(startId)
 }
 
 export function getNode(id: string): DialogNode | null {

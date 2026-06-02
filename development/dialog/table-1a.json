@@ -1,7 +1,7 @@
 {
   "id": "table-1a",
   "version": "1.0",
-  "description": "Table 1A dialog: Five Card Draw, Hank (California Condor), Phase 1. No checklist or numeric responses — all Chief Dodo coaching is observational.",
+  "description": "Table 1A dialog: Five Card Draw, Hank (California Condor), Phase 1. Includes pattern reveal, Hank checklist, gambler's fallacy coaching, conceptual and transfer checklists, and gate-passed sequence.",
   "sections": ["approach", "hand-1-pre", "pre-hand-pool", "draw-comments", "post-win", "post-loss", "post-fold", "pattern-reveal", "hank-npc"],
   "nodes": [
 
@@ -234,7 +234,7 @@
       "speaker": "chief-dodo",
       "text": "That's exactly it. Bets every hand, never folds, same no matter what's in his cards. Once you know that, you know everything you need to play against him.",
       "responseType": "none",
-      "followUp": { "returnToGame": true }
+      "followUp": { "default": "t1a-fallacy-001" }
     },
     {
       "id": "t1a-assess-hank-hint1",
@@ -255,7 +255,159 @@
       "speaker": "chief-dodo",
       "text": "Here's what I see: he bets every hand, never folds, and his cards don't change how he plays. Every time. That's the whole picture.",
       "responseType": "none",
+      "followUp": { "default": "t1a-fallacy-001" }
+    },
+
+    {
+      "id": "t1a-fallacy-001",
+      "speaker": "chief-dodo",
+      "text": "Now — one more thing Hank shows you. He keeps losing, but he always thinks he's about to turn it around.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-fallacy-002" }
+    },
+    {
+      "id": "t1a-fallacy-002",
+      "speaker": "chief-dodo",
+      "text": "Some players think: 'Five bad hands in a row — I must be due for a good one.' Feels true. But the deck doesn't know what just happened.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-fallacy-003" }
+    },
+    {
+      "id": "t1a-fallacy-003",
+      "speaker": "chief-dodo",
+      "text": "Every shuffle resets everything. Fifty-two cards, same odds as always. Nothing gets 'owed' to you.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-assess-gamblers-001" }
+    },
+
+    {
+      "id": "t1a-assess-gamblers-001",
+      "speaker": "chief-dodo",
+      "text": "Why doesn't a bad streak make a good hand more likely next time? Check everything that's true.",
+      "responseType": "checklist",
+      "options": [
+        { "id": "g-a", "text": "The deck is reshuffled every hand — it has no memory of what came before.", "correct": true  },
+        { "id": "g-b", "text": "Each deal is independent. Past results don't affect the cards.",             "correct": true  },
+        { "id": "g-c", "text": "Good hands are 'stored up' and have to come out eventually.",               "correct": false },
+        { "id": "g-d", "text": "You're more likely to get a strong hand after several weak ones.",          "correct": false },
+        { "id": "g-e", "text": "The probability of any particular hand is the same every time the deck is shuffled.", "correct": true }
+      ],
+      "feedback": {
+        "correct":       "t1a-assess-gamblers-correct",
+        "attempt1Wrong": "t1a-assess-gamblers-hint1",
+        "attempt2Wrong": "t1a-assess-gamblers-hint2",
+        "attempt3Wrong": "t1a-assess-gamblers-reveal"
+      },
       "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1a-assess-gamblers-correct",
+      "speaker": "chief-dodo",
+      "text": "Right. The deck has no memory. Every shuffle — same 52 cards, same odds. Nothing carries over.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-gate-bridge-001" }
+    },
+    {
+      "id": "t1a-assess-gamblers-hint1",
+      "speaker": "chief-dodo",
+      "text": "Think about what happens to the deck between hands. Does anything carry over from the last deal?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-gamblers-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck. Focus on what the shuffle does.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-gamblers-reveal",
+      "speaker": "chief-dodo",
+      "text": "The shuffle resets everything. The deck has no record of previous hands. Each deal is completely independent — nothing is stored up, nothing is owed.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-gate-bridge-001" }
+    },
+
+    {
+      "id": "t1a-gate-bridge-001",
+      "speaker": "chief-dodo",
+      "text": "Same idea, different situation. Stay with me.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-assess-transfer-001" }
+    },
+
+    {
+      "id": "t1a-assess-transfer-001",
+      "speaker": "chief-dodo",
+      "text": "I have a bag: 3 brown seeds, 7 green. I draw one, note the color, put it back, shake the bag. I do this five times — every draw comes up green. What's true about the sixth draw? Check all that apply.",
+      "responseType": "checklist",
+      "options": [
+        { "id": "tr-a", "text": "Green is still more likely — there are more green seeds in the bag.",           "correct": true  },
+        { "id": "tr-b", "text": "Brown is 'overdue' — it must come up soon.",                                   "correct": false },
+        { "id": "tr-c", "text": "The chance of drawing brown is still exactly 3 out of 10, same as always.",    "correct": true  },
+        { "id": "tr-d", "text": "The bag doesn't know what color came up last time.",                            "correct": true  },
+        { "id": "tr-e", "text": "Getting green five times means the green seeds are running low.",               "correct": false }
+      ],
+      "feedback": {
+        "correct":       "t1a-assess-transfer-correct",
+        "attempt1Wrong": "t1a-assess-transfer-hint1",
+        "attempt2Wrong": "t1a-assess-transfer-hint2",
+        "attempt3Wrong": "t1a-assess-transfer-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1a-assess-transfer-correct",
+      "speaker": "chief-dodo",
+      "text": "Exactly. The seed goes back in. The bag resets. Same odds every time — the bag has no memory, same as the deck.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-gate-passed-001" }
+    },
+    {
+      "id": "t1a-assess-transfer-hint1",
+      "speaker": "chief-dodo",
+      "text": "The seed goes back in after each draw. What does that mean for what's in the bag next time?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-transfer-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck. Focus on what 'put it back and shake' means for the odds.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-transfer-reveal",
+      "speaker": "chief-dodo",
+      "text": "With replacement: the bag resets after every draw. The odds stay at 3 out of 10 brown and 7 out of 10 green — every time, regardless of what came before.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-gate-passed-001" }
+    },
+
+    {
+      "id": "t1a-gate-passed-001",
+      "speaker": "chief-dodo",
+      "text": "You've got it. The deck has no memory. The bag has no memory. Probability describes what can happen — not what's 'owed.'",
+      "responseType": "none",
+      "followUp": { "default": "t1a-gate-passed-002" }
+    },
+    {
+      "id": "t1a-gate-passed-002",
+      "speaker": "chief-dodo",
+      "text": "Table 1A was the foundation. You've seen what Hank is doing, and you understand why a bad streak doesn't change the next hand.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-gate-passed-003" }
+    },
+    {
+      "id": "t1a-gate-passed-003",
+      "speaker": "chief-dodo",
+      "text": "There's another table in The Front Room. Lucky's there — a Rock Pigeon who thinks he's always due for a comeback. You're ready for him.",
+      "responseType": "none",
+      "followUp": { "advanceTable": true }
     },
 
     {

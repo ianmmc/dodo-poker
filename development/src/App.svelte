@@ -18,19 +18,20 @@
     getApproachNodes, getPreHandNode, getDrawComment,
     getPostHandNode, getPatternReveal,
     getHankActionNode, getHankDrawNode,
-    restoreFiredOnce, getFiredOnce, getNode,
+    restoreFiredOnce, getFiredOnce, getNode, getChain,
   } from './lib/dialog/engine'
   import type { DialogNode } from './lib/dialog/engine'
 
   // ── Types ────────────────────────────────────────────────────────────────
 
-  type Screen = 'title' | 'avatar' | 'intro' | 'table'
+  type Screen = 'title' | 'avatar' | 'intro' | 'table' | 'table1b'
 
   interface DisplayLine {
     speaker: string
     text: string
     openReferenceCard?: boolean
     assessmentNode?: DialogNode
+    advanceTable?: boolean
   }
 
   interface AssessmentState {
@@ -63,6 +64,7 @@
   let discardSet = new Set<number>()
   let refCardOpen = false
   let assessmentState: AssessmentState | null = null
+  let gatePassedAt1A = false
 
   // Dialog queue — shown one at a time; action menu hidden while non-empty
   let dialogQueue: DisplayLine[] = []
@@ -102,6 +104,7 @@
       text: vars ? interpolate(rawText, vars) : rawText,
       openReferenceCard: node.followUp.openReferenceCard === true,
       assessmentNode: isInteractive ? node : undefined,
+      advanceTable: node.followUp.advanceTable === true,
     }
   }
 
@@ -115,6 +118,7 @@
   function advance(): void {
     const current = dialogQueue[0]
     dialogQueue = dialogQueue.slice(1)
+    if (current?.advanceTable) gatePassedAt1A = true
     if (current?.assessmentNode) {
       assessmentState = { node: current.assessmentNode, selectedIds: new Set() }
     }
@@ -137,17 +141,19 @@
 
     const result = evaluateChecklist(node.id, selectedIds, correctIds, node.feedback ?? {})
 
-    if (result.feedbackNodeId) {
-      const feedbackNode = getNode(result.feedbackNodeId)
-      if (feedbackNode) enqueue([feedbackNode], result.templateVars)
-    }
-
     if (result.correct || result.exhausted) {
       recordAssessment({ nodeId: node.id, responseType: 'checklist', attempts: result.attemptNumber, correct: result.correct })
       assessmentState = null
+      if (result.feedbackNodeId) {
+        enqueue(getChain(result.feedbackNodeId), result.templateVars)
+      }
       doSave()
     } else {
       assessmentState = { ...assessmentState, selectedIds: new Set() }
+      if (result.feedbackNodeId) {
+        const feedbackNode = getNode(result.feedbackNodeId)
+        if (feedbackNode) enqueue([feedbackNode], result.templateVars)
+      }
     }
   }
 
@@ -165,6 +171,7 @@
     avatar = saved.avatar
     restoreFiredOnce(saved.firedOnce)
     restoreAssessmentLog(saved.assessmentLog ?? [])
+    gatePassedAt1A = (saved.assessmentLog ?? []).some(r => r.nodeId === 't1a-assess-transfer-001')
     game = {
       ...createGame(saved.playerSeeds, saved.betAmount, saved.ante),
       playerSeeds: saved.playerSeeds,
@@ -254,8 +261,13 @@
     game = createGame(100, 5, 5)
     discardSet = new Set()
     dialogQueue = []
+    gatePassedAt1A = false
     screen = 'title'
     savedSession = false
+  }
+
+  function moveToTable1B(): void {
+    screen = 'table1b'
   }
 
   // ── Persistence ──────────────────────────────────────────────────────────
@@ -338,6 +350,15 @@
     <button class="action-btn primary" on:click={sitDown}>Sit down at Table 1</button>
   </div>
 
+<!-- ── TABLE 1B ────────────────────────────────────────────────────────────── -->
+{:else if screen === 'table1b'}
+  <div class="screen center">
+    <h2 class="room-heading">The Front Room — Table 1B</h2>
+    <div class="dodo-quote">"Lucky's been sitting at that table all week. Rock Pigeon. Every time he loses he says 'I'm due, man — the cards owe me.' Now you know exactly what to look for."</div>
+    <div class="dodo-quote">"Table 1B is coming soon. We're still setting it up."</div>
+    <button class="action-btn primary" on:click={resetGame}>Return to The Nest</button>
+  </div>
+
 <!-- ── TABLE ──────────────────────────────────────────────────────────────── -->
 {:else if screen === 'table'}
   <div class="table-screen" class:ref-card-open={refCardOpen}>
@@ -402,6 +423,13 @@
 
     <!-- Dialog / Action area -->
     <div class="bottom-area">
+
+      {#if gatePassedAt1A && !inDialog && !assessmentState}
+        <div class="advance-cta">
+          <p class="advance-label">Chief Dodo: "You're ready for the next table."</p>
+          <button class="action-btn primary advance-btn" on:click={moveToTable1B}>Move to Table 1B →</button>
+        </div>
+      {/if}
 
       {#if inDialog && currentLine}
         <!-- Dialog line -->
@@ -678,6 +706,26 @@
 
   .result-area { display: flex; flex-direction: column; gap: 14px; }
   .result-text { font-size: 1.15rem; color: #c8a84a; }
+
+  .advance-cta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(200, 168, 74, 0.1);
+    border: 1px solid rgba(200, 168, 74, 0.4);
+    border-radius: 8px;
+    padding: 14px 18px;
+    flex-wrap: wrap;
+  }
+  .advance-label { font-style: italic; color: #d4c89a; font-size: 0.95rem; flex: 1; }
+  .advance-btn { min-width: auto; white-space: nowrap; }
+
+  .room-heading {
+    font-size: 1.4rem;
+    color: #c8a84a;
+    letter-spacing: 0.06em;
+    font-weight: normal;
+  }
 
   .hand-counter {
     position: fixed;
