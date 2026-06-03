@@ -1,7 +1,7 @@
 import type { Card } from './card'
 
 export interface BetDecision {
-  action: 'bet' | 'call' | 'check'
+  action: 'bet' | 'call' | 'check' | 'fold'
   amount: number
 }
 
@@ -29,7 +29,7 @@ function weightedRandom(weights: { count: number; weight: number }[]): number {
 }
 
 export const hank = {
-  // Hank always bets if he can; always calls if facing a bet.
+  // Hank always bets if he can; always calls if facing a bet. Never folds.
   decideBet(callAmount: number, betAmount: number): BetDecision {
     if (callAmount > 0) return { action: 'call', amount: callAmount }
     return { action: 'bet', amount: betAmount }
@@ -44,5 +44,32 @@ export const hank = {
 
   drawDialogNodeId(count: number): string {
     return count === 0 ? 't1a-hank-draw-0' : `t1a-hank-draw-${Math.min(count, 3)}`
+  }
+}
+
+// Lucky folds when she's been winning — she thinks she's "due" to lose and
+// wants to protect her stack. The irony: she's acting on the gambler's fallacy.
+// Only folds when opening (callAmount === 0); always calls facing a player bet.
+function luckyFoldProbability(luckyConsecutiveWins: number): number {
+  return luckyConsecutiveWins >= 2 ? 0.35 : 0.10
+}
+
+export const lucky = {
+  decideBet(callAmount: number, betAmount: number, luckyConsecutiveWins = 0): BetDecision {
+    if (callAmount > 0) return { action: 'call', amount: callAmount }
+    if (Math.random() < luckyFoldProbability(luckyConsecutiveWins)) {
+      return { action: 'fold', amount: 0 }
+    }
+    return { action: 'bet', amount: betAmount }
+  },
+
+  decideDraw(_hand: Card[]): DrawDecision {
+    const count = weightedRandom(HANK_DRAW_WEIGHTS)
+    const discardIndices = Array.from({ length: count }, (_, i) => 4 - i)
+    return { discardIndices }
+  },
+
+  drawDialogNodeId(count: number): string {
+    return count === 0 ? 't1b-hank-draw-0' : `t1b-hank-draw-${Math.min(count, 3)}`
   }
 }

@@ -142,15 +142,15 @@ Completing both the conceptual and transfer checklists (correctly or after three
 | NPC | Bird | Reasoning Pattern | Flaw / Lesson |
 | --- | --- | --- | --- |
 | Hank | California Condor | Always bets (returns from 1A) | With frequency data in hand, the student can now see that Hank's always-bet strategy loses in the long run |
-| Lucky | Rock Pigeon | Gambler's fallacy | After several losses: "I'm due, man. Five bad hands in a row — the cards owe me." Chief Dodo points at the frequency table: does the deck know? |
+| Lucky | Rock Pigeon | Gambler's fallacy | After several losses: "I'm due, man. Five bad hands in a row — the cards owe me." Chief Dodo points at the frequency table: does the deck know? Lucky's betting behavior reflects her fallacy: she folds more often when she's been *winning* (thinking she's due to lose) — a personality-driven behavior students can observe and exploit. |
 
 **CCSS**: 7.SP.C.6 (approximate probability through repeated experiments; observe long-run relative frequency — **focus**); 7.SP.C.7b (non-uniform probability model from observed frequencies); 7.SP.C.8c (simulation — Surveillance Room)
 
-**Competency Gate**
+**Competency Gate** *(implemented)*
 
-- *Procedural*: Given 50 observed deals, compute the relative frequency of a specified hand type as a fraction and as a decimal
-- *Conceptual*: Use the frequency table to explain specifically why Lucky's reasoning is incorrect — point to the data
-- *Transfer*: Given a Surveillance Room chart showing 10,000 coin flips, explain what the running-frequency graph shows, what it means for any single flip, and what it says about what will happen over the next 10,000 flips
+- *Procedural*: Given 50 observed deals, compute the relative frequency of a specified hand type as a fraction and as a decimal *(numeric input — hand 18+, after Surveillance Room visit)*
+- *Conceptual*: Use the frequency table to explain specifically why Lucky's reasoning is incorrect — point to the data *(checklist — fires immediately after procedural)*
+- *Transfer*: Given a Surveillance Room chart showing 10,000 single-card draws (with replacement) tracking suit color — red vs. black — explain what the running-frequency graph shows, what it means for any single draw, and what it says about what will happen over the next 10,000 draws *(checklist — fires immediately after conceptual)*
 
 ---
 

@@ -44,3 +44,9 @@ The student's guide and coach is **Chief Dodo** — a dodo bird who by day sells
 - Follow TDD: write tests before implementing features
 - No features beyond what's required
 - No comments unless the WHY is non-obvious
+
+## Dev Mode
+
+- **Enabled**: automatically in `npm run dev`; in any environment via `?devmode=1` URL parameter
+- **Access**: bottom-left DEV badge (fixed, low opacity), or `Ctrl+Alt+D`
+- **Panel sections**: Jump to Hand (with `handsPlayed=3` and `handsPlayed=8` presets), Jump to Table/Screen, Assessment State (per-checkpoint pass + "Pass all + set gate"), State Tools (dump state → console, clear localStorage), Force Dialog Node (enqueue any node ID by chain)

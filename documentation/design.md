@@ -18,9 +18,16 @@ The Nest is organized around **tables**, each running a different poker variant.
 
 ### The Backroom: The Surveillance Room
 
-A special room accessible through Chief Dodo's connections. The Nest's surveillance footage can be played back at high speed — 1,000 or 10,000 hands in seconds. Chief Dodo introduces the student to this room at the right pedagogical moment. After that, the student can return independently whenever they want to run a fast simulation.
+A special room accessible through Chief Dodo's connections. The Nest's surveillance footage can be played back at high speed — 1,000 or 10,000 draws in seconds. Chief Dodo introduces the student to this room at the right pedagogical moment. After that, the student can return independently whenever they want to run a fast simulation.
 
-This room is the primary tool for demonstrating the law of large numbers and addressing the gambler's fallacy — showing that long-run relative frequency converges to theoretical probability in a way no single session can.
+This room is the primary tool for demonstrating the Law of Large Numbers — showing that long-run relative frequency converges to theoretical probability in a way no single session can. All simulations are card-based and unlocked progressively as the student demonstrates mastery:
+
+- **Table 1B (unlocked)** — Single card draw with replacement, tracking suit color (red vs. black). P(red) = 26/52 = ½. Theoretical probability is verifiable by counting before any formula is introduced.
+- **Future unlock** — Single card draw: suit distribution (hearts / diamonds / clubs / spades). P(heart) = 13/52 = ¼. Introduces convergence at a non-50% target.
+- **Future unlock** — Rank distribution (Ace through King). P(Ace) = 4/52 = 1/13. Rarer events converge more slowly; same LLN principle at lower probabilities.
+- **Future unlock** — Short-hand poker: 2, 3, or 4 cards dealt to one or more players; students track hand-type frequencies and compare against theoretical probabilities as those are learned at later tables. (Two cards: P(pair); three cards: P(three of a kind), P(one pair); four cards: P(two pair), P(four of a kind); multiplayer high-card.)
+
+All simulations use sampling with replacement to maintain a stable theoretical probability across draws.
 
 ---
 
@@ -141,6 +148,30 @@ All opponents are birds. Each NPC embodies a **specific reasoning pattern** — 
 - Early NPCs: obvious, exploitable errors → build confidence and intuition
 - Later NPCs: subtler errors or more sophisticated reasoning → require deeper analysis
 - NPCs are sequenced deliberately — the progression of opponents tracks the curriculum
+- **Betting behavior reflects personality**: NPC fold/bet decisions are driven by their specific reasoning pattern, not a flat strategy. Lucky (gambler's fallacy) folds when she's been winning — she thinks she's "due" to lose, so she protects her stack. This creates a gameplay advantage for students who understand the fallacy. Future NPCs should follow the same principle: behavior that is consistent with the character's error and exploitable by students who understand it.
+
+### Backup NPC Pool
+
+When a planned NPC is bankrupt, Chief Dodo introduces a replacement from a pool of 10 backup members of The Nest. These replacements are not pedagogical NPCs — they are world-building characters who sit in for gameplay continuity. They use the same dialog and behavioral pattern as the NPC they replace.
+
+Chief Dodo's introduction follows a fixed three-beat structure: acknowledge the bust, announce the arrival, share an anecdote. Each backup has a name, bird species, and a short Chief Dodo anecdote.
+
+**Current backup roster** (10 members, used in order, never reused within a session):
+
+| Name | Species | CD's anecdote hook |
+| --- | --- | --- |
+| Morty | Monk Parakeet | "Been at this table longer than the felt. I once watched him bluff a golden eagle off a full house with nothing but a straight face." |
+| Blanche | Great Blue Heron | "Word is she won a car in gin rummy, drove it to the coast, and pushed it into the ocean. Never confirmed. She never denied it." |
+| Dex | Hoopoe | "Tells everyone he's a professor of something. He narrates every hand like he's giving a lecture to an invisible classroom." |
+| Ines | Secretary Bird | "Walked out of a hedge fund one morning, left her badge on the desk, came straight here. That was four years ago." |
+| Clyde | Atlantic Puffin | "Flies in every winter from up north. Happiest loser I've ever seen — I think he just likes being somewhere warm." |
+| Margot | Roseate Spoonbill | "Was here before the card tables. She talked the owner into installing them. Brings it up every time she sits down." |
+| Theo | Shoebill Stork | "Doesn't say much. There's something about the way he sits. I asked him once what he was thinking. He said 'enough.'" |
+| Pearl | Sulphur-Crested Cockatoo | "Performed at a resort in the Cayman Islands for three years. Still plays like she's got an audience — because in her head she always does." |
+| Benny | European Roller | "Claims he's played in casinos on six continents. Showed up with a rolling suitcase one night and it's still in the coat check." |
+| Ruthie | Southern Cassowary | "Never raises her voice. She's got a look. Once you understand the look, you understand Ruthie." |
+
+If all 10 are exhausted, the game offers a "Play again" reset instead of a continuation.
 
 ### NPC Roster
 
@@ -196,7 +227,7 @@ The game assesses the student through multiple modes. The overarching principle:
 | --- | --- | --- |
 | Gameplay observation | Passive — the system records bets, draws, and fold decisions to build a picture of the student's probability reasoning without interrupting play | Planned |
 | Checklist | Chief Dodo presents 5–7 statements (correct reasoning and common errors); student checks all that apply; follow-up keyed to which items were selected | Live |
-| Numeric input | Chief Dodo asks a quantitative question; student enters a number; feedback branches on correct / too high / too low | Engine built, UI pending |
+| Numeric input | Chief Dodo asks a quantitative question; student enters a number; feedback branches on correct / too high / too low | Live |
 | Single-select decision | One best answer from 3–4 options; used for "what's the right move here?" moments | Planned |
 | Qualitative estimate | Student picks a probability bucket (very likely / possible / unlikely / very unlikely); bridges intuition and formal probability | Planned |
 | Prediction + reveal | Student commits to a prediction before an outcome resolves; the hand plays out and the result is the feedback | Planned |

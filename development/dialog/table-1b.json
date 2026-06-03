@@ -1,0 +1,465 @@
+{
+  "id": "table-1b",
+  "version": "1.0",
+  "description": "Table 1B dialog: Five Card Draw, frequency table, LLN, Surveillance Room. NPCs: Hank (returns), Lucky (gambler's fallacy). Gate: procedural relative frequency, conceptual Lucky rebuttal, transfer coin-flip LLN.",
+  "sections": ["approach", "pre-hand-pool", "draw-comments", "post-win", "post-loss", "post-fold", "lucky-due", "surveillance-room", "assessment", "gate-passed", "hank-npc"],
+  "nodes": [
+
+    {
+      "id": "t1b-approach-001",
+      "speaker": "chief-dodo",
+      "text": "Table 1B. Same room, same game. But you're going to do something different here.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-approach-002" }
+    },
+    {
+      "id": "t1b-approach-002",
+      "speaker": "chief-dodo",
+      "text": "Every hand you play, I want you to track what you got and what happened. That running record — that's your frequency table. Watch it build.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-approach-003" }
+    },
+    {
+      "id": "t1b-approach-003",
+      "speaker": "chief-dodo",
+      "text": "Somebody new across from you today.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-lucky-intro" }
+    },
+    {
+      "id": "t1b-lucky-intro",
+      "speaker": "lucky",
+      "text": "Word up. Don't let my record fool you — I'm about to go on a run. I've been losing all week but the cards have to break my way.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-approach-004" }
+    },
+    {
+      "id": "t1b-approach-004",
+      "speaker": "chief-dodo",
+      "text": "He says that every week. Watch that frequency table — and watch Lucky.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-pre-silent-a",
+      "pool": "t1b-pre-hand",
+      "weight": 5,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-pre-001",
+      "pool": "t1b-pre-hand",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Keep tracking.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-pre-002",
+      "pool": "t1b-pre-hand",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Note what you get.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-pre-003",
+      "pool": "t1b-pre-hand",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Your table's building up.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-draw-keep-all",
+      "speaker": "chief-dodo",
+      "text": "Standing pat. Mark it.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-draw-many",
+      "speaker": "chief-dodo",
+      "text": "Starting fresh. Note it.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-post-win-silent",
+      "pool": "t1b-post-win",
+      "weight": 3,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-post-win-a",
+      "pool": "t1b-post-win",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Good hand. Mark the win.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-post-win-b",
+      "pool": "t1b-post-win",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "You took that one.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-post-loss-silent",
+      "pool": "t1b-post-loss",
+      "weight": 3,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-post-loss-a",
+      "pool": "t1b-post-loss",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Lucky had it. Keep going.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-post-loss-b",
+      "pool": "t1b-post-loss",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Mark it. Keep tracking.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-post-fold-silent",
+      "pool": "t1b-post-fold",
+      "weight": 2,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-post-fold-a",
+      "pool": "t1b-post-fold",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Good fold.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-post-fold-b",
+      "pool": "t1b-post-fold",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Folded. Mark it.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-lucky-due",
+      "speaker": "lucky",
+      "text": "Man. Three losses in a row. The deck has to balance out — law of averages. I'm due.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-lucky-due-response-001" }
+    },
+    {
+      "id": "t1b-lucky-due-response-001",
+      "speaker": "chief-dodo",
+      "text": "Lucky thinks the deck is keeping score.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-lucky-due-response-002" }
+    },
+    {
+      "id": "t1b-lucky-due-response-002",
+      "speaker": "chief-dodo",
+      "text": "Look at your frequency table. Is there anything in there that suggests the deck remembers the last three hands?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-surv-intro-001",
+      "speaker": "chief-dodo",
+      "text": "Hold up. You've been tracking a while. See how some of those frequencies are starting to settle?",
+      "responseType": "none",
+      "followUp": { "default": "t1b-surv-intro-002" }
+    },
+    {
+      "id": "t1b-surv-intro-002",
+      "speaker": "chief-dodo",
+      "text": "Ten hands is a start. I want to show you what happens when you run it at scale. The Nest has cameras everywhere — we can replay draws as fast as we want. Follow me.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-surv-intro-003" }
+    },
+    {
+      "id": "t1b-surv-intro-003",
+      "speaker": "chief-dodo",
+      "text": "Right in here. We're going to draw cards — one at a time, put it back, reshuffle — and track how often the card comes up red. You already know the answer: 26 red cards in a 52-card deck. Watch what happens when we do it ten thousand times.",
+      "responseType": "none",
+      "followUp": { "openSurveillanceRoom": true }
+    },
+
+    {
+      "id": "t1b-surv-return-001",
+      "speaker": "chief-dodo",
+      "text": "You see that? The more draws you run, the closer the frequency gets to 26 out of 52. That's the Law of Large Numbers — not that you're 'due,' but that the long run converges on the real number.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1b-assess-intro",
+      "speaker": "chief-dodo",
+      "text": "You've tracked enough hands. Let's check what you're seeing.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-assess-proc" }
+    },
+
+    {
+      "id": "t1b-assess-proc",
+      "speaker": "chief-dodo",
+      "text": "Quick one. Say you tracked 50 hands and pairs showed up 20 times. What's the relative frequency of pairs as a percentage? Enter a whole number.",
+      "responseType": "numeric",
+      "correctAnswer": 40,
+      "tolerance": 0,
+      "feedback": {
+        "correct":       "t1b-assess-proc-correct",
+        "tooHigh":       "t1b-assess-proc-high",
+        "tooLow":        "t1b-assess-proc-low",
+        "attempt3Wrong": "t1b-assess-proc-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-proc-correct",
+      "speaker": "chief-dodo",
+      "text": "40%. 20 out of 50 — that's 0.40, or 40%. Your frequency table works the same way: count divided by total.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-assess-conceptual-intro" }
+    },
+    {
+      "id": "t1b-assess-proc-high",
+      "speaker": "chief-dodo",
+      "text": "A bit high. Relative frequency is count ÷ total. What's 20 ÷ 50?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-proc-low",
+      "speaker": "chief-dodo",
+      "text": "That's low. Count divided by total, then multiply by 100. What does 20 ÷ 50 × 100 give you?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-proc-reveal",
+      "speaker": "chief-dodo",
+      "text": "It's 40%. 20 divided by 50 is 0.40, which is 40%.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-assess-conceptual-intro" }
+    },
+
+    {
+      "id": "t1b-assess-conceptual-intro",
+      "speaker": "chief-dodo",
+      "text": "Now — Lucky. He's had a run of bad hands and he says 'I'm due.' Your frequency table says otherwise. What specifically?",
+      "responseType": "none",
+      "followUp": { "default": "t1b-assess-conceptual" }
+    },
+    {
+      "id": "t1b-assess-conceptual",
+      "speaker": "chief-dodo",
+      "text": "Lucky says 'Four losses in a row — the cards have to turn around for me.' What does your frequency table show that contradicts him? Check all that apply.",
+      "responseType": "checklist",
+      "options": [
+        { "id": "con-a", "text": "The win/loss frequencies have been roughly consistent — there's no catch-up effect after bad runs.",  "correct": true  },
+        { "id": "con-b", "text": "Since Lucky has lost a lot recently, he's statistically owed wins in the next few hands.",              "correct": false },
+        { "id": "con-c", "text": "Each hand is a fresh deal. The deck doesn't have a debt column.",                                      "correct": true  },
+        { "id": "con-d", "text": "The frequency table shows steady rates — not spikes after losing streaks.",                              "correct": true  }
+      ],
+      "feedback": {
+        "correct":       "t1b-assess-conceptual-correct",
+        "attempt1Wrong": "t1b-assess-conceptual-hint1",
+        "attempt2Wrong": "t1b-assess-conceptual-hint2",
+        "attempt3Wrong": "t1b-assess-conceptual-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-conceptual-correct",
+      "speaker": "chief-dodo",
+      "text": "Right. Steady rates, no catch-up. Every hand is independent. Lucky's wrong — and the table proves it.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-assess-transfer-intro" }
+    },
+    {
+      "id": "t1b-assess-conceptual-hint1",
+      "speaker": "chief-dodo",
+      "text": "One of those is exactly what Lucky believes. Which ones does the frequency table actually back up?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-conceptual-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck. Focus on what the data in the table actually shows.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-conceptual-reveal",
+      "speaker": "chief-dodo",
+      "text": "The frequency table shows steady win/loss rates — no evidence of a catch-up pattern. Each hand is independent. The deck doesn't track debts.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-assess-transfer-intro" }
+    },
+
+    {
+      "id": "t1b-assess-transfer-intro",
+      "speaker": "chief-dodo",
+      "text": "One more. In the Surveillance Room you watched red card frequency converge over ten thousand draws. That graph was showing you something specific.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-assess-transfer" }
+    },
+    {
+      "id": "t1b-assess-transfer",
+      "speaker": "chief-dodo",
+      "text": "The Surveillance Room showed the running frequency of red cards over 10,000 draws — one card at a time, put back and reshuffled each time. Choose everything that's true.",
+      "responseType": "checklist",
+      "options": [
+        { "id": "tr-a", "text": "As more cards were drawn, the running frequency of red moved closer to 50%.",                               "correct": true  },
+        { "id": "tr-b", "text": "After 7 black cards in a row, the next draw is more likely to be red to balance things out.",               "correct": false },
+        { "id": "tr-c", "text": "Any single draw is still 26 out of 52 — the graph doesn't change the odds of one card.",                   "correct": true  },
+        { "id": "tr-d", "text": "The graph shows that long-run relative frequency converges toward the theoretical probability.",            "correct": true  },
+        { "id": "tr-e", "text": "Since the frequency converged, the next 100 draws must include close to 50 red cards to stay on track.",   "correct": false }
+      ],
+      "feedback": {
+        "correct":       "t1b-assess-transfer-correct",
+        "attempt1Wrong": "t1b-assess-transfer-hint1",
+        "attempt2Wrong": "t1b-assess-transfer-hint2",
+        "attempt3Wrong": "t1b-assess-transfer-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-transfer-correct",
+      "speaker": "chief-dodo",
+      "text": "That's the Law of Large Numbers. Long-run convergence — not a prediction about any single draw. The deck doesn't owe Lucky a red card because the last seven were black.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-gate-passed-001" }
+    },
+    {
+      "id": "t1b-assess-transfer-hint1",
+      "speaker": "chief-dodo",
+      "text": "One of those is the gambler's fallacy with a different face. The graph shows long-run behavior — not what any single draw will be.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-transfer-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck. The graph shows the long run. Each individual draw is still 26 out of 52.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-assess-transfer-reveal",
+      "speaker": "chief-dodo",
+      "text": "Running frequency converges over many trials — that's the long run. But each single draw is still 26 out of 52, and the convergence doesn't create a debt for any specific outcome.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-gate-passed-001" }
+    },
+
+    {
+      "id": "t1b-gate-passed-001",
+      "speaker": "chief-dodo",
+      "text": "You can read frequency data and you know what it does and doesn't say. That's the skill.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-gate-passed-002" }
+    },
+    {
+      "id": "t1b-gate-passed-002",
+      "speaker": "chief-dodo",
+      "text": "Lucky still thinks the deck owes him. You know why it doesn't — and you've got the table to prove it.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-gate-passed-003" }
+    },
+    {
+      "id": "t1b-gate-passed-003",
+      "speaker": "chief-dodo",
+      "text": "The Front Room is done. The Main Room is where things get more precise.",
+      "responseType": "none",
+      "followUp": { "advanceTable": true }
+    },
+
+    {
+      "id": "t1b-hank-call",
+      "speaker": "lucky",
+      "text": "I'm in.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-bet",
+      "speaker": "lucky",
+      "text": "Bet.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-draw-0",
+      "speaker": "lucky",
+      "text": "Good.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-draw-1",
+      "speaker": "lucky",
+      "text": "One.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-draw-2",
+      "speaker": "lucky",
+      "text": "Two.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-draw-3",
+      "speaker": "lucky",
+      "text": "Three.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    }
+
+  ]
+}

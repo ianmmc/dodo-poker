@@ -1,4 +1,5 @@
 import table1aJson from '../../../dialog/table-1a.json'
+import table1bJson from '../../../dialog/table-1b.json'
 
 export interface DialogNode {
   id: string
@@ -24,11 +25,14 @@ export interface DialogNode {
     tooLow?: string
   }
   correctAnswer?: number
+  tolerance?: number
   followUp: {
     default?: string
     returnToGame?: boolean
     openReferenceCard?: boolean
     advanceTable?: boolean
+    dealScriptedHand?: string
+    openSurveillanceRoom?: boolean
   }
 }
 
@@ -36,6 +40,7 @@ const nodes = new Map<string, DialogNode>()
 const firedOnce = new Set<string>()
 
 ;(table1aJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
+;(table1bJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
 
 export function restoreFiredOnce(ids: string[]): void {
   ids.forEach(id => firedOnce.add(id))
@@ -59,7 +64,7 @@ function fromPool(poolName: string): DialogNode | null {
   return last.silent ? null : last
 }
 
-// Follow a chain of `none` nodes until returnToGame or a response node
+// Follow a chain of `none` nodes until a stop condition or a response node
 function chain(startId: string): DialogNode[] {
   const seq: DialogNode[] = []
   let id: string | undefined = startId
@@ -67,11 +72,18 @@ function chain(startId: string): DialogNode[] {
     const n = nodes.get(id)
     if (!n) break
     if (!n.silent) seq.push(n)
-    if (n.followUp.returnToGame || n.followUp.advanceTable || n.responseType !== 'none') break
+    if (
+      n.followUp.returnToGame ||
+      n.followUp.advanceTable ||
+      n.followUp.openSurveillanceRoom ||
+      n.responseType !== 'none'
+    ) break
     id = n.followUp.default
   }
   return seq
 }
+
+// ── Table 1A ────────────────────────────────────────────────────────────────
 
 export function getApproachNodes(): DialogNode[] {
   return chain('t1a-approach-001')
@@ -125,10 +137,80 @@ export function getHankDrawNode(count: number): DialogNode | null {
   return nodes.get(id) ?? null
 }
 
+// ── Table 1B ────────────────────────────────────────────────────────────────
+
+export function getTable1bApproachNodes(): DialogNode[] {
+  return chain('t1b-approach-001')
+}
+
+export function getTable1bPreHandNode(): DialogNode | null {
+  return fromPool('t1b-pre-hand')
+}
+
+export function getTable1bDrawComment(discardCount: number): DialogNode | null {
+  if (discardCount === 0) return nodes.get('t1b-draw-keep-all') ?? null
+  if (discardCount >= 4) return nodes.get('t1b-draw-many') ?? null
+  return null
+}
+
+export function getTable1bPostHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | null {
+  const pool = outcome === 'win' ? 't1b-post-win'
+    : outcome === 'fold' ? 't1b-post-fold'
+    : 't1b-post-loss'
+  return fromPool(pool)
+}
+
+export function getTable1bHankActionNode(action: 'call' | 'bet'): DialogNode | null {
+  return nodes.get(`t1b-hank-${action}`) ?? null
+}
+
+export function getTable1bHankDrawNode(count: number): DialogNode | null {
+  const id = count === 0 ? 't1b-hank-draw-0' : `t1b-hank-draw-${Math.min(count, 3)}`
+  return nodes.get(id) ?? null
+}
+
+export function getLuckyDue(consecutiveLosses: number): DialogNode[] {
+  if (firedOnce.has('t1b-lucky-due') || consecutiveLosses < 3) return []
+  firedOnce.add('t1b-lucky-due')
+  return chain('t1b-lucky-due')
+}
+
+export function getSurveillanceRoomIntro(handsAt1B: number): DialogNode[] {
+  if (firedOnce.has('t1b-surv-intro-001') || handsAt1B < 10) return []
+  firedOnce.add('t1b-surv-intro-001')
+  return chain('t1b-surv-intro-001')
+}
+
+export function getSurveillanceRoomReturn(): DialogNode[] {
+  if (firedOnce.has('t1b-surv-return-001')) return []
+  firedOnce.add('t1b-surv-return-001')
+  return chain('t1b-surv-return-001')
+}
+
+export function getTable1bAssessment(handsAt1B: number, surveillanceRoomVisited: boolean): DialogNode[] {
+  if (firedOnce.has('t1b-assess-intro') || handsAt1B < 18 || !surveillanceRoomVisited) return []
+  firedOnce.add('t1b-assess-intro')
+  return chain('t1b-assess-intro')
+}
+
+// ── Shared ──────────────────────────────────────────────────────────────────
+
 export function getChain(startId: string): DialogNode[] {
   return chain(startId)
 }
 
 export function getNode(id: string): DialogNode | null {
   return nodes.get(id) ?? null
+}
+
+export function markFiredOnce(id: string): void {
+  firedOnce.add(id)
+}
+
+export function unmarkFiredOnce(id: string): void {
+  firedOnce.delete(id)
+}
+
+export function clearFiredOnce(): void {
+  firedOnce.clear()
 }

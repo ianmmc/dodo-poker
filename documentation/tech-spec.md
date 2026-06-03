@@ -137,9 +137,11 @@ Full reference at `development/dialog/schema.md`. Implemented fields:
   "correctAnswer": 0,
 
   "followUp": {
-    "default":          "dialog-node-id",
-    "returnToGame":     true,
-    "openReferenceCard": true
+    "default":           "dialog-node-id",
+    "returnToGame":      true,
+    "advanceTable":      true,
+    "openReferenceCard": true,
+    "openSurveillanceRoom": true
   }
 }
 ```
@@ -154,6 +156,10 @@ Full reference at `development/dialog/schema.md`. Implemented fields:
 **Pool / weighted random:** nodes sharing a `pool` name are sampled by weight. `silent: true` nodes return null (no dialog shown) — used to introduce probability of silence.
 
 **followUp.openReferenceCard:** when `true`, the reference card panel opens as the node is displayed. Used when Chief Dodo hands the student the reference card.
+
+**followUp.advanceTable:** when `true`, the chain-traversal stop condition sets the table-gate flag (`gatePassedAt1A`, etc.) in App state when the student advances past that node. The "Move to next table" CTA then appears.
+
+**followUp.openSurveillanceRoom:** when `true`, chain traversal stops at that node; App routes to the Surveillance Room screen.
 
 ---
 
@@ -187,9 +193,9 @@ The ladder behavior is in the engine; the copy is in JSON. The two can evolve in
 
 | Path | Contents |
 | --- | --- |
-| `src/lib/game/` | Game logic: card, hand evaluation, Five Card Draw state machine, NPC, storage, assessment |
-| `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()` |
-| `src/lib/components/` | Svelte UI components: CardImage, ReferenceCard |
+| `src/lib/game/` | Game logic: card, hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData |
+| `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()`, `getChain()`, `firedOnce` registry |
+| `src/lib/components/` | Svelte UI components: CardImage, ReferenceCard, FrequencyTable, SurveillanceRoom, DevPanel |
 | `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state |
 | `dialog/` | JSON dialog trees (content only — no logic) |
 
@@ -199,9 +205,9 @@ The ladder behavior is in the engine; the copy is in JSON. The two can evolve in
 
 | Concern | Status | Notes |
 | --- | --- | --- |
-| Gameplay observation (passive assessment) | Not started | System needs to record bet/draw/fold patterns and trigger coaching from them |
-| Scripted hands (stacked deck) | Not started | `dealScriptedHand` flag in dialog `followUp`; game layer override for targeted assessment |
-| Numeric input UI | Engine done | `evaluateNumeric` built and tested; UI block in `App.svelte` not yet implemented |
+| Gameplay observation (passive assessment) | Done | `observationEngine.ts`: `HandSummary` type, per-session observation log, three 1A coaching rules (fold-streak, loss-streak, max-draw), fired-rule persistence |
+| Scripted hands (stacked deck) | Done | `scriptedHands.ts`: `ScriptedDeal` interface, `getScriptedDeal()`; App overrides deal when `pendingScriptedHandId` is set |
+| Numeric input UI | Done | `evaluateNumeric` + UI block in `App.svelte`; used for Table 1B procedural assessment |
 | CSS approach | Inline `<style>` per component | Working well for Phase 1; no external CSS framework needed |
 | Backend language | TBD (Phase 2) | Go is a known strength; Node shares TypeScript types with frontend |
 | Backend framework | TBD (Phase 2) | Express, Fastify, or Gin |

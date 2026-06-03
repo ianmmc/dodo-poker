@@ -241,7 +241,7 @@
       "speaker": "chief-dodo",
       "text": "That's exactly it. Bets every hand, never folds, same no matter what's in his cards. Once you know that, you know everything you need to play against him.",
       "responseType": "none",
-      "followUp": { "returnToGame": true }
+      "followUp": { "default": "t1a-assess-hank-numeric" }
     },
     {
       "id": "t1a-assess-hank-hint1",
@@ -262,7 +262,7 @@
       "speaker": "chief-dodo",
       "text": "Here's what I see: he bets every hand, never folds, and his cards don't change how he plays. Every time. That's the whole picture.",
       "responseType": "none",
-      "followUp": { "returnToGame": true }
+      "followUp": { "default": "t1a-assess-hank-numeric" }
     },
 
     {
@@ -464,6 +464,72 @@
       "id": "t1a-hank-draw-3",
       "speaker": "hank",
       "text": "Three.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1a-assess-hank-numeric",
+      "speaker": "chief-dodo",
+      "text": "Hank has bet on every single hand you've seen. If he plays 5 more hands while you're at this table — how many times do you expect him to bet?",
+      "responseType": "numeric",
+      "correctAnswer": 5,
+      "tolerance": 0,
+      "feedback": {
+        "correct":       "t1a-assess-hank-numeric-correct",
+        "tooHigh":       "t1a-assess-hank-numeric-high",
+        "tooLow":        "t1a-assess-hank-numeric-low",
+        "attempt3Wrong": "t1a-assess-hank-numeric-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-hank-numeric-correct",
+      "speaker": "chief-dodo",
+      "text": "Exactly. Five bets in five hands. Not 'probably five' — definitely five. When you know someone's pattern that well, you don't predict what they'll do. You know.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-hank-numeric-high",
+      "speaker": "chief-dodo",
+      "text": "He can't bet more than once per hand. Five hands — five is the ceiling.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-hank-numeric-low",
+      "speaker": "chief-dodo",
+      "text": "Has Hank skipped a single hand yet? Think about what you've actually seen.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-assess-hank-numeric-reveal",
+      "speaker": "chief-dodo",
+      "text": "Five. He bets every hand — no exceptions. Once you see that pattern clearly, you can plan around it.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t1a-obs-fold-streak",
+      "speaker": "chief-dodo",
+      "text": "Three folds in a row. Folding bad cards is smart — that's exactly right. Just make sure it's the cards driving it, not the last result. The deck has no memory of what you just went through.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-obs-loss-streak",
+      "speaker": "chief-dodo",
+      "text": "Three losses in a row. That happens. But remember — the deck doesn't know that. Next hand is a completely fresh deal.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-obs-max-draw",
+      "speaker": "chief-dodo",
+      "text": "You've been swapping a lot of cards. Chasing a stronger hand is a real strategy — just know that trading four or five rarely pays off the way you hope. What are you usually holding when you do that?",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     }

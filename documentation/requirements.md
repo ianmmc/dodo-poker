@@ -30,7 +30,8 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | L-04 | As a student, I want the poker variant I'm playing to match the mathematical concepts I'm currently learning. | `draft` |
 | L-05 | As a student, I want The Nest organized into distinct tables so I always know where I am in my progression and what comes next. | `draft` |
 | L-06 | As a student, I want Chief Dodo to suggest when I'm ready to move to the next table, based on what I've demonstrated — not how many hands I've played. | `done` |
-| L-07 | As a student, I want to track and record outcomes from my hands so I can compare what I observe to what the math predicts, building intuition about probability before formal numbers are introduced. | `draft` |
+| L-07 | As a student, I want to track and record outcomes from my hands so I can compare what I observe to what the math predicts, building intuition about probability before formal numbers are introduced. | `done` |
+| L-08 | As a student, I want to meet Lucky (Rock Pigeon) at Table 1B who embodies the gambler's fallacy in action, so I can see the error being made live before the formal assessment asks me to refute it. | `done` |
 
 ---
 
@@ -59,6 +60,8 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | N-03 | As a student, I want later opponents to model subtler or more sophisticated reasoning, increasing my analytical challenge. | `draft` |
 | N-04 | As a student, I want NPC personalities to fit the bird-themed world so the game feels cohesive. | `draft` |
 | N-05 | As a student, I want Chief Dodo to name and explain an NPC's reasoning pattern after I've encountered it in play, so I build vocabulary for recognizing common probabilistic errors. | `draft` |
+| N-06 | As a student, I want NPC betting behavior to reflect their specific reasoning pattern — not just a fixed strategy — so that understanding the pattern gives me a practical advantage at the table. | `done` |
+| N-07 | As a student, I want play to continue if my opponent runs out of seeds — with Chief Dodo introducing a replacement from The Nest — so that a fortunate early win doesn't end my learning session prematurely. | `done` |
 
 ---
 
@@ -83,7 +86,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | A-03 | As a student, I want a second chance if I answer wrong, with a different hint than the first attempt — so I can figure it out rather than just try again blindly. | `done` |
 | A-04 | As a student, I want to be told how many of my checked statements are off (without being told which ones) on my second wrong attempt, so I can adjust. | `done` |
 | A-05 | As a student, I want Chief Dodo to simply show me the answer after three wrong attempts, so I'm never left stuck. | `done` |
-| A-06 | As a student, I want to answer numerical questions about what I'm observing and receive feedback on whether my answer was too high, too low, or correct. | `in-progress` |
+| A-06 | As a student, I want to answer numerical questions about what I'm observing and receive feedback on whether my answer was too high, too low, or correct. | `done` |
 | A-07 | As a student, I want my assessment responses to be saved so the system can recognize what I've already demonstrated across sessions. | `done` |
 | A-08 | As a student, I want the game to sometimes put me in a specific hand situation to test a concept directly, rather than waiting for it to come up by chance. | `draft` |
 | A-09 | As a student, I want assessment questions to arise naturally during gameplay — interleaved with play, not batched at the end — so coaching feels like conversation, not a quiz. | `done` |
@@ -94,8 +97,8 @@ User stories organized by theme. Each story will gain acceptance criteria before
 
 | # | Story | Status |
 | --- | ------- | -------- |
-| SIM-01 | As a student, I want access to a fast-simulation mode where I can watch thousands of hands resolve in seconds, so I can see how probability plays out over the long run. | `draft` |
-| SIM-02 | As a student, I want Chief Dodo to introduce me to the simulation room when the moment is right, and be able to return to it on my own afterward. | `draft` |
+| SIM-01 | As a student, I want access to a fast-simulation mode where I can watch thousands of hands resolve in seconds, so I can see how probability plays out over the long run. | `done` |
+| SIM-02 | As a student, I want Chief Dodo to introduce me to the simulation room when the moment is right, and be able to return to it on my own afterward. | `done` |
 
 ---
 
@@ -116,3 +119,14 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | --- | ------- | -------- |
 | M-01 | As a student, I want every game mechanic to connect to a named learning objective tied to Common Core math standards. | `draft` |
 | M-02 | As a teacher (future), I want to assign specific game phases to align with classroom curriculum. | `draft` |
+
+---
+
+## Developer Tooling
+
+| # | Story | Status |
+| --- | ------- | -------- |
+| DT-01 | As a developer, I want a dev mode panel to jump to any screen or hand state without playing through the full game, so I can test specific scenarios quickly. | `done` |
+| DT-02 | As a developer, I want to mark individual assessment checkpoints as passed and set the competency gate from the dev panel, so I can test post-gate states without completing the full assessment sequence. | `done` |
+| DT-03 | As a developer, I want to dump all current game state to the browser console and clear localStorage from the dev panel, so I can debug session and persistence issues. | `done` |
+| DT-04 | As a developer, I want to force-enqueue any dialog node by ID from the dev panel, so I can test specific coaching moments in isolation. | `done` |

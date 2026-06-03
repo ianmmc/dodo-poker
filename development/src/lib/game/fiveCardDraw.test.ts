@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createGame, startHand, playerCheck, playerBet, playerCall, playerFold, playerDraw } from './fiveCardDraw'
+import { createGame, startHand, playerCheck, playerBet, playerCall, playerFold, playerDraw, npcFold } from './fiveCardDraw'
 
 describe('startHand', () => {
   it('deals 5 cards to each player', () => {
@@ -126,6 +126,51 @@ describe('playerDraw', () => {
     const drawn = playerDraw(state, [0, 1, 2])
     const all = [...drawn.playerHand, ...drawn.hankHand]
     expect(new Set(all).size).toBe(10)
+  })
+})
+
+describe('npcFold', () => {
+  it('gives the pot to the player', () => {
+    const state = startHand(createGame(100, 5, 5))
+    const folded = npcFold(state)
+    expect(folded.playerSeeds).toBe(state.playerSeeds + state.pot)
+    expect(folded.hankSeeds).toBe(state.hankSeeds)
+  })
+
+  it('sets phase to done', () => {
+    const state = startHand(createGame())
+    expect(npcFold(state).phase).toBe('done')
+  })
+
+  it('records hankFolded in result', () => {
+    const state = startHand(createGame())
+    const folded = npcFold(state)
+    expect(folded.result?.hankFolded).toBe(true)
+    expect(folded.result?.winner).toBe('player')
+    expect(folded.result?.playerFolded).toBe(false)
+  })
+
+  it('pre-draw fold leaves playerHandName blank', () => {
+    const state = startHand(createGame()) // phase = bet1
+    const folded = npcFold(state)
+    expect(folded.result?.playerHandName).toBe('')
+  })
+
+  it('post-draw fold records the evaluated player hand name', () => {
+    const state = playerDraw(playerBet(startHand(createGame())), []) // phase = bet2
+    const folded = npcFold(state)
+    expect(folded.result?.playerHandName.length).toBeGreaterThan(0)
+  })
+
+  it('increments handsPlayed', () => {
+    const state = startHand(createGame())
+    expect(npcFold(state).handsPlayed).toBe(state.handsPlayed + 1)
+  })
+
+  it('total seeds across player + hank unchanged', () => {
+    const state = startHand(createGame(100, 5, 5))
+    const folded = npcFold(state)
+    expect(folded.playerSeeds + folded.hankSeeds).toBe(200)
   })
 })
 

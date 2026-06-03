@@ -2,6 +2,7 @@ import { makeDeck, shuffle } from './card'
 import { evaluateHand, pickWinner } from './hand'
 import { hank } from './npc'
 import type { Card } from './card'
+import type { ScriptedDeal } from './scriptedHands'
 
 export type Phase =
   | 'idle'       // between hands
@@ -18,6 +19,7 @@ export interface HandResult {
   hankHandName: string
   potWon: number
   playerFolded: boolean
+  hankFolded?: boolean
 }
 
 export interface GameState {
@@ -34,6 +36,7 @@ export interface GameState {
   hankPendingBet: boolean
   hankLastAction: HankAction
   hankDrawCount: number
+  playerDrawCount: number   // -1 = folded/bet out before draw; 0 = stood pat; 1–5 = drawn
   handNumber: number
   handsPlayed: number
   result: HandResult | null
@@ -57,6 +60,7 @@ export function createGame(
     hankPendingBet: false,
     hankLastAction: null,
     hankDrawCount: 0,
+    playerDrawCount: -1,
     handNumber: 0,
     handsPlayed: 0,
     result: null
@@ -77,8 +81,30 @@ export function startHand(state: GameState): GameState {
     hankPendingBet: false,
     hankLastAction: null,
     hankDrawCount: 0,
+    playerDrawCount: -1,
     handNumber: state.handNumber + 1,
     result: null
+  }
+}
+
+export function startScriptedHand(state: GameState, deal: ScriptedDeal): GameState {
+  const usedCards = new Set([...deal.playerCards, ...deal.hankCards])
+  const remainingDeck = shuffle(makeDeck().filter(c => !usedCards.has(c)))
+  return {
+    ...state,
+    phase: 'bet1',
+    deck: remainingDeck,
+    playerHand: deal.playerCards,
+    hankHand: deal.hankCards,
+    pot: state.ante * 2,
+    playerSeeds: state.playerSeeds - state.ante,
+    hankSeeds: state.hankSeeds - state.ante,
+    hankPendingBet: false,
+    hankLastAction: null,
+    hankDrawCount: 0,
+    playerDrawCount: -1,
+    handNumber: state.handNumber + 1,
+    result: null,
   }
 }
 
@@ -140,6 +166,29 @@ export function playerFold(state: GameState): GameState {
   }
 }
 
+// NPC folds. Player takes the pot.
+// If folding post-draw (bet2) the player's final hand name is recorded;
+// pre-draw folds leave it blank since the hand isn't finalised.
+export function npcFold(state: GameState): GameState {
+  const playerHandName = state.phase === 'bet2'
+    ? evaluateHand(state.playerHand).name
+    : ''
+  return {
+    ...state,
+    phase: 'done',
+    playerSeeds: state.playerSeeds + state.pot,
+    handsPlayed: state.handsPlayed + 1,
+    result: {
+      winner: 'player',
+      playerHandName,
+      hankHandName: '—',
+      potWon: state.pot,
+      playerFolded: false,
+      hankFolded: true,
+    }
+  }
+}
+
 // Player draws. discardIndices is 0-based indices of cards to discard (0–4).
 export function playerDraw(state: GameState, discardIndices: number[]): GameState {
   const deck = [...state.deck]
@@ -162,6 +211,7 @@ export function playerDraw(state: GameState, discardIndices: number[]): GameStat
     playerHand,
     hankHand,
     hankDrawCount: hankDrawDecision.discardIndices.length,
+    playerDrawCount: discardIndices.length,
     hankPendingBet: false,
     hankLastAction: null
   }
