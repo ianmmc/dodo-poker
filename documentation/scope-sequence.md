@@ -193,8 +193,7 @@ Completing both the conceptual and transfer checklists (correctly or after three
 
 | NPC | Bird | Reasoning Pattern | Flaw / Lesson |
 | --- | --- | --- | --- |
-| Lucky | Rock Pigeon | Gambler's fallacy (returns) | Student can now compute exactly why Lucky's reasoning fails — the fraction says the next card does not depend on the last ten |
-| Vivian | Flamingo | Hot hand fallacy | Recent wins make her raise: "I'm running hot, the cards are on my side." Mirror image of gambler's fallacy — same structural error, opposite sign |
+| Vivian | Flamingo | Hot hand fallacy | Recent wins make her raise: "I'm running hot, the cards are on my side." Mirror image of gambler's fallacy — same structural error, opposite sign. Student can now compute exactly why neither Vivian nor Lucky's reasoning holds — the fraction says the next hand is independent of the last ten. |
 
 **CCSS**: 7.SP.C.5 (probability as a number between 0 and 1 — **focus**); 7.SP.C.7a (uniform probability model — **focus**)
 
@@ -619,8 +618,8 @@ The pedagogical risk in this phase: conditional probability is the concept most 
 | NPC | Bird | Phases | Tables | Reasoning Pattern | Flaw / Lesson |
 | --- | --- | --- | --- | --- | --- |
 | Hank | California Condor | 1 | 1A, 1B | Always bets, never folds | Complete disregard for probability — shows what purely action-driven play looks like |
-| Lucky | Rock Pigeon | 1–2 | 1B, 2A, 2B | Gambler's fallacy | After losses: "I'm due." Believes losing streaks make future wins more probable. |
-| Vivian | Flamingo | 1–3 | 1B, 2A, 2B, 2C, 3A | Hot hand fallacy | Recent wins make her bet larger. Mirror image of gambler's fallacy — opposite sign, same structure. |
+| Lucky | Rock Pigeon | 1 | 1B | Gambler's fallacy | After losses: "I'm due." Believes losing streaks make future wins more probable. |
+| Vivian | Flamingo | 1–3 | 2A, 2B, 2C, 3A | Hot hand fallacy | Recent wins make her bet larger. Mirror image of gambler's fallacy — opposite sign, same structure. |
 | Rico | Sulfur-crested Cockatoo | 2–3 | 2B, 2C, 3A, 3B | Base rate neglect + recency bias | Only attends to what just happened; ignores long-run base rates entirely |
 | Maestro | Great Blue Heron | 2–5 | 2C, 3A, 3B, 3C, 4A, 4B, 5A | Anchoring — never updates | Assesses initial hand strength; does not revise as new information appears. Appears across the most tables of any NPC. |
 | Carlos | Keel-billed Toucan | 2–4 | 2B, 3B, 3C, 4C | Independence fallacy | Treats every card draw as independent of what has already been dealt; always uses the wrong denominator |
