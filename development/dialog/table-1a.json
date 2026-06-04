@@ -29,14 +29,14 @@
     {
       "id": "t1a-approach-ref",
       "speaker": "chief-dodo",
-      "text": "Here — take this. Hand rankings. Best hand at the top, worst at the bottom. Keep it open if you want.",
+      "text": "Here — take this. Hand rankings. Best hand at the top, worst at the bottom.",
       "responseType": "none",
       "followUp": { "default": "t1a-approach-003", "openReferenceCard": true }
     },
     {
       "id": "t1a-approach-003",
       "speaker": "chief-dodo",
-      "text": "Let's play.",
+      "text": "Keep it open if you want, or you can set it aside and look at it when you need to.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
@@ -59,7 +59,14 @@
       "id": "t1a-hand-1-pre",
       "trigger": { "handNumber": 1 },
       "speaker": "chief-dodo",
-      "text": "First hand. Just play it. Watch what Hank does.",
+      "text": "First hand, my friend. I suggest being like Mikey and checking a lot so you can watch how Hank plays. If he bets, then you can call him.",
+      "responseType": "none",
+      "followUp": { "default": "t1a-hand-1-pre-b" }
+    },
+    {
+      "id": "t1a-hand-1-pre-b",
+      "speaker": "chief-dodo",
+      "text": "It's your game, though, so it's up to you.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },

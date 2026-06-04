@@ -1623,7 +1623,7 @@
   .dialog-speaker { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #c8a84a; }
   .dialog-speaker.speaker-hank  { color: #c87a7a; }
   .dialog-speaker.speaker-lucky { color: #7a9abc; }
-  .dialog-text { font-style: italic; color: #d4c89a; line-height: 1.6; font-size: 1.05rem; }
+  .dialog-text { font-style: italic; color: #d4c89a; line-height: 1.6; font-size: 1.05rem; white-space: pre-line; }
   .dialog-hint { font-size: 0.72rem; color: #6a8a5a; align-self: flex-end; margin-top: 4px; }
 
   .prompt { font-size: 0.9rem; color: #7a8a6a; }
