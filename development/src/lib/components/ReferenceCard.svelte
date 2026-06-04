@@ -233,7 +233,7 @@
   .close-btn {
     background: none;
     border: none;
-    color: #4a6a4a;
+    color: #6a9a6a;
     font-size: 1.1rem;
     cursor: pointer;
     padding: 2px 6px;
@@ -244,7 +244,7 @@
 
   .panel-subtitle {
     font-size: 0.68rem;
-    color: #2e4a2e;
+    color: #5a7a5a;
     text-transform: uppercase;
     letter-spacing: 0.07em;
     margin-top: -4px;
@@ -285,7 +285,7 @@
 
   .hand-rank {
     font-size: 0.65rem;
-    color: #2e4a2e;
+    color: #5a7a5a;
     min-width: 16px;
     flex-shrink: 0;
   }
@@ -303,7 +303,7 @@
   .very-rare { color: #c87a7a; }
   .rare      { color: #c8a84a; }
   .uncommon  { color: #7a9a7a; }
-  .common    { color: #4a6a4a; }
+  .common    { color: #6a9a6a; }
 
   .card-strip {
     display: flex;
@@ -319,14 +319,14 @@
 
   .hand-desc {
     font-size: 0.75rem;
-    color: #5a7a5a;
+    color: #7a9a7a;
     line-height: 1.45;
     font-style: italic;
   }
 
   .note {
     font-size: 0.7rem;
-    color: #2e4a2e;
+    color: #5a7a5a;
     font-style: italic;
     line-height: 1.5;
     flex-shrink: 0;

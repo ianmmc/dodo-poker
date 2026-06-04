@@ -70,7 +70,7 @@ The Nest is organized into four rooms, each deeper into the club:
 - **The Back Room** — Tables 3A, 3B, 3C, 4A, 4B, 4C. More serious. Chief Dodo checks in less often; students are expected to think more independently.
 - **The High Stakes Room** — Tables 5A, 5B, 5C. Chief Dodo introduces students here after mastery of the Back Room is demonstrated.
 
-**The Surveillance Room** — Accessible from a side hallway off the Front Room. Chief Dodo introduces it during Table 1B at the right pedagogical moment. After that, students may return independently. Supports fast-simulation of 1,000–10,000 hands; displays running observed frequencies against theoretical probabilities the student has computed.
+**The Surveillance Room** — Accessible from a side hallway off the Front Room. Chief Dodo introduces it during Table 1B at the right pedagogical moment. After that, students may return independently. Supports fast-simulation of 100, 1,000, or 10,000 card draws; displays running frequency of red cards converging toward 50% — a concrete demonstration of the Law of Large Numbers. The 100-draw option shows noisy short-run behavior before committing to scale.
 
 ---
 
@@ -135,7 +135,7 @@ Completing both the conceptual and transfer checklists (correctly or after three
 - Understand the Law of Large Numbers as a long-run behavioral claim, not a guarantee about any specific hand
 - Distinguish experimental probability (what happened) from theoretical probability (what the math predicts)
 
-**Chief Dodo's Focus**: The Surveillance Room introduction. After the student has tracked enough hands to see convergence begin but before it fully clicks, Chief Dodo takes them to the Surveillance Room to run 1,000 hands instantly. The contrast between 20 observed hands and 10,000 simulated hands is the moment that makes LLN concrete. "You tracked twenty hands and it was starting to look right. Look what happens when we run ten thousand."
+**Chief Dodo's Focus**: The Surveillance Room introduction. After the student has tracked enough hands to see convergence begin but before it fully clicks, Chief Dodo takes them to the Surveillance Room to run 1,000 hands instantly. The contrast between 20 observed hands and 10,000 simulated hands is the moment that makes LLN concrete. "You tracked twenty hands and it was starting to look right. Look what happens when we run ten thousand." The Surveillance Room also offers 100-draw runs to show short-run noise before long-run convergence is demonstrated.
 
 **NPCs**
 
@@ -148,7 +148,7 @@ Completing both the conceptual and transfer checklists (correctly or after three
 
 **Competency Gate** *(implemented)*
 
-- *Procedural*: Given 50 observed deals, compute the relative frequency of a specified hand type as a fraction and as a decimal *(numeric input — hand 18+, after Surveillance Room visit)*
+- *Procedural*: Given 50 observed deals, compute the relative frequency of a specified hand type as a percentage *(numeric input — hand 18+, after Surveillance Room visit; fraction/decimal form is a future enhancement)*
 - *Conceptual*: Use the frequency table to explain specifically why Lucky's reasoning is incorrect — point to the data *(checklist — fires immediately after procedural)*
 - *Transfer*: Given a Surveillance Room chart showing 10,000 single-card draws (with replacement) tracking suit color — red vs. black — explain what the running-frequency graph shows, what it means for any single draw, and what it says about what will happen over the next 10,000 draws *(checklist — fires immediately after conceptual)*
 

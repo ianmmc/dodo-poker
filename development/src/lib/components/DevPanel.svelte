@@ -46,8 +46,7 @@
 </script>
 
 {#if open}
-  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-  <div class="dev-backdrop" on:click|self={onClose}>
+  <div class="dev-backdrop" role="presentation" on:click|self={onClose}>
     <div class="dev-panel">
 
       <div class="dev-header">

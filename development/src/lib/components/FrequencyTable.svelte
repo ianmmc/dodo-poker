@@ -20,8 +20,13 @@
 </script>
 
 <div class="freq-panel" class:open>
-  <button class="freq-tab" on:click={onToggle} title="Frequency Table">
-    <span class="tab-text">FREQ</span>
+  <button
+    class="freq-tab"
+    on:click={onToggle}
+    aria-label={open ? 'Close frequency table' : 'Open frequency table'}
+    aria-expanded={open}
+  >
+    <span class="tab-text" aria-hidden="true">FREQ</span>
   </button>
 
   {#if open}
@@ -93,10 +98,10 @@
     top: 50%;
     transform: translateY(-50%);
     background: #1e1e2e;
-    border: 1px solid #4a6a4a;
+    border: 1px solid #7a9a7a;
     border-left: none;
     border-radius: 0 6px 6px 0;
-    color: #4a6a4a;
+    color: #7a9a7a;
     font-size: 0.6rem;
     font-family: monospace;
     font-weight: bold;

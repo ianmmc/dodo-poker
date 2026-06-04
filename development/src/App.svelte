@@ -16,6 +16,7 @@
     recordAssessment,
     getAssessmentLog,
     restoreAssessmentLog,
+    clearAssessmentState,
   } from './lib/game/assessment'
   import {
     checkObservationRules, restoreFiredRules, getFiredRules, clearFiredRules,
@@ -24,7 +25,7 @@
   import { getScriptedDeal } from './lib/game/scriptedHands'
   import { createFrequencyData, updateFrequencyData } from './lib/game/frequencyData'
   import type { FrequencyData } from './lib/game/frequencyData'
-  import { lucky } from './lib/game/npc'
+  import { hank, lucky } from './lib/game/npc'
   import { BACKUP_NPCS, getNextBackup } from './lib/game/backupNpcs'
   import type { BackupNpc } from './lib/game/backupNpcs'
   import {
@@ -39,7 +40,7 @@
     getTable1bPostHandNode, getTable1bNpcActionNode, getTable1bNpcDrawNode,
 
     getLuckyDue, getSurveillanceRoomIntro, getSurveillanceRoomReturn,
-    getTable1bAssessment,
+    getHankRetroAssessment, getTable1bAssessment,
     // Shared
     restoreFiredOnce, getFiredOnce, getNode, getChain,
     markFiredOnce, unmarkFiredOnce, clearFiredOnce,
@@ -57,6 +58,7 @@
     speaker: string
     text: string
     responseType: DialogNode['responseType']
+    isNpc: boolean
     openReferenceCard?: boolean
     openSurveillanceRoom?: boolean
     assessmentNode?: DialogNode
@@ -151,6 +153,7 @@
       speaker: speakerLabel(node.speaker),
       text: vars ? interpolate(rawText, vars) : rawText,
       responseType: node.responseType,
+      isNpc: node.speaker === 'hank' || node.speaker === 'lucky',
       openReferenceCard: node.followUp.openReferenceCard === true,
       openSurveillanceRoom: node.followUp.openSurveillanceRoom === true,
       assessmentNode: isInteractive ? node : undefined,
@@ -260,6 +263,9 @@
 
   function freshStart(): void {
     clear()
+    clearFiredOnce()
+    clearFiredRules()
+    clearAssessmentState()
     screen = 'avatar'
     enqueue([getNode('sog-002')])
   }
@@ -268,12 +274,13 @@
     const saved = load()
     if (!saved) { freshStart(); return }
     avatar = saved.avatar
-    restoreFiredOnce(saved.firedOnce)
+    restoreFiredOnce(saved.firedOnce ?? [])
     // If an assessment sequence was entered but not completed before saving
     // (e.g. quit while a checklist was showing), unmark it so it re-fires.
     const answered = new Set((saved.assessmentLog ?? []).map((r: { nodeId: string }) => r.nodeId))
     if (!answered.has('t1a-assess-hank-numeric')) unmarkFiredOnce('t1a-pattern-001')
     if (!answered.has('t1a-assess-gamblers-001')) unmarkFiredOnce('t1a-fallacy-001')
+    if (!answered.has('t1b-hank-retro'))           unmarkFiredOnce('t1b-hank-retro-001')
     if (!answered.has('t1b-assess-proc'))          unmarkFiredOnce('t1b-assess-intro')
     restoreAssessmentLog(saved.assessmentLog ?? [])
     restoreFiredRules(saved.firedRules ?? [])
@@ -326,6 +333,7 @@
     surveillanceRoomVisited = false
     currentNpcName = 'Lucky'
     usedBackupIds = []
+    observationLog = []
     game = { ...game, npcSeeds: 200 }
     game = startHand(game)
     discardSet = new Set()
@@ -353,10 +361,11 @@
       : getHankDrawNode(count)
   }
 
-  function postHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | null {
+  function postHandNode(outcome: 'win' | 'loss' | 'tie' | 'fold'): DialogNode | null {
+    const normalized: 'win' | 'loss' | 'fold' = outcome === 'tie' ? 'loss' : outcome
     return screen === 'table1b'
-      ? getTable1bPostHandNode(outcome)
-      : getPostHandNode(outcome)
+      ? getTable1bPostHandNode(normalized)
+      : getPostHandNode(normalized)
   }
 
   function drawCommentNode(count: number): DialogNode | null {
@@ -439,8 +448,10 @@
       if (decision.action === 'check') {
         game = playerCheckNpcCheck(game)
         if (game.phase === 'done' && game.result) {
-          const outcome = game.result.winner === 'player' ? 'win' : 'loss'
-          updateFreqForHand(outcome)
+          const outcome = game.result.winner === 'player' ? 'win'
+            : game.result.winner === 'tie' ? 'tie'
+            : 'loss'
+          updateFreqForHand(outcome === 'tie' ? 'loss' : outcome)
           enqueue([getTable1bNpcActionNode('check'), postHandNode(outcome)])
           doSave()
         } else {
@@ -457,8 +468,10 @@
     const hankNode = hankActionNode('call')
     game = playerBet(game)
     if (game.phase === 'done' && game.result) {
-      const outcome = game.result.winner === 'player' ? 'win' : 'loss'
-      if (screen === 'table1b') updateFreqForHand(outcome)
+      const outcome = game.result.winner === 'player' ? 'win'
+        : game.result.winner === 'tie' ? 'tie'
+        : 'loss'
+      if (screen === 'table1b') updateFreqForHand(outcome === 'tie' ? 'loss' : outcome)
       enqueue([hankNode, postHandNode(outcome)])
       doSave()
     } else {
@@ -469,8 +482,10 @@
   function doCall(): void {
     game = playerCall(game)
     if (game.phase === 'done' && game.result) {
-      const outcome = game.result.winner === 'player' ? 'win' : 'loss'
-      if (screen === 'table1b') updateFreqForHand(outcome)
+      const outcome = game.result.winner === 'player' ? 'win'
+        : game.result.winner === 'tie' ? 'tie'
+        : 'loss'
+      if (screen === 'table1b') updateFreqForHand(outcome === 'tie' ? 'loss' : outcome)
       enqueue([postHandNode(outcome)])
       doSave()
     }
@@ -487,7 +502,8 @@
     const indices = [...discardSet]
     discardSet = new Set()
     const drawComment = drawCommentNode(indices.length)
-    game = playerDraw(game, indices)
+    const npcDecider = screen === 'table1b' ? lucky.decideDraw.bind(lucky) : hank.decideDraw.bind(hank)
+    game = playerDraw(game, indices, npcDecider)
     enqueue([drawComment, hankDrawNode(game.npcDrawCount)])
   }
 
@@ -509,6 +525,7 @@
         : 'tie',
     }
     observationLog = [...observationLog.slice(-9), summary]
+    doSave()  // save before startHand so phase='done' is preserved; avoids double-ante on reload
 
     if (pendingScriptedHandId) {
       const deal = getScriptedDeal(pendingScriptedHandId)
@@ -523,12 +540,14 @@
     const pattern = getPatternReveal(game.handsPlayed)
     // Only reveal the gambler's fallacy coaching when Hank is on a losing
     // streak — CD's opening line "He keeps losing" must be literally true.
+    // Fallback: fire at handsPlayed >= 15 regardless of streak to ensure
+    // students who fold often still encounter the lesson.
     const last3 = observationLog.slice(-3)
     const hankOnLoseStreak = last3.length === 3 && last3.every(s => s.outcome === 'win')
-    const gamblers = hankOnLoseStreak ? getGamblersReveal(game.handsPlayed) : []
+    const gamblersFallback = game.handsPlayed >= 15
+    const gamblers = (hankOnLoseStreak || gamblersFallback) ? getGamblersReveal(game.handsPlayed) : []
     const preHand = getPreHandNode(game.handNumber)
     enqueue([...observations, ...pattern, ...gamblers, preHand])
-    doSave()
   }
 
   // ── Table 1B next hand ───────────────────────────────────────────────────
@@ -548,20 +567,21 @@
     observationLog = [...observationLog.slice(-9), summary]
     // frequencyData already updated in the action handler (doBet/doCall/doFold/doCheck)
     handsAt1B++
+    doSave()  // save before startHand so phase='done' is preserved; avoids double-ante on reload
 
     game = startHand(game)
     discardSet = new Set()
 
     // Progressive reveals — lucky here is the getLuckyDue dialog trigger, not the NPC
     const last3 = observationLog.slice(-3)
-    const consecutiveWins = last3.length === 3 && last3.every(s => s.outcome === 'win') ? 3 : 0
-    const luckyDueNodes = getLuckyDue(consecutiveWins)
+    const luckyConsecutiveLosses = last3.length === 3 && last3.every(s => s.outcome === 'win') ? 3 : 0
+    const luckyDueNodes = getLuckyDue(luckyConsecutiveLosses)
     const surv = getSurveillanceRoomIntro(handsAt1B)
+    const hankRetro = getHankRetroAssessment(handsAt1B, surveillanceRoomVisited)
     const assessment = getTable1bAssessment(handsAt1B, surveillanceRoomVisited)
     const preHand = getTable1bPreHandNode()
 
-    enqueue([...luckyDueNodes, ...surv, ...assessment, preHand])
-    doSave()
+    enqueue([...luckyDueNodes, ...surv, ...hankRetro, ...assessment, preHand])
   }
 
   function nextHand(): void {
@@ -587,6 +607,7 @@
     usedBackupIds = []
     clearFiredRules()
     clearFiredOnce()
+    clearAssessmentState()
     screen = 'title'
     savedSession = false
   }
@@ -602,9 +623,13 @@
     if (screen === 'table1b') {
       handsAt1B = n
       unmarkFiredOnce('t1b-lucky-due')
-      // Surv intro chain ends with openSurveillanceRoom — only re-fire for the
-      // hand-10 preset; for hand-18 we're past it and don't want the detour
-      if (n >= 10 && n < 18) unmarkFiredOnce('t1b-surv-intro-001')
+      // Surv intro ends with openSurveillanceRoom — only re-fire for hand-10 preset
+      if (n >= 10 && n < 14) unmarkFiredOnce('t1b-surv-intro-001')
+      if (n >= 14 && n < 18) {
+        // Past surv room, hank retro fires here; main gate not yet
+        surveillanceRoomVisited = true
+        unmarkFiredOnce('t1b-hank-retro-001')
+      }
       if (n >= 18) {
         surveillanceRoomVisited = true
         unmarkFiredOnce('t1b-assess-intro')
@@ -612,9 +637,10 @@
       game = startHand(game)
       discardSet = new Set()
       const surv = getSurveillanceRoomIntro(handsAt1B)
+      const hankRetro = getHankRetroAssessment(handsAt1B, surveillanceRoomVisited)
       const assessment = getTable1bAssessment(handsAt1B, surveillanceRoomVisited)
       const preHand = getTable1bPreHandNode()
-      enqueue([...surv, ...assessment, preHand])
+      enqueue([...surv, ...hankRetro, ...assessment, preHand])
     } else {
       game = { ...game, handsPlayed: n }
       game = startHand(game)
@@ -653,6 +679,7 @@
       // Unmark all 1B sequences so they fire naturally during play
       unmarkFiredOnce('t1b-lucky-due')
       unmarkFiredOnce('t1b-surv-intro-001')
+      unmarkFiredOnce('t1b-hank-retro-001')
       unmarkFiredOnce('t1b-assess-intro')
       game = { ...game, npcSeeds: 200 }
       game = startHand(game)
@@ -663,8 +690,8 @@
     devPanelOpen = false
   }
 
-  function devPassAssessment(nodeId: string, firedOnceId: string | null): void {
-    recordAssessment({ nodeId, responseType: 'checklist', attempts: 1, correct: true })
+  function devPassAssessment(nodeId: string, firedOnceId: string | null, responseType: 'checklist' | 'numeric' = 'checklist'): void {
+    recordAssessment({ nodeId, responseType, attempts: 1, correct: true })
     if (firedOnceId) markFiredOnce(firedOnceId)
   }
 
@@ -766,6 +793,8 @@
 
   $: broke = game.playerSeeds < game.ante
   $: npcBroke = game.npcSeeds < game.ante
+  $: canBet = game.playerSeeds >= game.betAmount
+  $: canCall = game.playerSeeds >= game.betAmount
   $: showNpcCards = game.phase === 'done' && game.result && !game.result.playerFolded && !game.result.npcFolded
   $: drawCount = discardSet.size
 
@@ -961,26 +990,28 @@
       {/if}
 
       {#if inDialog && currentLine}
-        <button class="dialog-box" on:click={advance}>
+        <button class="dialog-box" on:click={advance} aria-label="Advance dialog">
           <span
             class="dialog-speaker"
-            class:speaker-hank={currentLine.speaker === 'Hank'}
-            class:speaker-lucky={currentLine.speaker === 'Lucky'}
+            class:speaker-lucky={currentLine.isNpc}
           >
             {currentLine.speaker}
           </span>
-          <p class="dialog-text">"{currentLine.text}"</p>
+          <div aria-live="polite" aria-atomic="true">
+            <p class="dialog-text">"{currentLine.text}"</p>
+          </div>
           <span class="dialog-hint">Press Space, Enter, or click to continue</span>
         </button>
 
       {:else if assessmentState}
         {#if assessmentState.node.responseType === 'numeric'}
           <div class="assessment-area">
-            <p class="assessment-prompt">"{assessmentState.node.text}"</p>
+            <p class="assessment-prompt" id="numeric-prompt-1b">"{assessmentState.node.text}"</p>
             <div class="numeric-row">
               <input
                 class="numeric-input"
                 type="number"
+                aria-labelledby="numeric-prompt-1b"
                 bind:value={assessmentState.numericInput}
                 on:keydown={e => e.key === 'Enter' && submitNumeric()}
                 placeholder="Enter a number"
@@ -1003,9 +1034,10 @@
                 <button
                   class="checklist-option"
                   class:selected={assessmentState.selectedIds.has(option.id)}
+                  aria-pressed={assessmentState.selectedIds.has(option.id)}
                   on:click={() => toggleChecklistOption(option.id)}
                 >
-                  <span class="check-icon">{assessmentState.selectedIds.has(option.id) ? '☑' : '☐'}</span>
+                  <span class="check-icon" aria-hidden="true">{assessmentState.selectedIds.has(option.id) ? '☑' : '☐'}</span>
                   {option.text}
                 </button>
               {/each}
@@ -1051,11 +1083,11 @@
         <p class="prompt">Your move:</p>
         {#if game.npcPendingBet}
           <p class="hank-bet-notice">{currentNpcName} bet {game.betAmount} seeds.</p>
-          <button class="action-btn" on:click={doCall}>1. Call ({game.betAmount} seeds)</button>
+          <button class="action-btn" on:click={doCall} disabled={!canCall}>1. Call ({game.betAmount} seeds)</button>
           <button class="action-btn" on:click={doFold}>2. Fold</button>
         {:else}
           <button class="action-btn" on:click={doCheck}>1. Check</button>
-          <button class="action-btn" on:click={doBet}>2. Bet {game.betAmount} seeds</button>
+          <button class="action-btn" on:click={doBet} disabled={!canBet}>2. Bet {game.betAmount} seeds</button>
           <button class="action-btn" on:click={doFold}>3. Fold</button>
         {/if}
 
@@ -1155,24 +1187,27 @@
 
 
       {#if inDialog && currentLine}
-        <button class="dialog-box" on:click={advance}>
+        <button class="dialog-box" on:click={advance} aria-label="Advance dialog">
           <span
             class="dialog-speaker"
-            class:speaker-hank={currentLine.speaker === 'Hank'}
+            class:speaker-hank={currentLine.isNpc}
           >
             {currentLine.speaker}
           </span>
-          <p class="dialog-text">"{currentLine.text}"</p>
+          <div aria-live="polite" aria-atomic="true">
+            <p class="dialog-text">"{currentLine.text}"</p>
+          </div>
           <span class="dialog-hint">Press Space, Enter, or click to continue</span>
         </button>
 
       {:else if assessmentState}
         {#if assessmentState.node.responseType === 'numeric'}
           <div class="assessment-area">
-            <p class="assessment-prompt">"{assessmentState.node.text}"</p>
+            <p class="assessment-prompt" id="numeric-prompt-1a">"{assessmentState.node.text}"</p>
             <div class="numeric-row">
               <input
                 class="numeric-input"
+                aria-labelledby="numeric-prompt-1a"
                 type="number"
                 bind:value={assessmentState.numericInput}
                 on:keydown={e => e.key === 'Enter' && submitNumeric()}
@@ -1196,9 +1231,10 @@
                 <button
                   class="checklist-option"
                   class:selected={assessmentState.selectedIds.has(option.id)}
+                  aria-pressed={assessmentState.selectedIds.has(option.id)}
                   on:click={() => toggleChecklistOption(option.id)}
                 >
-                  <span class="check-icon">{assessmentState.selectedIds.has(option.id) ? '☑' : '☐'}</span>
+                  <span class="check-icon" aria-hidden="true">{assessmentState.selectedIds.has(option.id) ? '☑' : '☐'}</span>
                   {option.text}
                 </button>
               {/each}
@@ -1235,11 +1271,11 @@
         <p class="prompt">Your move:</p>
         {#if game.npcPendingBet}
           <p class="hank-bet-notice">{currentNpcName} bet {game.betAmount} seeds.</p>
-          <button class="action-btn" on:click={doCall}>1. Call ({game.betAmount} seeds)</button>
+          <button class="action-btn" on:click={doCall} disabled={!canCall}>1. Call ({game.betAmount} seeds)</button>
           <button class="action-btn" on:click={doFold}>2. Fold</button>
         {:else}
           <button class="action-btn" on:click={doCheck}>1. Check</button>
-          <button class="action-btn" on:click={doBet}>2. Bet {game.betAmount} seeds</button>
+          <button class="action-btn" on:click={doBet} disabled={!canBet}>2. Bet {game.betAmount} seeds</button>
           <button class="action-btn" on:click={doFold}>3. Fold</button>
         {/if}
 
@@ -1349,7 +1385,7 @@
     margin-bottom: 4px;
   }
   h1 { font-size: 3rem; letter-spacing: 0.1em; color: #c8a84a; }
-  .subtitle { font-size: 0.9rem; color: #7a6a4a; letter-spacing: 0.06em; }
+  .subtitle { font-size: 0.9rem; color: #a08858; letter-spacing: 0.06em; }
 
   /* ── Avatar ── */
   .avatar-grid { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 420px; }
@@ -1362,7 +1398,7 @@
   .avatar-btn:hover { background: #263626; }
   .num   { color: #c8a84a; min-width: 22px; }
   .label { font-weight: bold; min-width: 75px; }
-  .desc  { font-size: 0.85rem; color: #8a7a5a; font-style: italic; }
+  .desc  { font-size: 0.85rem; color: #b09a70; font-style: italic; }
 
   /* ── Table screen ── */
   .table-screen {
@@ -1403,12 +1439,12 @@
   .player-name.lucky { color: #7a9abc; }
   .seed-count { color: #a0c070; font-size: 0.95rem; }
   .center-display { display: flex; gap: 24px; align-items: center; }
-  .room-badge { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a6a4a; }
+  .room-badge { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #6a9a6a; }
   .pot-display  { text-align: center; }
-  .pot-label    { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a6a4a; }
+  .pot-label    { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #6a9a6a; }
   .pot-amount   { font-size: 1.2rem; font-weight: bold; color: #f0ead6; }
   .bet-display  { text-align: center; }
-  .bet-label    { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #4a6a4a; }
+  .bet-label    { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #6a9a6a; }
   .bet-amount   { font-size: 1.2rem; font-weight: bold; color: #a0a090; }
 
   .hand-area {
@@ -1419,10 +1455,10 @@
   }
   .opponent { background: rgba(0,0,0,0.25); }
   .player   { background: rgba(0,0,0,0.12); }
-  .hand-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: #4a6a4a; }
+  .hand-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: #6a9a6a; }
   .cards { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; min-height: 112px; }
   .hand-name { font-style: italic; color: #c8a84a; font-size: 0.95rem; margin-left: 10px; align-self: center; }
-  .draw-hint { font-size: 0.82rem; color: #7a6a4a; font-style: italic; }
+  .draw-hint { font-size: 0.82rem; color: #a08858; font-style: italic; }
 
   .felt-rule {
     height: 2px;
@@ -1460,7 +1496,7 @@
   .dialog-speaker.speaker-hank  { color: #c87a7a; }
   .dialog-speaker.speaker-lucky { color: #7a9abc; }
   .dialog-text { font-style: italic; color: #d4c89a; line-height: 1.6; font-size: 1.05rem; }
-  .dialog-hint { font-size: 0.72rem; color: #4a5a3a; align-self: flex-end; margin-top: 4px; }
+  .dialog-hint { font-size: 0.72rem; color: #6a8a5a; align-self: flex-end; margin-top: 4px; }
 
   .prompt { font-size: 0.9rem; color: #7a8a6a; }
   .hank-bet-notice { font-size: 0.9rem; color: #c87a7a; font-style: italic; }
@@ -1468,7 +1504,7 @@
   /* ── Assessment / checklist ── */
   .assessment-area { display: flex; flex-direction: column; gap: 10px; }
   .assessment-prompt { font-style: italic; color: #c8a84a; line-height: 1.55; font-size: 1rem; }
-  .assessment-hint { font-size: 0.78rem; color: #4a6a4a; }
+  .assessment-hint { font-size: 0.78rem; color: #6a8a5a; }
   .assessment-options { display: flex; flex-direction: column; gap: 6px; }
 
   .checklist-option {
@@ -1503,7 +1539,7 @@
     color: #f0ead6;
     width: 160px;
   }
-  .numeric-input:focus { outline: none; border-color: #c8a84a; }
+  .numeric-input:focus { outline: 2px solid #c8a84a; outline-offset: 2px; }
 
   .result-area { display: flex; flex-direction: column; gap: 14px; }
   .result-text { font-size: 1.15rem; color: #c8a84a; }
@@ -1521,7 +1557,6 @@
   .advance-label { font-style: italic; color: #d4c89a; font-size: 0.95rem; flex: 1; }
   .advance-btn { min-width: auto; white-space: nowrap; }
 
-  .surv-link { margin-top: 4px; }
   .surv-return-btn { min-width: auto; border-color: #3a5a7a; color: #7a9abc; font-size: 0.88rem; padding: 8px 16px; }
   .surv-return-btn:hover { background: #1a2a3a; border-color: #4a6a8a; }
 
@@ -1530,7 +1565,7 @@
     bottom: 10px;
     right: 14px;
     font-size: 0.72rem;
-    color: #2a4a2a;
+    color: #4a7a4a;
   }
 
   /* ── Dev badge ── */

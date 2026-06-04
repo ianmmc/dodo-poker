@@ -18,7 +18,7 @@ The Nest is organized around **tables**, each running a different poker variant.
 
 ### The Backroom: The Surveillance Room
 
-A special room accessible through Chief Dodo's connections. The Nest's surveillance footage can be played back at high speed — 1,000 or 10,000 draws in seconds. Chief Dodo introduces the student to this room at the right pedagogical moment. After that, the student can return independently whenever they want to run a fast simulation.
+A special room accessible through Chief Dodo's connections. The Nest's surveillance footage can be played back at high speed — 100, 1,000, or 10,000 draws in seconds. Chief Dodo introduces the student to this room at the right pedagogical moment. After that, the student can return independently whenever they want to run a fast simulation. The 100-draw option scaffolds the lesson: short runs are visibly noisy before committing to long-run convergence.
 
 This room is the primary tool for demonstrating the Law of Large Numbers — showing that long-run relative frequency converges to theoretical probability in a way no single session can. All simulations are card-based and unlocked progressively as the student demonstrates mastery:
 
@@ -154,14 +154,14 @@ All opponents are birds. Each NPC embodies a **specific reasoning pattern** — 
 
 When a planned NPC is bankrupt, Chief Dodo introduces a replacement from a pool of 10 backup members of The Nest. These replacements are not pedagogical NPCs — they are world-building characters who sit in for gameplay continuity. They use the same dialog and behavioral pattern as the NPC they replace.
 
-Chief Dodo's introduction follows a fixed three-beat structure: acknowledge the bust, announce the arrival, share an anecdote. Each backup has a name, bird species, and a short Chief Dodo anecdote.
+Chief Dodo's introduction follows a four-beat structure: acknowledge the bust, announce the arrival, share an anecdote, confirm readiness ("Alright. [name], you're up."). Each backup has a name, bird species, and a short Chief Dodo anecdote.
 
 **Current backup roster** (10 members, used in order, never reused within a session):
 
 | Name | Species | CD's anecdote hook |
 | --- | --- | --- |
 | Morty | Monk Parakeet | "Been at this table longer than the felt. I once watched him bluff a golden eagle off a full house with nothing but a straight face." |
-| Blanche | Great Blue Heron | "Word is she won a car in gin rummy, drove it to the coast, and pushed it into the ocean. Never confirmed. She never denied it." |
+| Blanche | Australian white ibis | "Word is she won a car in gin rummy, drove it to the coast, and pushed it into the ocean. Never confirmed. She never denied it." |
 | Dex | Hoopoe | "Tells everyone he's a professor of something. He narrates every hand like he's giving a lecture to an invisible classroom." |
 | Ines | Secretary Bird | "Walked out of a hedge fund one morning, left her badge on the desk, came straight here. That was four years ago." |
 | Clyde | Atlantic Puffin | "Flies in every winter from up north. Happiest loser I've ever seen — I think he just likes being somewhere warm." |
@@ -205,17 +205,17 @@ Full phase and table assignments in `scope-sequence.md`. Summary:
 
 ### Input Model
 
-All player interaction is menu-driven. Free text entry is limited to wager amounts only. There are four interaction types:
+All player interaction is button-driven. There are four interaction types:
 
-**1. Action menu** — game decisions (call, raise, fold, check, draw, etc.) presented as a numbered list; player enters the corresponding numeral.
+**1. Action menu** — game decisions (call, bet, fold, check, draw, etc.) rendered as clickable buttons.
 
-**2. Navigation menu** — table selection, reference card, Surveillance Room controls; numbered list or arrow-key navigation.
+**2. Navigation** — table advancement, reference card toggle, Surveillance Room entry are each contextual single-purpose buttons that appear when the relevant action is available.
 
-**3. Checklist response** — used when Chief Dodo asks a reflective or open question ("What does that tell you?", "Walk me through your thinking"). Player sees 5–7 statements — a mix of correct reasoning and common misconceptions — and checks any that match their thinking. Chief Dodo's follow-up is keyed to which specific items were selected, not just right/wrong. This keeps interaction menu-driven while allowing genuine formative assessment.
+**3. Checklist response** — used when Chief Dodo asks a reflective question. Player sees 4–7 statements — a mix of correct reasoning and common misconceptions — and clicks any that match their thinking. Chief Dodo's follow-up uses a 3-attempt scaffold (directional hint → quantitative hint → reveal), branching on attempt count. *Note: per-option adaptive feedback (follow-up keyed to which specific items were selected) is a planned future enhancement; current implementation branches on attempt count only.*
 
-**4. Numeric input** — used when Chief Dodo asks a quantitative question (wager entry is also numeric) ("How many cards help you?", "What's in the pot?"). One or more labeled number fields; Chief Dodo's follow-up branches on the student's answer (correct, too high, too low, etc.). Wager entry is also numeric.
+**4. Numeric input** — used when Chief Dodo asks a quantitative question. Single number field; Chief Dodo's follow-up branches on correct / too high / too low. Numeric assessment is introduced at Table 1A (t1a-assess-hank-numeric: how many of the next 5 hands will Hank bet on?) and used throughout.
 
-**Assessment timing:** Assessment questions are interleaved with gameplay — never batched at the end. The principle: Chief Dodo reacts to moments as they arise, not on a fixed schedule. At Table 1A, the Hank pattern checklist fires after 3 completed hands (the student has seen Hank's always-bet behavior on every hand; 3 is enough to notice). Play then resumes uninterrupted. The gambler's fallacy coaching and its two checklists fire separately at hand 8 — after the student has experienced enough hands to have encountered a streak. Real gameplay separates each coaching moment; assessment never clusters. Numeric responses are introduced at later tables where quantitative reasoning is the explicit focus.
+**Assessment timing:** Assessment questions are interleaved with gameplay — never batched at the end. The principle: Chief Dodo reacts to moments as they arise, not on a fixed schedule. At Table 1A, the Hank pattern checklist fires after 3 completed hands (the student has seen Hank's always-bet behavior on every hand; 3 is enough to notice). Play then resumes uninterrupted. The gambler's fallacy coaching and its two checklists fire separately at hand 8+ — after the student has experienced enough hands to have encountered a streak — but only when Hank is demonstrably on a losing streak (CD's coaching must be factually true). Real gameplay separates each coaching moment; assessment never clusters.
 
 ### Assessment System
 
@@ -226,7 +226,7 @@ The game assesses the student through multiple modes. The overarching principle:
 | Mode | Description | Status |
 | --- | --- | --- |
 | Gameplay observation | Passive — the system records bets, draws, and fold decisions to build a picture of the student's probability reasoning without interrupting play | Planned |
-| Checklist | Chief Dodo presents 5–7 statements (correct reasoning and common errors); student checks all that apply; follow-up keyed to which items were selected | Live |
+| Checklist | Chief Dodo presents 4–7 statements (correct reasoning and common errors); student checks all that apply; 3-attempt scaffold; per-option adaptive follow-up is a planned enhancement | Live |
 | Numeric input | Chief Dodo asks a quantitative question; student enters a number; feedback branches on correct / too high / too low | Live |
 | Single-select decision | One best answer from 3–4 options; used for "what's the right move here?" moments | Planned |
 | Qualitative estimate | Student picks a probability bucket (very likely / possible / unlikely / very unlikely); bridges intuition and formal probability | Planned |

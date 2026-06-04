@@ -201,6 +201,14 @@ export function getSurveillanceRoomReturn(): DialogNode[] {
   return chain('t1b-surv-return-001')
 }
 
+// Fires at hand 14+, after the Surveillance Room visit, to let the student
+// apply their frequency data to explain Hank's Table 1A behaviour.
+export function getHankRetroAssessment(handsAt1B: number, surveillanceRoomVisited: boolean): DialogNode[] {
+  if (firedOnce.has('t1b-hank-retro-001') || handsAt1B < 14 || !surveillanceRoomVisited) return []
+  firedOnce.add('t1b-hank-retro-001')
+  return chain('t1b-hank-retro-001')
+}
+
 export function getTable1bAssessment(handsAt1B: number, surveillanceRoomVisited: boolean): DialogNode[] {
   if (firedOnce.has('t1b-assess-intro') || handsAt1B < 18 || !surveillanceRoomVisited) return []
   firedOnce.add('t1b-assess-intro')

@@ -435,7 +435,7 @@
 
   .y-label {
     font-size: 0.62rem;
-    color: #2a4a2a;
+    color: #5a8a5a;
     writing-mode: vertical-rl;
     transform: rotate(180deg);
     text-transform: uppercase;
@@ -457,11 +457,11 @@
     justify-content: space-between;
     height: 180px;
     font-size: 0.62rem;
-    color: #2a4a2a;
+    color: #5a8a5a;
     padding: 2px 0;
     white-space: nowrap;
   }
-  .y-labels .ref-label { color: #4a7a4a; font-weight: bold; }
+  .y-labels .ref-label { color: #6a9a6a; font-weight: bold; }
 
   .grid-line {
     stroke: #1e3a1e;

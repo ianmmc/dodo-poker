@@ -15,7 +15,7 @@ export const BACKUP_NPCS: BackupNpc[] = [
   {
     id: 'blanche',
     name: 'Blanche',
-    species: 'Great Blue Heron',
+    species: 'Australian White Ibis',
     intro: "Blanche doesn't rush for anyone. Word is she won a car in a gin rummy game, drove it straight to the coast, and pushed it into the ocean. Never confirmed. She never denied it.",
   },
   {

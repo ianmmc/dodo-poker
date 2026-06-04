@@ -43,13 +43,7 @@
           "description": "Sharp and a little edgy. Remembers everything."
         }
       ],
-      "followUp": {
-        "ifSelected:seagull": "sog-avatar-seagull",
-        "ifSelected:finch": "sog-avatar-finch",
-        "ifSelected:quail": "sog-avatar-quail",
-        "ifSelected:sparrow": "sog-avatar-sparrow",
-        "ifSelected:crow": "sog-avatar-crow"
-      }
+      "followUp": {}
     },
     {
       "id": "sog-avatar-seagull",
@@ -96,9 +90,9 @@
     {
       "id": "sog-004",
       "speaker": "chief-dodo",
-      "text": "Table 1 is where we start. Come on.",
+      "text": "Let's head to the first table. Come on.",
       "responseType": "none",
-      "followUp": { "next": { "tree": "table-1a", "node": "t1a-approach-001" } }
+      "followUp": { "returnToGame": true }
     }
   ]
 }

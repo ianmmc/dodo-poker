@@ -22,7 +22,7 @@
     {
       "id": "t1b-approach-003",
       "speaker": "chief-dodo",
-      "text": "Somebody new across from you today.",
+      "text": "You've got a new player across from you now. Lucky plays differently.",
       "responseType": "none",
       "followUp": { "default": "t1b-lucky-intro" }
     },
@@ -36,14 +36,14 @@
     {
       "id": "t1b-house-rule",
       "speaker": "chief-dodo",
-      "text": "We're still in the front room, so you still get to bet first on every hand.",
+      "text": "Lucky says that every week. Watch that frequency table.",
       "responseType": "none",
       "followUp": { "default": "t1b-approach-004" }
     },
     {
       "id": "t1b-approach-004",
       "speaker": "chief-dodo",
-      "text": "She says that every week. Watch that frequency table — and watch Lucky.",
+      "text": "We're still in the front room, so you still get to bet first on every hand.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
@@ -401,6 +401,68 @@
       "text": "Running frequency converges over many trials — that's the long run. But each single draw is still 26 out of 52, and the convergence doesn't create a debt for any specific outcome.",
       "responseType": "none",
       "followUp": { "default": "t1b-gate-passed-001" }
+    },
+
+    {
+      "id": "t1b-hank-retro-001",
+      "speaker": "chief-dodo",
+      "text": "Hold on. You've been tracking for a while now. Think back to Hank at the first table.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-hank-retro-002" }
+    },
+    {
+      "id": "t1b-hank-retro-002",
+      "speaker": "chief-dodo",
+      "text": "Hank bet every hand — High Card, One Pair, didn't matter. You've got a frequency table now. It shows you something Hank can't see.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-hank-retro" }
+    },
+    {
+      "id": "t1b-hank-retro",
+      "speaker": "chief-dodo",
+      "text": "What does your hand type distribution tell you about why Hank's strategy costs him? Check everything the table actually supports.",
+      "responseType": "checklist",
+      "options": [
+        { "id": "ret-a", "text": "One Pair and High Card make up most hands. Hank bets those the same as a Full House.",  "correct": true  },
+        { "id": "ret-b", "text": "High-ranking hands are rare. A strategy that ignores hand quality will lose most of the time.", "correct": true  },
+        { "id": "ret-c", "text": "The deck will eventually give Hank enough strong hands to offset his losses.",             "correct": false },
+        { "id": "ret-d", "text": "Since Hank always bets, he wins whenever he has the better hand — and that's often enough.", "correct": false }
+      ],
+      "feedback": {
+        "correct":       "t1b-hank-retro-correct",
+        "attempt1Wrong": "t1b-hank-retro-hint1",
+        "attempt2Wrong": "t1b-hank-retro-hint2",
+        "attempt3Wrong": "t1b-hank-retro-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-retro-correct",
+      "speaker": "chief-dodo",
+      "text": "Right. Most hands are weak — and Hank plays them all the same way. Your frequency table just explained a whole table of losses.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-retro-hint1",
+      "speaker": "chief-dodo",
+      "text": "One of those sounds like something Lucky would say. Your frequency table is about hand types, not predictions.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-retro-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck. Look at which hand types appear most often — and ask what always-betting means when most hands are weak.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-hank-retro-reveal",
+      "speaker": "chief-dodo",
+      "text": "One Pair and High Card dominate the distribution. Hank bets all of them at the same level. That's why he loses — not luck, just math. And no, the deck doesn't owe him better cards to compensate.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
     },
 
     {
