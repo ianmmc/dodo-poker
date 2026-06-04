@@ -400,7 +400,7 @@
       screen = 'table'
       npcDrawDecider = hank.decideDraw.bind(hank)
       game = startHand(game)
-      enqueue([getPreHandNode(game.handNumber)])
+      enqueue(getPreHandNode(game.handNumber))
     }
   }
 
@@ -415,7 +415,7 @@
     screen = 'table'
     game = startHand(game)
     discardSet = new Set()
-    enqueue([...getApproachNodes(), getNode('t1a-house-rule'), getPreHandNode(game.handNumber)])
+    enqueue([...getApproachNodes(), getNode('t1a-house-rule'), ...getPreHandNode(game.handNumber)])
   }
 
   function moveToTable1B(): void {
@@ -508,7 +508,7 @@
     game = { ...game, npcSeeds: 200 }
     game = startHand(game)
     discardSet = new Set()
-    enqueue([getNode('t1a-hank-refill'), getPreHandNode(game.handNumber)])
+    enqueue([getNode('t1a-hank-refill'), ...getPreHandNode(game.handNumber)])
     doSave()
   }
 
@@ -530,8 +530,8 @@
       { id: `swap-anec-${backup.id}`,    speaker: 'chief-dodo', text: backup.intro,                                               responseType: 'none', followUp: {} },
       { id: `swap-ready-${backup.id}`,   speaker: 'chief-dodo', text: `Alright. ${backup.name}, you're up.`,                      responseType: 'none', followUp: {} },
     ]
-    const preHand = screen === 'table1b' ? getTable1bPreHandNode() : getPreHandNode(game.handNumber)
-    enqueue([...introNodes, preHand])
+    const preHandNodes = screen === 'table1b' ? [getTable1bPreHandNode()] : getPreHandNode(game.handNumber)
+    enqueue([...introNodes, ...preHandNodes])
     doSave()
   }
 
@@ -642,8 +642,8 @@
     const hankOnWinStreak  = last3.length === 3 && last3.every(s => s.outcome === 'loss')
     const gamblersFallback = game.handsPlayed >= 15 && !hankOnWinStreak
     const gamblers = (hankOnLoseStreak || gamblersFallback) ? getGamblersReveal(game.handsPlayed) : []
-    const preHand = getPreHandNode(game.handNumber)
-    enqueue([...observations, ...pattern, ...gamblers, preHand])
+    const preHandNodes = getPreHandNode(game.handNumber)
+    enqueue([...observations, ...pattern, ...gamblers, ...preHandNodes])
   }
 
   // ── Table 1B next hand ───────────────────────────────────────────────────
@@ -749,8 +749,8 @@
       unmarkFiredOnce('t1a-fallacy-001')
       const pattern = getPatternReveal(game.handsPlayed)
       const gamblers = getGamblersReveal(game.handsPlayed)
-      const preHand = getPreHandNode(game.handNumber)
-      enqueue([...pattern, ...gamblers, preHand])
+      const preHandNodes = getPreHandNode(game.handNumber)
+      enqueue([...pattern, ...gamblers, ...preHandNodes])
       screen = 'table'
     }
     devPanelOpen = false
@@ -769,7 +769,7 @@
       unmarkFiredOnce('t1a-fallacy-001')
       game = startHand(game)
       discardSet = new Set()
-      enqueue([getPreHandNode(game.handNumber)])
+      enqueue(getPreHandNode(game.handNumber))
     } else if (table === 'table1b') {
       npcDrawDecider = lucky.decideDraw.bind(lucky)
       gatePassedAt1A = true

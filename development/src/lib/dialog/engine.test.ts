@@ -58,16 +58,23 @@ describe('getApproachNodes', () => {
 })
 
 describe('getPreHandNode', () => {
-  it('returns t1a-hand-1-pre for hand 1', () => {
-    const n = getPreHandNode(1)
-    expect(n?.id).toBe('t1a-hand-1-pre')
+  it('returns the full chain starting at t1a-hand-1-pre for hand 1', () => {
+    const nodes = getPreHandNode(1)
+    expect(nodes[0]?.id).toBe('t1a-hand-1-pre')
+    expect(nodes.length).toBeGreaterThan(0)
   })
 
-  it('returns a pool node for hand > 1 (or null for silent draw)', () => {
-    // fromPool may return null (silent node) — just verify it doesn't throw
+  it('chains through followUp.default nodes for hand 1', () => {
+    const nodes = getPreHandNode(1)
+    const ids = nodes.map(n => n.id)
+    expect(ids).toContain('t1a-hand-1-pre-b')
+  })
+
+  it('returns an array for hand > 1 (empty if silent draw selected)', () => {
+    // fromPool may select a silent node → empty array; verify it doesn't throw
     for (let i = 0; i < 10; i++) {
-      const n = getPreHandNode(2)
-      expect(n === null || typeof n.id === 'string').toBe(true)
+      const nodes = getPreHandNode(2)
+      expect(Array.isArray(nodes)).toBe(true)
     }
   })
 })

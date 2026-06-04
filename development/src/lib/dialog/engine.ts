@@ -118,12 +118,10 @@ export function getApproachNodes(): DialogNode[] {
   return chain('t1a-approach-001')
 }
 
-export function getPreHandNode(handNumber: number): DialogNode | null {
-  if (handNumber === 1) {
-    const n = nodes.get('t1a-hand-1-pre')
-    return n && !n.silent ? n : null
-  }
-  return fromPool('t1a-pre-hand')
+export function getPreHandNode(handNumber: number): DialogNode[] {
+  if (handNumber === 1) return chain('t1a-hand-1-pre')
+  const n = fromPool('t1a-pre-hand')
+  return n ? [n] : []
 }
 
 export function getDrawComment(discardCount: number): DialogNode | null {
