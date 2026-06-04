@@ -41,6 +41,7 @@
 
     getLuckyDue, getSurveillanceRoomIntro, getSurveillanceRoomReturn,
     getHankRetroAssessment, getTable1bAssessment,
+    getTie1BNodes, getTie1ANode,
     TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD,
     // Shared
     restoreFiredOnce, getFiredOnce, getNode, getChain,
@@ -141,10 +142,12 @@
 
   // ── Game outcome helpers ─────────────────────────────────────────────────
 
-  // Outcome for post-hand dialog and frequency tracking (ties → 'loss').
-  function resolveHandOutcome(result: HandResult | null): 'win' | 'loss' | 'fold' {
+  // Outcome for post-hand routing — preserves 'tie' as a distinct value.
+  // Callers use postHandNodesForOutcome() so ties route to tie-specific dialog.
+  function resolveHandOutcome(result: HandResult | null): 'win' | 'loss' | 'fold' | 'tie' {
     if (!result || result.playerFolded) return 'fold'
     if (result.winner === 'player') return 'win'
+    if (result.winner === 'tie') return 'tie'
     return 'loss'
   }
 
@@ -386,11 +389,19 @@
       : getHankDrawNode(count)
   }
 
-  function postHandNode(outcome: 'win' | 'loss' | 'tie' | 'fold'): DialogNode | null {
-    const normalized: 'win' | 'loss' | 'fold' = outcome === 'tie' ? 'loss' : outcome
+  function postHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | null {
     return screen === 'table1b'
-      ? getTable1bPostHandNode(normalized)
-      : getPostHandNode(normalized)
+      ? getTable1bPostHandNode(outcome)
+      : getPostHandNode(outcome)
+  }
+
+  // Returns the correct dialog node(s) for any outcome, routing ties to their
+  // own first-occurrence chain or subsequent pool.
+  function postHandNodesForOutcome(outcome: 'win' | 'loss' | 'fold' | 'tie'): (DialogNode | null)[] {
+    if (outcome === 'tie') {
+      return screen === 'table1b' ? getTie1BNodes() : [getTie1ANode()]
+    }
+    return [postHandNode(outcome)]
   }
 
   function drawCommentNode(count: number): DialogNode | null {
@@ -418,7 +429,7 @@
   }
 
   // Update frequency data immediately when a 1B hand concludes.
-  function updateFreqForHand(outcome: 'win' | 'loss' | 'fold'): void {
+  function updateFreqForHand(outcome: 'win' | 'loss' | 'fold' | 'tie'): void {
     frequencyData = updateFrequencyData(
       frequencyData,
       game.result?.playerHandName ?? '',
@@ -476,7 +487,7 @@
         if (game.phase === 'done' && game.result) {
           const outcome = resolveHandOutcome(game.result)
           updateFreqForHand(outcome)
-          enqueue([getTable1bNpcActionNode('check'), postHandNode(outcome)])
+          enqueue([getTable1bNpcActionNode('check'), ...postHandNodesForOutcome(outcome)])
           doSave()
         } else {
           enqueue([getTable1bNpcActionNode('check')])
@@ -494,7 +505,7 @@
     if (game.phase === 'done' && game.result) {
       const outcome = resolveHandOutcome(game.result)
       if (screen === 'table1b') updateFreqForHand(outcome)
-      enqueue([hankNode, postHandNode(outcome)])
+      enqueue([hankNode, ...postHandNodesForOutcome(outcome)])
       doSave()
     } else {
       enqueue([hankNode])
@@ -506,7 +517,7 @@
     if (game.phase === 'done' && game.result) {
       const outcome = resolveHandOutcome(game.result)
       if (screen === 'table1b') updateFreqForHand(outcome)
-      enqueue([postHandNode(outcome)])
+      enqueue(postHandNodesForOutcome(outcome))
       doSave()
     }
   }
@@ -825,7 +836,7 @@
     if (game.result.npcFolded)   return `${currentNpcName} folded.`
     if (game.result.winner === 'player') return `You win! +${game.result.potWon} seeds`
     if (game.result.winner === 'npc')   return `${currentNpcName} wins.`
-    return 'Tie — pot split.'
+    return `Tie — pot split. +${game.result.potWon} seeds each.`
   }
 </script>
 

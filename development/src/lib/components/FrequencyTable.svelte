@@ -66,6 +66,12 @@
           <span class="out-label">Fold</span>
           <span class="out-val">{data.folds}</span>
           <span class="out-pct">{freqPct(data.folds, data.total)}</span>
+
+          {#if data.ties > 0}
+            <span class="out-label tie-label">Tie</span>
+            <span class="out-val tie">{data.ties}</span>
+            <span class="out-pct">{freqPct(data.ties, data.total)}</span>
+          {/if}
         </div>
         <div class="total-row">
           Total: <strong>{data.total}</strong> {data.total === 1 ? 'hand' : 'hands'}
@@ -190,6 +196,8 @@
   .out-val   { text-align: right; color: #a0c070; }
   .out-val.win  { color: #7ac87a; }
   .out-val.loss { color: #c87a7a; }
+  .out-val.tie  { color: #c8a84a; }
+  .tie-label    { color: #c8a84a; }
   .out-pct   { color: #7aaa7a; font-size: 0.7rem; }
   .total-row {
     font-size: 0.72rem;

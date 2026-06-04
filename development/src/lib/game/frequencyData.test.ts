@@ -120,6 +120,35 @@ describe('updateFrequencyData — outcomes', () => {
   })
 })
 
+describe('updateFrequencyData — tie outcome', () => {
+  it('increments ties count on tie outcome', () => {
+    const d = updateFrequencyData(createFrequencyData(), 'Pair', 'tie')
+    expect(d.ties).toBe(1)
+    expect(d.total).toBe(1)
+  })
+
+  it('does not increment wins or losses on a tie', () => {
+    const d = updateFrequencyData(createFrequencyData(), 'Pair', 'tie')
+    expect(d.wins).toBe(0)
+    expect(d.losses).toBe(0)
+  })
+
+  it('accumulates multiple ties', () => {
+    let d = createFrequencyData()
+    d = updateFrequencyData(d, 'Pair', 'tie')
+    d = updateFrequencyData(d, 'High Card', 'tie')
+    expect(d.ties).toBe(2)
+    expect(d.total).toBe(2)
+  })
+
+  it('ties > 0 signals the Tie row should appear in the frequency table', () => {
+    const d = createFrequencyData()
+    expect(d.ties).toBe(0)
+    const after = updateFrequencyData(d, 'Pair', 'tie')
+    expect(after.ties).toBeGreaterThan(0)
+  })
+})
+
 describe('freqPct', () => {
   it('returns "—" when total is zero', () => {
     expect(freqPct(0, 0)).toBe('—')

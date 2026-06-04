@@ -189,6 +189,47 @@
     },
 
     {
+      "id": "t1b-tie-first-001",
+      "speaker": "chief-dodo",
+      "text": "Wait. You both had the same hand.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-tie-first-002" }
+    },
+    {
+      "id": "t1b-tie-first-002",
+      "speaker": "chief-dodo",
+      "text": "Different suits, identical rank. Both of you split the pot. That's a tie — and it barely ever happens.",
+      "responseType": "none",
+      "followUp": { "default": "t1b-tie-first-003" }
+    },
+    {
+      "id": "t1b-tie-first-003",
+      "speaker": "chief-dodo",
+      "text": "Look at your frequency table. That Tie row just appeared. You've been playing a while without seeing one. That's what rare looks like in the data.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-tie-sub-a",
+      "pool": "t1b-tie-sub",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Tied again. Mark it.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-tie-sub-silent",
+      "pool": "t1b-tie-sub",
+      "weight": 3,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
       "id": "t1b-lucky-due",
       "speaker": "lucky",
       "text": "Man. Look at these cards — One Pair again. I've been getting garbage for four hands straight. The deck has to give me something good soon. Law of averages.",

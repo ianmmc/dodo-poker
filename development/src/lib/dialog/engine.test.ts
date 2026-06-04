@@ -4,6 +4,7 @@ import {
   getTable1bAssessment, getHankRetroAssessment,
   getSurveillanceRoomIntro, getSurveillanceRoomReturn,
   getLuckyDue, getNode, getChain,
+  getTie1BNodes, getTie1ANode,
   restoreFiredOnce, clearFiredOnce, getFiredOnce, markFiredOnce,
   TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD,
 } from './engine'
@@ -173,5 +174,39 @@ describe('restoreFiredOnce / getFiredOnce', () => {
     markFiredOnce('t1a-fallacy-001')
     expect(getFiredOnce()).toContain('t1a-pattern-001')
     expect(getFiredOnce()).toContain('t1a-fallacy-001')
+  })
+})
+
+describe('getTie1BNodes — first-occurrence teaching chain, then brief pool', () => {
+  it('first call returns the full 3-node chain and marks firedOnce', () => {
+    const nodes = getTie1BNodes()
+    expect(nodes.length).toBe(3)
+    expect(nodes[0].id).toBe('t1b-tie-first-001')
+    expect(getFiredOnce()).toContain('t1b-tie-first-001')
+  })
+
+  it('second call returns a brief pool node (not the full chain)', () => {
+    getTie1BNodes()  // first — already fires in beforeEach-cleared state
+    clearFiredOnce()
+    getTie1BNodes()  // first call in clean state
+    const second = getTie1BNodes()
+    // second call: firedOnce is set, falls through to pool
+    expect(second.length).toBeLessThanOrEqual(1)
+  })
+
+  it('after clearFiredOnce, fires the full chain again', () => {
+    getTie1BNodes()
+    clearFiredOnce()
+    expect(getTie1BNodes().length).toBe(3)
+  })
+})
+
+describe('getTie1ANode — brief pool or null', () => {
+  it('returns a node or null (pool may select silent node)', () => {
+    // Run many times to confirm no crash and result is always DialogNode or null
+    for (let i = 0; i < 20; i++) {
+      const n = getTie1ANode()
+      expect(n === null || typeof n.id === 'string').toBe(true)
+    }
   })
 })

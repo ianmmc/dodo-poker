@@ -207,6 +207,26 @@
     },
 
     {
+      "id": "t1a-tie-a",
+      "pool": "t1a-tie",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Tied hands. Split pot. Rare.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-tie-silent",
+      "pool": "t1a-tie",
+      "weight": 3,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
       "id": "t1a-pattern-001",
       "trigger": { "minHandsPlayed": 3, "once": true },
       "speaker": "chief-dodo",

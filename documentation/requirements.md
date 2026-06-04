@@ -95,6 +95,18 @@ User stories organized by theme. Each story will gain acceptance criteria before
 
 ---
 
+## Ties and Rare Events
+
+| # | Story | Status |
+| --- | ------- | -------- |
+| TIE-01 | As a student, I want tied hands to split the pot correctly, so the game follows standard Five Card Draw rules. | `done` |
+| TIE-02 | As a student, I want Chief Dodo to make a genuine teaching moment of the first tie I encounter — naming the rarity, pointing at the Tie row appearing in the frequency table for the first time — so that rare events feel meaningful rather than surprising. | `done` |
+| TIE-03 | As a student, I want the Tie row in the frequency table to be hidden until my first tie occurs, so that its appearance IS the moment and the rarity is felt through data, not explained in advance. | `done` |
+| TIE-04 | As a student, I want subsequent ties after the first to receive a brief acknowledgment rather than the full teaching sequence, so repetition doesn't feel like a lecture. | `done` |
+| TIE-05 | As a student, I want a scripted hand at Table 2A that guarantees I encounter a tie at the right pedagogical moment — when exact probability calculation (P = favorable outcomes / total) is the lesson — regardless of whether a natural tie has occurred before. | `draft` |
+
+---
+
 ## Simulation
 
 | # | Story | Status |

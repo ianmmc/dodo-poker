@@ -137,6 +137,8 @@ Completing both the conceptual and transfer checklists (correctly or after three
 
 **Chief Dodo's Focus**: The Surveillance Room introduction. After the student has tracked enough hands to see convergence begin but before it fully clicks, Chief Dodo takes them to the Surveillance Room to run 1,000 hands instantly. The contrast between 20 observed hands and 10,000 simulated hands is the moment that makes LLN concrete. "You tracked twenty hands and it was starting to look right. Look what happens when we run ten thousand." The Surveillance Room also offers 100-draw runs to show short-run noise before long-run convergence is demonstrated.
 
+**Rare-event teaching moment — tied hands**: If a tie occurs at Table 1B (identical rank, different suits), it triggers a one-time teaching moment: CD names the rarity and the Tie row appears in the frequency table for the first time. The row's sudden appearance IS the lesson — the student sees rarity in their own data. Subsequent ties get a brief acknowledgment only. If a natural tie never occurs, the Table 2A scripted hand guarantees the student encounters one at the right curriculum moment (see Table 2A below).
+
 **NPCs**
 
 | NPC | Bird | Reasoning Pattern | Flaw / Lesson |
@@ -178,6 +180,8 @@ Completing both the conceptual and transfer checklists (correctly or after three
 - Understand when the classical model applies: equally likely outcomes only
 
 **Chief Dodo's Focus**: Connecting back to the frequency table from 1B. The fraction they are computing now is the value their observed frequencies were converging toward. "Remember when Lucky said he was due? Here's what the deck actually says. Here's the number."
+
+**Planned scripted hand — tied showdown**: A scripted deal guarantees the student encounters two hands that tie at showdown (identical rank, different suits). If the student has not yet seen a natural tie, this is their first encounter with CD's full teaching sequence; if they have seen one before, CD leads directly to the calculation: "Two players can tie in exactly this many ways. How many five-card hands are there total? That's the fraction." This scripted hand is the planned delivery point for P = favorable outcomes / total outcomes applied to a concrete, uncommon event the student has already observed. *(Implementation: `dealScriptedHand` infrastructure is in place; scripted deal and dialog nodes are the remaining work.)*
 
 **NPCs**
 

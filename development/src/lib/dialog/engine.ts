@@ -178,6 +178,19 @@ export function getTable1bDrawComment(discardCount: number): DialogNode | null {
   return null
 }
 
+// First tie fires the full 3-node "look at your frequency table" chain (once).
+// Subsequent ties draw from the brief t1b-tie-sub pool.
+export function getTie1BNodes(): DialogNode[] {
+  const first = firedOnceChain('t1b-tie-first-001', true)
+  if (first.length > 0) return first
+  return [fromPool('t1b-tie-sub')].filter((n): n is DialogNode => n !== null)
+}
+
+// Table 1A has no frequency table; brief pool acknowledgment (often silent).
+export function getTie1ANode(): DialogNode | null {
+  return fromPool('t1a-tie')
+}
+
 export function getTable1bPostHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | null {
   const pool = outcome === 'win' ? 't1b-post-win'
     : outcome === 'fold' ? 't1b-post-fold'
