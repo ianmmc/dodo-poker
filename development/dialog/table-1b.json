@@ -22,7 +22,7 @@
     {
       "id": "t1b-freq-order",
       "speaker": "chief-dodo",
-      "text": "One thing about that table — it lists hands by how often you'll see them, most common at the top. Flip open your reference card and you'll see the same hands in the opposite order: strongest first. Same hands, different order. That difference is the whole lesson.",
+      "text": "One thing about that table — it lists hands by how often you'll see them, most common at the top. Flip open your reference card. Notice anything? Same order. That's not a coincidence — the weakest hands are also the most common ones. As hands get stronger, they get rarer.",
       "responseType": "none",
       "followUp": { "default": "t1b-approach-003" }
     },

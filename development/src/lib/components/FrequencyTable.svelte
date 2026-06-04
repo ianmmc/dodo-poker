@@ -7,12 +7,13 @@
   export let onToggle: () => void
 
   // Sorted by theoretical frequency, most common first.
-  // High Card (~17%) sits above Two Pair (~5%) because it is genuinely more
-  // frequent — even though the reference card lists it weakest (below One Pair).
-  // That incongruity is an intentional teaching moment introduced at Table 1B.
+  // Source: en.wikipedia.org/wiki/Poker_probability (5-card hand, 52-card deck)
+  // High Card and One Pair are the dominant hands; everything below is much rarer.
+  // Note: the reference card sorts weakest→strongest, which happens to also be
+  // most common→least common — High Card is both the weakest and the most frequent.
   const HAND_ROWS: { key: keyof FrequencyData; label: string }[] = [
-    { key: 'onePair',       label: 'One Pair'        },  // ~42%
-    { key: 'highCard',      label: 'High Card'       },  // ~17%
+    { key: 'highCard',      label: 'High Card'       },  // ~50.1%
+    { key: 'onePair',       label: 'One Pair'        },  // ~42.3%
     { key: 'twoPair',       label: 'Two Pair'        },  // ~4.75%
     { key: 'threeOfAKind',  label: 'Three of a Kind' },  // ~2.11%
     { key: 'straight',      label: 'Straight'        },  // ~0.39%
