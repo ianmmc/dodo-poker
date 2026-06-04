@@ -107,21 +107,25 @@ Chief Dodo can also open the panel **programmatically**, as part of his coaching
 
 #### Content at Table 1A
 
-The Table 1A reference card contains the **nine poker hand rankings**, from highest to lowest, with a **qualitative rarity descriptor** for each. No probability fractions or combinatorial counts appear yet — those are earned at later tables, after the student has built intuition through observation.
+The Table 1A reference card contains the **nine poker hand rankings**, sorted **weakest to strongest** (High Card first, Straight Flush last), with a **qualitative rarity descriptor** for each. No probability fractions or combinatorial counts appear yet — those are earned at later tables, after the student has built intuition through observation.
+
+This ordering is intentional and pedagogically significant: High Card is both the weakest hand *and* the most common (~50% of all five-card hands), with hands becoming simultaneously stronger and rarer as you move down the list. The card's order therefore matches the frequency table's order — a connection Chief Dodo names explicitly at Table 1B.
 
 Rarity descriptors are qualitative only: terms like "common," "uncommon," "rare," and "very rare." The framing is relative and experiential, not mathematical.
 
 | Hand | Rarity |
 | --- | --- |
-| Straight Flush | Very rare |
-| Four of a Kind | Very rare |
-| Full House | Rare |
-| Flush | Rare |
-| Straight | Uncommon |
-| Three of a Kind | Uncommon |
-| Two Pair | Common |
-| One Pair | Common |
 | High Card | Common |
+| One Pair | Common |
+| Two Pair | Common |
+| Three of a Kind | Uncommon |
+| Straight | Uncommon |
+| Flush | Rare |
+| Full House | Rare |
+| Four of a Kind | Very rare |
+| Straight Flush | Very rare |
+
+The reference card also includes a **Terms glossary** — a progressive set of poker vocabulary definitions written in Chief Dodo's voice. The initial set (introduced at Table 1A) covers: Ante, Pot, Bet, Check, Call, Discard, Fold, Draw, Hand. A link to the Wikipedia Glossary of Poker Terms provides an escape hatch for the curious. Additional terms will be added as new mechanics and vocabulary are introduced at later tables.
 
 #### Card Progression
 
@@ -283,14 +287,26 @@ The poker variant at each table is selected to best serve the mathematical conce
 
 ### Fixed-Bet Tables
 
-Some early tables use a fixed bet amount rather than variable sizing. At Table 1A, bets are fixed at 5 seeds (open or call); there is no raise option. This is intentional:
+Some early tables use a fixed bet amount rather than variable sizing. At Table 1A and 1B, bets are fixed at 5 seeds (open or call); there is no raise option. This is intentional:
 
-- The learning focus at Table 1A is observing Hank's pattern and building probability intuition — not optimizing bet sizing
+- The learning focus at Phase 1 (Front Room) is observing NPC patterns and building frequency intuition — not optimizing bet sizing
 - Fixed amounts eliminate a dimension of complexity at the wrong pedagogical moment
 - Equal-sized bets make win/loss patterns easy to track and compare across hands
 - Chief Dodo names the fixed amount upfront so it reads as a deliberate rule, not a missing feature
 
 Variable bet sizing is introduced when it becomes the concept under study, not before.
+
+### Betting Order
+
+**Front Room (Tables 1A and 1B):** The guest always bets first — a named house rule Chief Dodo states at the beginning of Table 1A and again at Table 1B. This eliminates positional complexity while students are focused on NPC behavior observation and empirical frequency tracking.
+
+**Main Room onward (Table 2A+):** Standard poker rotation applies — who bets first alternates each hand. Chief Dodo introduces this change as part of the Main Room orientation: a new room, different rules. This is the appropriate moment because (a) the student now has enough poker fluency to handle it, and (b) positional advantage will eventually become a teaching topic in its own right.
+
+### Frequency Table Scope
+
+The frequency table introduced at Table 1B tracks hand-type distributions and outcomes for the **current table only**. It resets when the student moves to a new table. This is intentional: different poker variants produce different hand distributions (Five Card Draw with the draw mechanic skews differently than no-draw Five Card Draw, which skews differently than Hold'Em). Mixing data across variants would produce distributions that match no theoretical model, undermining the core lesson that empirical frequency converges toward theoretical probability.
+
+If the student wants to run larger-scale frequency analyses across hands or variants, that capability belongs in the Surveillance Room, not the in-game frequency table.
 
 ### Know When to Hold 'Em, Know When to Fold 'Em
 

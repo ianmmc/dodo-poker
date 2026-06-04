@@ -169,7 +169,13 @@ Completing both the conceptual and transfer checklists (correctly or after three
 
 **Variant**: Five Card Draw (single deal; no draw mechanic; focus is on formal probability computation)
 
+**Room**: The Main Room (first table in Phase 2)
+
 **Why this variant, not another**: For the first formal introduction of probability as a fraction (favorable outcomes / total outcomes), Five Card Draw's uniform sample space is essential. Every card is equally likely to be drawn. The classical probability model — which Laplace formalized and which underlies every introductory probability course — requires equally-likely outcomes, and Five Card Draw delivers this cleanly. No other variant maintains this uniformity: Texas Hold'Em has known vs. unknown cards that complicate the sample space, Stud has player-visible upcards, and any game state with partial information breaks the classical model. This fraction is the computational foundation for the next six tables; it must be introduced in the cleanest possible context.
+
+**Betting order**: Standard rotation begins here. The Front Room house rule ("guest bets first") applied only to Tables 1A and 1B while students were focused on NPC behavior and empirical frequency. Entering the Main Room, Chief Dodo introduces alternating first-bet as part of the room orientation. Positional advantage is not yet the lesson — the mechanic is introduced as a rules change, not as a strategic concept.
+
+**Frequency table**: Resets on entry to Table 2A. The 1B data reflected hands played under the draw mechanic; 2A uses no-draw, producing a different and theoretically "purer" distribution (final hands = initial deal). The fresh table allows the student to directly compare their emerging empirical frequencies against the P = f/t fractions they are computing. Prior-table frequency analysis, if desired, is a Surveillance Room feature.
 
 **Learning Objectives**
 

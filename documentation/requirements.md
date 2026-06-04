@@ -32,6 +32,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | L-06 | As a student, I want Chief Dodo to suggest when I'm ready to move to the next table, based on what I've demonstrated — not how many hands I've played. | `done` |
 | L-07 | As a student, I want to track and record outcomes from my hands so I can compare what I observe to what the math predicts, building intuition about probability before formal numbers are introduced. | `done` |
 | L-08 | As a student, I want to meet Lucky (Rock Pigeon) at Table 1B who embodies the gambler's fallacy in action, so I can see the error being made live before the formal assessment asks me to refute it. | `done` |
+| L-09 | As a student, I want the frequency table to reset when I move to a new table, so that the data I see always corresponds to the variant I am currently playing and can be directly compared to the theoretical probabilities I am computing. | `draft` |
 
 ---
 
@@ -46,6 +47,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | C-05 | As a student, I want Chief Dodo to greet me as a familiar friend from my first moment in The Nest, so I feel immediately at ease rather than like a newcomer. | `done` |
 | C-06 | As a student, I want Chief Dodo to briefly orient me when I approach each new table — what's different here, what to watch for. | `done` |
 | C-10 | As a student, I want Chief Dodo to explain the betting order when I sit down for the first time, so I know what to expect before the first hand is dealt. | `done` |
+| C-11 | As a student, I want Chief Dodo to explain when the betting order changes — entering the Main Room introduces standard rotation — so I understand the rule shift and why it matters. | `draft` |
 | C-07 | As a student, I want Chief Dodo to be available for a brief check-in during each betting round when it's my turn, without interrupting the flow of the game. | `draft` |
 | C-08 | As a student, I want Chief Dodo to recognize and praise a well-reasoned fold, so I learn that not playing is sometimes the correct decision. | `draft` |
 | C-09 | As a student, I want Chief Dodo to recognize and praise a decision to take a break, so I learn that stepping away is part of good judgment. | `draft` |
