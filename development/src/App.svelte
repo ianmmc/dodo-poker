@@ -108,6 +108,7 @@
   $: currentLine = dialogQueue[0] ?? null
 
   $: if (currentLine?.openReferenceCard) refCardOpen = true
+  $: if (screen === 'intro' && !inDialog) sitDown()
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -848,8 +849,6 @@
         <p class="dialog-speaker">Chief Dodo</p>
         <p class="dialog-text">"{currentLine.text}"</p>
         <button class="action-btn primary" on:click={advance}>Next</button>
-      {:else}
-        <button class="action-btn primary" on:click={sitDown}>Sit down at Table 1</button>
       {/if}
     </div>
     <div class="dodo-portrait">
