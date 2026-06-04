@@ -45,6 +45,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | C-04 | As a student, I want Chief Dodo to introduce new poker variants with just enough context to start playing, not a full lecture. | `draft` |
 | C-05 | As a student, I want Chief Dodo to greet me as a familiar friend from my first moment in The Nest, so I feel immediately at ease rather than like a newcomer. | `done` |
 | C-06 | As a student, I want Chief Dodo to briefly orient me when I approach each new table — what's different here, what to watch for. | `done` |
+| C-10 | As a student, I want Chief Dodo to explain the betting order when I sit down for the first time, so I know what to expect before the first hand is dealt. | `done` |
 | C-07 | As a student, I want Chief Dodo to be available for a brief check-in during each betting round when it's my turn, without interrupting the flow of the game. | `draft` |
 | C-08 | As a student, I want Chief Dodo to recognize and praise a well-reasoned fold, so I learn that not playing is sometimes the correct decision. | `draft` |
 | C-09 | As a student, I want Chief Dodo to recognize and praise a decision to take a break, so I learn that stepping away is part of good judgment. | `draft` |
@@ -61,7 +62,8 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | N-04 | As a student, I want NPC personalities to fit the bird-themed world so the game feels cohesive. | `draft` |
 | N-05 | As a student, I want Chief Dodo to name and explain an NPC's reasoning pattern after I've encountered it in play, so I build vocabulary for recognizing common probabilistic errors. | `draft` |
 | N-06 | As a student, I want NPC betting behavior to reflect their specific reasoning pattern — not just a fixed strategy — so that understanding the pattern gives me a practical advantage at the table. | `done` |
-| N-07 | As a student, I want play to continue if my opponent runs out of seeds — with Chief Dodo introducing a replacement from The Nest — so that a fortunate early win doesn't end my learning session prematurely. | `done` |
+| N-07 | As a student, I want play to continue if my opponent runs out of seeds — at Table 1A Hank's seeds are refilled (the lesson needs continuity with the same opponent); at Table 1B a replacement NPC is introduced from a pool of 10 backup characters. | `done` |
+| N-08 | As a student, I want the dialog bubbles during play to always show the name of my current opponent, not a hardcoded character name, so the game stays coherent when a backup NPC has replaced the original. | `done` |
 
 ---
 
@@ -99,6 +101,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | --- | ------- | -------- |
 | SIM-01 | As a student, I want access to a fast-simulation mode where I can watch thousands of hands resolve in seconds, so I can see how probability plays out over the long run. | `done` |
 | SIM-02 | As a student, I want Chief Dodo to introduce me to the simulation room when the moment is right, and be able to return to it on my own afterward. | `done` |
+| SIM-03 | As a student, I want the simulation to feel like it's actually running — with a visible hand counter, the graph drawing progressively, cards streaming past, and Chief Dodo reacting — so convergence feels like a discovery rather than a page load. | `done` |
 
 ---
 

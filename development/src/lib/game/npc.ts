@@ -47,20 +47,44 @@ export const hank = {
   }
 }
 
-// Lucky folds when she's been winning — she thinks she's "due" to lose and
-// wants to protect her stack. The irony: she's acting on the gambler's fallacy.
-// Only folds when opening (callAmount === 0); always calls facing a player bet.
-function luckyFoldProbability(luckyConsecutiveWins: number): number {
-  return luckyConsecutiveWins >= 2 ? 0.35 : 0.10
+// Lucky's opening action probabilities driven by the gambler's fallacy:
+//   winning streak → thinks she's due to lose → plays timidly (fold/check)
+//   losing streak  → thinks she's due to win  → bets aggressively
+//   neutral        → normal mix
+// Only applies when callAmount === 0 (Lucky opens); she always calls a player bet.
+function luckyOpeningDecision(
+  betAmount: number,
+  wins: number,
+  losses: number
+): BetDecision {
+  const r = Math.random()
+  if (wins >= 2) {
+    // 35% fold, 45% check, 20% bet
+    if (r < 0.35) return { action: 'fold',  amount: 0 }
+    if (r < 0.80) return { action: 'check', amount: 0 }
+    return { action: 'bet', amount: betAmount }
+  }
+  if (losses >= 3) {
+    // 5% fold, 15% check, 80% bet
+    if (r < 0.05) return { action: 'fold',  amount: 0 }
+    if (r < 0.20) return { action: 'check', amount: 0 }
+    return { action: 'bet', amount: betAmount }
+  }
+  // Neutral: 10% fold, 30% check, 60% bet
+  if (r < 0.10) return { action: 'fold',  amount: 0 }
+  if (r < 0.40) return { action: 'check', amount: 0 }
+  return { action: 'bet', amount: betAmount }
 }
 
 export const lucky = {
-  decideBet(callAmount: number, betAmount: number, luckyConsecutiveWins = 0): BetDecision {
+  decideBet(
+    callAmount: number,
+    betAmount: number,
+    luckyConsecutiveWins = 0,
+    luckyConsecutiveLosses = 0
+  ): BetDecision {
     if (callAmount > 0) return { action: 'call', amount: callAmount }
-    if (Math.random() < luckyFoldProbability(luckyConsecutiveWins)) {
-      return { action: 'fold', amount: 0 }
-    }
-    return { action: 'bet', amount: betAmount }
+    return luckyOpeningDecision(betAmount, luckyConsecutiveWins, luckyConsecutiveLosses)
   },
 
   decideDraw(_hand: Card[]): DrawDecision {
@@ -70,6 +94,6 @@ export const lucky = {
   },
 
   drawDialogNodeId(count: number): string {
-    return count === 0 ? 't1b-hank-draw-0' : `t1b-hank-draw-${Math.min(count, 3)}`
+    return count === 0 ? 't1b-npc-draw-0' : `t1b-npc-draw-${Math.min(count, 3)}`
   }
 }

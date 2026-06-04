@@ -160,12 +160,12 @@ export function getTable1bPostHandNode(outcome: 'win' | 'loss' | 'fold'): Dialog
   return fromPool(pool)
 }
 
-export function getTable1bHankActionNode(action: 'call' | 'bet'): DialogNode | null {
-  return nodes.get(`t1b-hank-${action}`) ?? null
+export function getTable1bNpcActionNode(action: 'call' | 'bet' | 'check'): DialogNode | null {
+  return nodes.get(`t1b-npc-${action}`) ?? null
 }
 
-export function getTable1bHankDrawNode(count: number): DialogNode | null {
-  const id = count === 0 ? 't1b-hank-draw-0' : `t1b-hank-draw-${Math.min(count, 3)}`
+export function getTable1bNpcDrawNode(count: number): DialogNode | null {
+  const id = count === 0 ? 't1b-npc-draw-0' : `t1b-npc-draw-${Math.min(count, 3)}`
   return nodes.get(id) ?? null
 }
 

@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import { createGame, startHand, playerCheck, playerBet, playerCall, playerFold, playerDraw, npcFold } from './fiveCardDraw'
+import { createGame, startHand, playerCheck, playerCheckNpcCheck, playerBet, playerCall, playerFold, playerDraw, npcFold } from './fiveCardDraw'
 
 describe('startHand', () => {
   it('deals 5 cards to each player', () => {
     const state = startHand(createGame())
     expect(state.playerHand).toHaveLength(5)
-    expect(state.hankHand).toHaveLength(5)
+    expect(state.npcHand).toHaveLength(5)
   })
 
   it('no card appears in both hands', () => {
     const state = startHand(createGame())
-    const allCards = [...state.playerHand, ...state.hankHand]
+    const allCards = [...state.playerHand, ...state.npcHand]
     expect(new Set(allCards).size).toBe(10)
   })
 
@@ -18,7 +18,7 @@ describe('startHand', () => {
     const game = createGame(100, 5, 5)
     const state = startHand(game)
     expect(state.playerSeeds).toBe(95)
-    expect(state.hankSeeds).toBe(95)
+    expect(state.npcSeeds).toBe(95)
     expect(state.pot).toBe(10)
   })
 
@@ -35,10 +35,10 @@ describe('startHand', () => {
 })
 
 describe('playerFold', () => {
-  it('gives the pot to Hank', () => {
+  it('gives the pot to the NPC', () => {
     const state = startHand(createGame(100, 5, 5))
     const folded = playerFold(state)
-    expect(folded.hankSeeds).toBe(state.hankSeeds + state.pot)
+    expect(folded.npcSeeds).toBe(state.npcSeeds + state.pot)
   })
 
   it('sets phase to done', () => {
@@ -50,22 +50,22 @@ describe('playerFold', () => {
     const state = startHand(createGame())
     const folded = playerFold(state)
     expect(folded.result?.playerFolded).toBe(true)
-    expect(folded.result?.winner).toBe('hank')
+    expect(folded.result?.winner).toBe('npc')
   })
 })
 
 describe('playerCheck', () => {
-  it('sets hankPendingBet to true', () => {
+  it('sets npcPendingBet to true', () => {
     const state = startHand(createGame())
-    expect(playerCheck(state).hankPendingBet).toBe(true)
+    expect(playerCheck(state).npcPendingBet).toBe(true)
   })
 
-  it('adds Hank bet to pot', () => {
+  it('adds NPC bet to pot', () => {
     const game = createGame(100, 5, 5)
     const state = startHand(game)
     const checked = playerCheck(state)
     expect(checked.pot).toBe(state.pot + game.betAmount)
-    expect(checked.hankSeeds).toBe(state.hankSeeds - game.betAmount)
+    expect(checked.npcSeeds).toBe(state.npcSeeds - game.betAmount)
   })
 })
 
@@ -75,7 +75,7 @@ describe('playerBet (round 1)', () => {
     expect(playerBet(state).phase).toBe('draw')
   })
 
-  it('adds both player and Hank bets to pot', () => {
+  it('adds both player and NPC bets to pot', () => {
     const game = createGame(100, 5, 5)
     const state = startHand(game)
     const bet = playerBet(state)
@@ -121,10 +121,10 @@ describe('playerDraw', () => {
     expect(playerDraw(state, []).phase).toBe('bet2')
   })
 
-  it('all 10 player + hank cards are unique after draw', () => {
+  it('all 10 player + NPC cards are unique after draw', () => {
     const state = playerBet(startHand(createGame()))
     const drawn = playerDraw(state, [0, 1, 2])
-    const all = [...drawn.playerHand, ...drawn.hankHand]
+    const all = [...drawn.playerHand, ...drawn.npcHand]
     expect(new Set(all).size).toBe(10)
   })
 })
@@ -134,7 +134,7 @@ describe('npcFold', () => {
     const state = startHand(createGame(100, 5, 5))
     const folded = npcFold(state)
     expect(folded.playerSeeds).toBe(state.playerSeeds + state.pot)
-    expect(folded.hankSeeds).toBe(state.hankSeeds)
+    expect(folded.npcSeeds).toBe(state.npcSeeds)
   })
 
   it('sets phase to done', () => {
@@ -142,10 +142,10 @@ describe('npcFold', () => {
     expect(npcFold(state).phase).toBe('done')
   })
 
-  it('records hankFolded in result', () => {
+  it('records npcFolded in result', () => {
     const state = startHand(createGame())
     const folded = npcFold(state)
-    expect(folded.result?.hankFolded).toBe(true)
+    expect(folded.result?.npcFolded).toBe(true)
     expect(folded.result?.winner).toBe('player')
     expect(folded.result?.playerFolded).toBe(false)
   })
@@ -167,10 +167,50 @@ describe('npcFold', () => {
     expect(npcFold(state).handsPlayed).toBe(state.handsPlayed + 1)
   })
 
-  it('total seeds across player + hank unchanged', () => {
+  it('total seeds preserved across player + NPC', () => {
     const state = startHand(createGame(100, 5, 5))
     const folded = npcFold(state)
-    expect(folded.playerSeeds + folded.hankSeeds).toBe(200)
+    expect(folded.playerSeeds + folded.npcSeeds).toBe(200)
+  })
+})
+
+describe('playerCheckNpcCheck', () => {
+  it('moves from bet1 to draw phase', () => {
+    const state = startHand(createGame())
+    expect(playerCheckNpcCheck(state).phase).toBe('draw')
+  })
+
+  it('does not change pot or seeds — no money exchanged on mutual check', () => {
+    const state = startHand(createGame(100, 5, 5))
+    const checked = playerCheckNpcCheck(state)
+    expect(checked.pot).toBe(state.pot)
+    expect(checked.playerSeeds).toBe(state.playerSeeds)
+    expect(checked.npcSeeds).toBe(state.npcSeeds)
+  })
+
+  it('sets npcLastAction to check and clears npcPendingBet', () => {
+    const state = startHand(createGame())
+    const checked = playerCheckNpcCheck(state)
+    expect(checked.npcLastAction).toBe('check')
+    expect(checked.npcPendingBet).toBe(false)
+  })
+
+  it('resolves to done from bet2 (showdown)', () => {
+    let state = startHand(createGame())
+    state = playerBet(state)            // bet1 → draw
+    state = playerDraw(state, [])       // draw → bet2
+    state = playerCheckNpcCheck(state)  // both check in bet2 → done
+    expect(state.phase).toBe('done')
+    expect(state.result).not.toBeNull()
+    expect(['player', 'npc', 'tie']).toContain(state.result?.winner)
+  })
+
+  it('total seeds preserved after showdown via mutual check', () => {
+    let state = startHand(createGame(100, 5, 5))
+    state = playerBet(state)
+    state = playerDraw(state, [])
+    state = playerCheckNpcCheck(state)
+    expect(state.playerSeeds + state.npcSeeds).toBe(200)
   })
 })
 
@@ -182,14 +222,14 @@ describe('full hand — player wins at showdown', () => {
     state = playerBet(state)         // bet2 → done (showdown)
     expect(state.phase).toBe('done')
     expect(state.result).not.toBeNull()
-    expect(['player', 'hank', 'tie']).toContain(state.result?.winner)
+    expect(['player', 'npc', 'tie']).toContain(state.result?.winner)
   })
 
-  it('total seeds across player + hank equals starting amount', () => {
+  it('total seeds across player + NPC equals starting amount', () => {
     let state = startHand(createGame(100, 5, 5))
     state = playerBet(state)
     state = playerDraw(state, [])
     state = playerBet(state)
-    expect(state.playerSeeds + state.hankSeeds).toBe(200)
+    expect(state.playerSeeds + state.npcSeeds).toBe(200)
   })
 })

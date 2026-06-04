@@ -7,7 +7,7 @@ const KEY = 'dodo-poker-v1'
 export interface SavedSession {
   avatar: string
   playerSeeds: number
-  hankSeeds: number
+  npcSeeds: number
   handNumber: number
   handsPlayed: number
   betAmount: number

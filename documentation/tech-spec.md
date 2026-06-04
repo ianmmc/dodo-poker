@@ -193,11 +193,35 @@ The ladder behavior is in the engine; the copy is in JSON. The two can evolve in
 
 | Path | Contents |
 | --- | --- |
-| `src/lib/game/` | Game logic: card, hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData |
+| `src/lib/game/` | Game logic: card, hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData, simulationEngine |
 | `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()`, `getChain()`, `firedOnce` registry |
 | `src/lib/components/` | Svelte UI components: CardImage, ReferenceCard, FrequencyTable, SurveillanceRoom, DevPanel |
 | `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state |
 | `dialog/` | JSON dialog trees (content only — no logic) |
+
+---
+
+## Naming Conventions
+
+### NPC fields vs. character names
+
+`GameState` uses generic `npc*` field names (`npcHand`, `npcSeeds`, `npcPendingBet`, `npcLastAction`, `npcDrawCount`) and `HandResult` uses `npcHandName` / `npcFolded` / `winner: 'npc'`. These are table-agnostic: the same game engine handles Table 1A (Hank) and Table 1B (Lucky/backups) without modification.
+
+Character names — `hank`, `lucky` — appear only in: NPC module exports (`npc.ts`), dialog node `speaker` fields, dialog node IDs at the table where that character permanently resides (e.g. `t1a-hank-*` nodes stay Hank-specific because Hank is Table 1A's permanent NPC).
+
+`speakerLabel()` in App.svelte maps `speaker === 'hank' || speaker === 'lucky'` to `currentNpcName`, so dialog bubbles always display whoever is currently sitting across from the student — correct even when a backup NPC has replaced the original.
+
+### Dialog node ID convention
+
+- Table-specific, character-generic: `t1b-npc-call`, `t1b-npc-bet`, `t1b-npc-draw-0` — used wherever the identity of the Table 1B NPC may change
+- Table-specific, character-specific: `t1a-hank-*` — used only where Hank is permanently the opponent and the dialog text names him explicitly
+
+### Simulation architecture
+
+`simulationEngine.ts` separates simulation logic from display:
+
+- **Phase 1** (`card-stream` mode): `runCardDrawSim(n)` runs the full card-draw simulation instantly; `SurveillanceRoom.svelte` animates display via `requestAnimationFrame` (counter + progressive graph + CSS card stream).
+- **Phase 2 foundation** (`cinematic` mode): `SimMode`, `SimulationController<T>`, `PokerSimHandResult`, `PokerSimConfig` types are defined and stable. The cinematic split-screen (mini table, hand-by-hand replay) will implement `SimulationController` without touching Phase 1 code.
 
 ---
 

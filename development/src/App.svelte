@@ -7,7 +7,7 @@
   import DevPanel from './lib/components/DevPanel.svelte'
   import {
     createGame, startHand, startScriptedHand,
-    playerCheck, playerBet, playerCall, playerFold, playerDraw, npcFold
+    playerCheck, playerCheckNpcCheck, playerBet, playerCall, playerFold, playerDraw, npcFold
   } from './lib/game/fiveCardDraw'
   import type { GameState } from './lib/game/fiveCardDraw'
   import { save, load, clear } from './lib/game/storage'
@@ -34,7 +34,8 @@
     getHankActionNode, getHankDrawNode,
     // Table 1B
     getTable1bApproachNodes, getTable1bPreHandNode, getTable1bDrawComment,
-    getTable1bPostHandNode, getTable1bHankActionNode, getTable1bHankDrawNode,
+    getTable1bPostHandNode, getTable1bNpcActionNode, getTable1bNpcDrawNode,
+
     getLuckyDue, getSurveillanceRoomIntro, getSurveillanceRoomReturn,
     getTable1bAssessment,
     // Shared
@@ -107,6 +108,7 @@
 
   // Dialog queue
   let dialogQueue: DisplayLine[] = []
+  let pendingPostAssessment: DisplayLine[] = []
   $: inDialog = dialogQueue.length > 0
   $: currentLine = dialogQueue[0] ?? null
 
@@ -143,8 +145,7 @@
 
   function speakerLabel(speaker: string | null): string {
     if (speaker === 'chief-dodo') return 'Chief Dodo'
-    if (speaker === 'hank')       return 'Hank'
-    if (speaker === 'lucky')      return 'Lucky'
+    if (speaker === 'hank' || speaker === 'lucky') return currentNpcName
     return 'Narrator'
   }
 
@@ -181,6 +182,8 @@
     }
     if (current?.dealScriptedHand) pendingScriptedHandId = current.dealScriptedHand
     if (current?.assessmentNode) {
+      pendingPostAssessment = dialogQueue
+      dialogQueue = []
       assessmentState = { node: current.assessmentNode, selectedIds: new Set(), numericInput: '' }
     }
   }
@@ -205,9 +208,12 @@
     if (result.correct || result.exhausted) {
       recordAssessment({ nodeId: node.id, responseType: 'checklist', attempts: result.attemptNumber, correct: result.correct })
       assessmentState = null
+      const pending = pendingPostAssessment
+      pendingPostAssessment = []
       if (result.feedbackNodeId) {
         enqueue(getChain(result.feedbackNodeId), result.templateVars)
       }
+      dialogQueue = [...dialogQueue, ...pending]
       doSave()
     } else {
       assessmentState = { ...assessmentState, selectedIds: new Set() }
@@ -235,9 +241,12 @@
     if (result.correct || result.exhausted) {
       recordAssessment({ nodeId: node.id, responseType: 'numeric', attempts: result.attemptNumber, correct: result.correct })
       assessmentState = null
+      const pending = pendingPostAssessment
+      pendingPostAssessment = []
       if (result.feedbackNodeId) {
         enqueue(getChain(result.feedbackNodeId), result.templateVars)
       }
+      dialogQueue = [...dialogQueue, ...pending]
       doSave()
     } else {
       assessmentState = { ...assessmentState, numericInput: '' }
@@ -273,13 +282,13 @@
     game = {
       ...createGame(saved.playerSeeds, saved.betAmount, saved.ante),
       playerSeeds: saved.playerSeeds,
-      hankSeeds:   saved.hankSeeds,
+      npcSeeds:   saved.npcSeeds,
       handNumber:  saved.handNumber,
       handsPlayed: saved.handsPlayed,
     }
     if (gatePassedAt1A) {
       screen = 'table1b'
-      if (handsAt1B === 0) game = { ...game, hankSeeds: 200 }
+      if (handsAt1B === 0) game = { ...game, npcSeeds: 200 }
       currentNpcName = saved.currentNpcName ?? 'Lucky'
       game = startHand(game)
       enqueue([getTable1bPreHandNode()])
@@ -301,7 +310,7 @@
     screen = 'table'
     game = startHand(game)
     discardSet = new Set()
-    enqueue([...getApproachNodes(), getPreHandNode(game.handNumber)])
+    enqueue([...getApproachNodes(), getNode('t1a-house-rule'), getPreHandNode(game.handNumber)])
   }
 
   function moveToTable1B(): void {
@@ -311,7 +320,7 @@
     surveillanceRoomVisited = false
     currentNpcName = 'Lucky'
     usedBackupIds = []
-    game = { ...game, hankSeeds: 200 }
+    game = { ...game, npcSeeds: 200 }
     game = startHand(game)
     discardSet = new Set()
     enqueue([...getTable1bApproachNodes(), getTable1bPreHandNode()])
@@ -328,13 +337,13 @@
 
   function hankActionNode(action: 'bet' | 'call'): DialogNode | null {
     return screen === 'table1b'
-      ? getTable1bHankActionNode(action)
+      ? getTable1bNpcActionNode(action)
       : getHankActionNode(action)
   }
 
   function hankDrawNode(count: number): DialogNode | null {
     return screen === 'table1b'
-      ? getTable1bHankDrawNode(count)
+      ? getTable1bNpcDrawNode(count)
       : getHankDrawNode(count)
   }
 
@@ -353,11 +362,18 @@
   // ── Table 1B helpers ─────────────────────────────────────────────────────
 
   // Returns Lucky's consecutive win count (= player's consecutive losses).
-  // Used to drive her personality-based fold probability.
-  function getLuckyConsecutiveWins(): number {
+  function getNpcConsecutiveWins(): number {
     const recent = observationLog.slice(-2)
     if (recent.length === 2 && recent.every(s => s.outcome === 'loss')) return 2
     if (recent.length >= 1 && recent[recent.length - 1].outcome === 'loss') return 1
+    return 0
+  }
+
+  // Returns Lucky's consecutive loss count (= player's consecutive wins).
+  function getNpcConsecutiveLosses(): number {
+    const recent = observationLog.slice(-3)
+    if (recent.length === 3 && recent.every(s => s.outcome === 'win')) return 3
+    if (recent.length >= 1 && recent[recent.length - 1].outcome === 'win') return 1
     return 0
   }
 
@@ -371,6 +387,15 @@
   }
 
   // Swap out the busted NPC for the next backup, or reset if pool is exhausted.
+  // Table 1A: Hank runs out of seeds but the lesson isn't over — refill and continue.
+  function refillNpcAt1A(): void {
+    game = { ...game, npcSeeds: 200 }
+    game = startHand(game)
+    discardSet = new Set()
+    enqueue([getNode('t1a-hank-refill'), getPreHandNode(game.handNumber)])
+    doSave()
+  }
+
   function swapNpc(): void {
     const backup = getNextBackup(usedBackupIds)
     if (!backup) { resetGame(); return }
@@ -378,7 +403,7 @@
     const previousName = currentNpcName
     usedBackupIds = [...usedBackupIds, backup.id]
     currentNpcName = backup.name
-    game = { ...game, hankSeeds: 200 }
+    game = { ...game, npcSeeds: 200 }
     game = startHand(game)
     discardSet = new Set()
 
@@ -397,12 +422,24 @@
 
   function doCheck(): void {
     if (screen === 'table1b') {
-      const decision = lucky.decideBet(0, game.betAmount, getLuckyConsecutiveWins())
+      const decision = lucky.decideBet(0, game.betAmount, getNpcConsecutiveWins(), getNpcConsecutiveLosses())
       if (decision.action === 'fold') {
         game = npcFold(game)
         updateFreqForHand('win')
         enqueue([postHandNode('win')])
         doSave()
+        return
+      }
+      if (decision.action === 'check') {
+        game = playerCheckNpcCheck(game)
+        if (game.phase === 'done' && game.result) {
+          const outcome = game.result.winner === 'player' ? 'win' : 'loss'
+          updateFreqForHand(outcome)
+          enqueue([getTable1bNpcActionNode('check'), postHandNode(outcome)])
+          doSave()
+        } else {
+          enqueue([getTable1bNpcActionNode('check')])
+        }
         return
       }
     }
@@ -445,7 +482,7 @@
     discardSet = new Set()
     const drawComment = drawCommentNode(indices.length)
     game = playerDraw(game, indices)
-    enqueue([drawComment, hankDrawNode(game.hankDrawCount)])
+    enqueue([drawComment, hankDrawNode(game.npcDrawCount)])
   }
 
   function toggleDiscard(idx: number): void {
@@ -462,7 +499,7 @@
       drawCount: game.playerDrawCount,
       outcome: !game.result || game.result.playerFolded ? 'fold'
         : game.result.winner === 'player' ? 'win'
-        : game.result.winner === 'hank'   ? 'loss'
+        : game.result.winner === 'npc'   ? 'loss'
         : 'tie',
     }
     observationLog = [...observationLog.slice(-9), summary]
@@ -490,7 +527,7 @@
     // Build summary from completed hand
     const outcome: HandSummary['outcome'] = !game.result || game.result.playerFolded ? 'fold'
       : game.result.winner === 'player' ? 'win'
-      : game.result.winner === 'hank'   ? 'loss'
+      : game.result.winner === 'npc'   ? 'loss'
       : 'tie'
 
     const summary: HandSummary = {
@@ -528,6 +565,7 @@
     discardSet = new Set()
     dialogQueue = []
     assessmentState = null
+    pendingPostAssessment = []
     gatePassedAt1A = false
     gatePassedAt1B = false
     observationLog = []
@@ -549,6 +587,7 @@
     if (!avatar) avatar = 'crow'
     dialogQueue = []
     assessmentState = null
+    pendingPostAssessment = []
 
     if (screen === 'table1b') {
       handsAt1B = n
@@ -580,6 +619,7 @@
     if (!avatar) avatar = 'crow'
     dialogQueue = []
     assessmentState = null
+    pendingPostAssessment = []
     if (table === 'table') {
       game = startHand(game)
       discardSet = new Set()
@@ -591,7 +631,7 @@
       surveillanceRoomVisited = false
       currentNpcName = 'Lucky'
       usedBackupIds = []
-      game = { ...game, hankSeeds: 200 }
+      game = { ...game, npcSeeds: 200 }
       game = startHand(game)
       discardSet = new Set()
       enqueue([...getTable1bApproachNodes(), getTable1bPreHandNode()])
@@ -681,7 +721,7 @@
     save({
       avatar,
       playerSeeds:           game.playerSeeds,
-      hankSeeds:             game.hankSeeds,
+      npcSeeds:             game.npcSeeds,
       handNumber:            game.handNumber,
       handsPlayed:           game.handsPlayed,
       betAmount:             game.betAmount,
@@ -702,8 +742,8 @@
   // ── Derived display ──────────────────────────────────────────────────────
 
   $: broke = game.playerSeeds < game.ante
-  $: hankBroke = game.hankSeeds < game.ante
-  $: showHankCards = game.phase === 'done' && game.result && !game.result.playerFolded && !game.result.hankFolded
+  $: npcBroke = game.npcSeeds < game.ante
+  $: showNpcCards = game.phase === 'done' && game.result && !game.result.playerFolded && !game.result.npcFolded
   $: drawCount = discardSet.size
 
   $: opponentName = currentNpcName
@@ -711,9 +751,9 @@
   function resultText(): string {
     if (!game.result) return ''
     if (game.result.playerFolded) return `You folded. ${currentNpcName} takes the pot.`
-    if (game.result.hankFolded)   return `${currentNpcName} folded.`
+    if (game.result.npcFolded)   return `${currentNpcName} folded.`
     if (game.result.winner === 'player') return `You win! +${game.result.potWon} seeds`
-    if (game.result.winner === 'hank')   return `${currentNpcName} wins.`
+    if (game.result.winner === 'npc')   return `${currentNpcName} wins.`
     return 'Tie — pot split.'
   }
 </script>
@@ -829,7 +869,7 @@
         </div>
       </div>
       <div class="player-info right">
-        <span class="seed-count">🌰 {game.hankSeeds}</span>
+        <span class="seed-count">🌰 {game.npcSeeds}</span>
         <span class="player-name lucky">{currentNpcName}</span>
       </div>
     </div>
@@ -838,11 +878,11 @@
     <div class="hand-area opponent">
       <span class="hand-label">{currentNpcName}'s hand</span>
       <div class="cards">
-        {#if showHankCards}
-          {#each game.hankHand as card}
+        {#if showNpcCards}
+          {#each game.npcHand as card}
             <CardImage {card} />
           {/each}
-          <span class="hand-name">{game.result?.hankHandName}</span>
+          <span class="hand-name">{game.result?.npcHandName}</span>
         {:else}
           {#each Array(5) as _}
             <CardImage faceDown />
@@ -964,7 +1004,7 @@
             <p class="result-text">You're out of seeds.</p>
             <button class="action-btn primary" on:click={resetGame}>Start over</button>
           </div>
-        {:else if hankBroke}
+        {:else if npcBroke}
           <div class="result-area">
             <p class="result-text">{currentNpcName} is tapped out.</p>
             {#if getNextBackup(usedBackupIds)}
@@ -982,7 +1022,7 @@
 
       {:else if game.phase === 'bet1' || game.phase === 'bet2'}
         <p class="prompt">Your move:</p>
-        {#if game.hankPendingBet}
+        {#if game.npcPendingBet}
           <p class="hank-bet-notice">{currentNpcName} bet {game.betAmount} seeds.</p>
           <button class="action-btn" on:click={doCall}>1. Call ({game.betAmount} seeds)</button>
           <button class="action-btn" on:click={doFold}>2. Fold</button>
@@ -1031,7 +1071,7 @@
         </div>
       </div>
       <div class="player-info right">
-        <span class="seed-count">🌰 {game.hankSeeds}</span>
+        <span class="seed-count">🌰 {game.npcSeeds}</span>
         <span class="player-name hank">{currentNpcName}</span>
       </div>
     </div>
@@ -1040,11 +1080,11 @@
     <div class="hand-area opponent">
       <span class="hand-label">{currentNpcName}'s hand</span>
       <div class="cards">
-        {#if showHankCards}
-          {#each game.hankHand as card}
+        {#if showNpcCards}
+          {#each game.npcHand as card}
             <CardImage {card} />
           {/each}
-          <span class="hand-name">{game.result?.hankHandName}</span>
+          <span class="hand-name">{game.result?.npcHandName}</span>
         {:else}
           {#each Array(5) as _}
             <CardImage faceDown />
@@ -1085,6 +1125,7 @@
           <button class="action-btn primary advance-btn" on:click={moveToTable1B}>Move to Table 1B →</button>
         </div>
       {/if}
+
 
       {#if inDialog && currentLine}
         <button class="dialog-box" on:click={advance}>
@@ -1151,14 +1192,10 @@
             <p class="result-text">You're out of seeds.</p>
             <button class="action-btn primary" on:click={resetGame}>Start over</button>
           </div>
-        {:else if hankBroke}
+        {:else if npcBroke}
           <div class="result-area">
             <p class="result-text">{currentNpcName} is tapped out.</p>
-            {#if getNextBackup(usedBackupIds)}
-              <button class="action-btn primary" on:click={swapNpc}>Continue</button>
-            {:else}
-              <button class="action-btn primary" on:click={resetGame}>Play again</button>
-            {/if}
+            <button class="action-btn primary" on:click={refillNpcAt1A}>Continue</button>
           </div>
         {:else}
           <div class="result-area">
@@ -1169,7 +1206,7 @@
 
       {:else if game.phase === 'bet1' || game.phase === 'bet2'}
         <p class="prompt">Your move:</p>
-        {#if game.hankPendingBet}
+        {#if game.npcPendingBet}
           <p class="hank-bet-notice">{currentNpcName} bet {game.betAmount} seeds.</p>
           <button class="action-btn" on:click={doCall}>1. Call ({game.betAmount} seeds)</button>
           <button class="action-btn" on:click={doFold}>2. Fold</button>

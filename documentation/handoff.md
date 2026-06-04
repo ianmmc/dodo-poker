@@ -35,6 +35,7 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 | Menu-driven input only | No free text except wager amounts; all choices are numbered menus or click targets; four interaction types: `none`, `action`, `checklist`, `numeric` |
 | Scripted dialog for proof-of-concept | Self-hosted LLM backend is a future possibility; initial version uses JSON dialog trees for simplicity and speed to proof-of-concept |
 | Starting stack: 100 seeds, 5 ante, 5 bet | Fixed amounts for Table 1A prototype; calibrated so a session lasts ~20 hands before a player runs out |
+| Front room house rule: guest bets first | Tables 1A and 1B are both "the front room"; the student always bets first on every hand; rotation will be introduced at a later table when position becomes the lesson topic |
 
 ---
 
@@ -45,63 +46,67 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 ### Completed
 
 - Project concept, design principles, and all documentation complete
-- User stories: `requirements.md`, 33 stories across 9 themes
+- User stories: `requirements.md`, 35+ stories across 9 themes
 - Game design: `design.md`, research docs, scope-sequence, tech-spec, dialog-samples all complete
-- Dialog trees: `start-of-game.json`, `table-1a.json` (49 nodes), `table-1b.json` (50 nodes)
+- Dialog trees: `start-of-game.json`, `table-1a.json` (51 nodes), `table-1b.json` (57 nodes)
 - **Project scaffold**: TypeScript + Svelte 5 + Vite 6, Vitest 4; zero vulnerabilities
 - **Game logic** (`development/src/lib/game/`):
   - `card.ts` — Card type, 52-card deck, Fisher-Yates shuffle, SVG path mapping
   - `hand.ts` — Hand evaluation wrapper around `pokersolver`
-  - `npc.ts` — `hank` (always bets/calls, never folds) and `lucky` (personality-driven fold: 10% baseline, 35% after 2+ consecutive Lucky wins); both use weighted-random draw 0–3 cards
-  - `fiveCardDraw.ts` — Complete Five Card Draw state machine; `playerFold`, `npcFold` (player wins pot, `hankFolded: true` in result); `HandResult.hankFolded?` flag
-  - `storage.ts` — localStorage save/load/clear; includes assessmentLog, observationLog, frequencyData, handsAt1B, surveillanceRoomVisited, `currentNpcName`, `usedBackupIds`
+  - `npc.ts` — `hank` (always bets/calls, never folds) and `lucky` (personality-driven: fold/check/bet probabilities vary by winning/losing streak); both use weighted-random draw 0–3 cards
+  - `fiveCardDraw.ts` — Complete Five Card Draw state machine; `GameState` uses generic `npc*` fields (`npcHand`, `npcSeeds`, `npcPendingBet`, `npcLastAction`, `npcDrawCount`); `HandResult` uses `npcHandName`, `npcFolded`, `winner: 'npc'`; `playerCheckNpcCheck()` for mutual check (advances to draw or resolves showdown)
+  - `storage.ts` — localStorage save/load/clear; includes assessmentLog, observationLog, frequencyData, handsAt1B, surveillanceRoomVisited, `currentNpcName`, `usedBackupIds`, `npcSeeds`
   - `assessment.ts` — Evaluation engine: `evaluateChecklist`, `evaluateNumeric`, 3-attempt scaffolding, assessment log
   - `observationEngine.ts` — `HandSummary` type, three 1A coaching rules, fired-rules persistence
-  - `scriptedHands.ts` — `ScriptedDeal` interface, `getScriptedDeal()`
-  - `frequencyData.ts` — `FrequencyData` interface, `createFrequencyData()`, `updateFrequencyData()`, `freqPct()`; `HAND_NAME_MAP` uses `'Pair'` (pokersolver's actual string, not `'One Pair'`)
+  - `scriptedHands.ts` — `ScriptedDeal` interface with `npcCards` field, `getScriptedDeal()`
+  - `frequencyData.ts` — `FrequencyData` interface, update/create/freqPct; `HAND_NAME_MAP` uses `'Pair'` (pokersolver's actual string)
   - `backupNpcs.ts` — 10 backup NPC characters (name, species, CD intro anecdote); `getNextBackup(usedIds)` filters used entries
-- **Dialog engine** (`development/src/lib/dialog/engine.ts`): loads both `table-1a.json` and `table-1b.json`; Table 1A + 1B functions; `openSurveillanceRoom` stop condition; `unmarkFiredOnce()` for dev tools
+  - `simulationEngine.ts` — `runCardDrawSim(n)` for card-draw simulation; Phase 2 type foundations: `SimMode`, `SimulationController<T>`, `PokerSimHandResult`, `PokerSimConfig`
+- **Dialog engine** (`development/src/lib/dialog/engine.ts`): loads both dialog JSON files; Table 1A + 1B functions; `getTable1bNpcActionNode()`, `getTable1bNpcDrawNode()`; `unmarkFiredOnce()` for dev tools
 - **UI components**:
-  - `App.svelte` — full Table 1A and 1B game loops, Surveillance Room routing, frequency table, dialog queue, assessment state, reference card; `currentNpcName` drives all NPC name display; NPC swap system
+  - `App.svelte` — full game loop; `currentNpcName` drives ALL NPC name display including dialog bubble speaker labels; `speakerLabel()` maps `'hank'|'lucky'` → `currentNpcName` so backups display correctly; `pendingPostAssessment` prevents queued pre-hand nodes from appearing between assessment setup and the assessment UI; `refillNpcAt1A()` resets Hank's seeds when he busts at Table 1A (lesson continuity); `swapNpc()` for Table 1B backup replacement; `getNpcConsecutiveWins/Losses()` drive Lucky's probability table
   - `ReferenceCard.svelte` — right-side sliding panel, 9 hand blocks, SVG examples
   - `FrequencyTable.svelte` — left-side sliding panel; tab anchored to panel right edge (24px reserved strip prevents dialog overlap)
-  - `SurveillanceRoom.svelte` — coin-flip simulation (100/1k/10k), SVG running-frequency line chart, LLN convergence visualization
-  - `DevPanel.svelte` — dev mode panel; table-aware (shows 1A or 1B assessments based on current screen); 1B presets: `handsAt1B=10` (Surv. Room), `handsAt1B=18` (assessment)
+  - `SurveillanceRoom.svelte` — card-draw simulation with 2.4s `requestAnimationFrame` animation: progressive graph draw, hand counter, CSS card stream behind Chief Dodo portrait, completion commentary
+  - `DevPanel.svelte` — dev mode panel; table-aware (shows 1A or 1B assessments based on current screen)
   - `CardImage.svelte` — card display (face-up/down, selectable)
+- **Table 1A progression complete**:
+  - Approach sequence with Hank introduction and house rule ("guests always bet first")
+  - Pattern reveal → Hank checklist → gambler's fallacy coaching → fallacy checklist → transfer checklist → gate
+  - When Hank busts: `refillNpcAt1A()` resets his seeds to 200; CD says "Hank reached into his jacket. He's still in."
 - **Table 1B progression complete**:
-  - Approach sequence with Lucky introduction
-  - Frequency table panel always visible (left side); updates immediately when hand concludes, not on "Play next hand" click
-  - Lucky's gambler's fallacy fires at first 3-consecutive-player-win streak (once)
-  - Lucky folds based on personality: 10% baseline, 35% when on a winning streak (she thinks she's due to lose); only folds when opening, never folds to a player bet
-  - Surveillance Room intro fires at `handsAt1B >= 10` (once)
-  - Assessment fires at `handsAt1B >= 18 && surveillanceRoomVisited` (once): procedural numeric → conceptual checklist → transfer checklist
+  - Approach sequence with Lucky introduction and house rule ("still in the front room, you still bet first")
+  - Frequency table always visible; updates immediately at hand conclusion
+  - Lucky's behavior: fold/check/bet probabilities shift by streak state (winning: 35/45/20; neutral: 10/30/60; losing: 5/15/80); check only fires when student has checked first (callAmount === 0); always calls a player bet
+  - `playerCheckNpcCheck()` handles both-check path; resolves showdown if in bet2
+  - Surveillance Room animation: counter ticks up, graph draws progressively, cards stream behind CD portrait, CD delivers convergence commentary
+  - Assessment fires at `handsAt1B >= 18 && surveillanceRoomVisited`
   - Gate-passed sequence → "Coming soon" CTA
-  - Surveillance Room re-entry button available after first visit
-- **NPC swap system**:
-  - When any NPC is bankrupt, "Continue" replaces "Play again"; CD delivers 4-line intro (bust acknowledgment + arrival + anecdote + ready)
-  - 10 backup NPCs in roster, never reused within a session; uses same dialog pools as replaced NPC
+- **NPC swap system** (Table 1B):
+  - When NPC is bankrupt, CD delivers 4-line intro (bust acknowledgment + arrival + anecdote + ready)
+  - 10 backup NPCs in roster, never reused within a session
   - If all 10 exhausted, falls back to "Play again" reset
-  - Lucky/replacement NPC starts Table 1B with 200 seeds (enough for 18+ hands); `currentNpcName` persists to save
-- **Test suite**: 105 tests across 7 files — all passing
+- **Test suite**: 118 tests across 8 files — all passing
 - **Deployed**: live at `dodo-poker.mccullough.com`
 
 ### Key Implementation Details
 
 - `publicDir: '../assets'` in `vite.config.ts` serves card SVGs at `/svg-cards/` and title image at `/title-screen-image.png`
 - Svelte 5 requires `mount()` not `new App()` — `main.ts` uses `mount`
-- Dialog queue drives the game rhythm: all Chief Dodo and NPC text is queued; action menu hidden while queue is non-empty
-- Pattern reveal (t1a-pattern-001) fires at hand 3 (`handsPlayed >= 3`); chains into Hank checklist; on resolution returns to game — does NOT chain into gambler's fallacy
-- Gambler's fallacy coaching (t1a-fallacy-001) fires separately at hand 8; chains into fallacy checklist → transfer checklist → gate-passed sequence
-- `getChain(nodeId)` traverses `followUp.default` chains and stops at `returnToGame`, `advanceTable`, or a non-`none` responseType node
-- `gatePassedAt1A` restored on session continue by checking `t1a-assess-transfer-001` in assessmentLog; `gatePassedAt1B` by `t1b-assess-transfer`
-- Frequency data updates in action handlers (`doBet`, `doCall`, `doFold`, `doCheck`) the moment the hand concludes — before post-hand dialog fires; `nextHand1B()` no longer touches frequencyData
-- Lucky fold check in `doCheck()`: runs BEFORE `playerCheck(game)` so the NPC fold (via `npcFold()`) preempts the normal check→hank-bets flow
-- `npcFold()` records empty `playerHandName` pre-draw (hand not finalised); records evaluated hand name post-draw (bet2)
-- `pokersolver` returns `'Pair'` not `'One Pair'`; `HAND_NAME_MAP` uses `'Pair'` as the key
-- Assessment state machine: interactive nodes activate `assessmentState`; checklist UI shows while `assessmentState !== null && !inDialog`; `assessmentState = null` on correct or exhausted
-- `submitChecklist` uses `getChain` for correct/exhausted outcomes; single `getNode` for hint attempts
-- Template interpolation: `{{varName}}` placeholders replaced at `DisplayLine` creation time using `result.templateVars`
-- FrequencyTable panel: `position: fixed; width: 24px` always reserved for the FREQ tab; expands to `width: 220px` when open; `table-screen` has `margin-left: 24px` always on 1B (`has-freq-panel` class), `220px` when full panel open
+- Dialog queue drives the game rhythm: all CD and NPC text is queued; action menu hidden while queue is non-empty
+- **Assessment queue fix**: `advance()` stashes `dialogQueue` to `pendingPostAssessment` and clears it when activating `assessmentState`; restored after submission. Prevents pre-hand nodes (e.g. "Watch Hank.") from appearing between the assessment question text and the assessment UI
+- `speakerLabel()` maps `'hank' || 'lucky'` → `currentNpcName`; this ensures dialog bubbles show the correct name even when a backup NPC has replaced the original
+- `GameState` field naming: all NPC-facing fields use `npc*` prefix (`npcHand`, `npcSeeds`, etc.); character names only appear in dialog `speaker` fields and in NPC-module exports
+- Dialog node naming: `t1b-npc-{call,bet,check,draw-*}` for Table 1B generic NPC nodes; `t1a-hank-*` kept because Hank is permanently Table 1A's opponent
+- Pattern reveal (t1a-pattern-001) fires at hand 3; chains into Hank checklist
+- Gambler's fallacy coaching (t1a-fallacy-001) fires at hand 8; chains into fallacy checklist → transfer checklist → gate-passed sequence
+- `getChain(nodeId)` traverses `followUp.default` chains; stops at `returnToGame`, `advanceTable`, or non-`none` responseType
+- `gatePassedAt1A` restored on continue by checking `t1a-assess-transfer-001` in assessmentLog; `gatePassedAt1B` by `t1b-assess-transfer`
+- Frequency data updates in action handlers the moment the hand concludes — before post-hand dialog fires
+- Lucky fold/check/bet decision in `doCheck()` runs BEFORE `playerCheck(game)`, so NPC fold or mutual check preempts the default check→NPC-bets flow
+- `npcFold()` records empty `playerHandName` pre-draw; records evaluated hand name post-draw (bet2)
+- `pokersolver` returns `'Pair'` not `'One Pair'`; `HAND_NAME_MAP` uses `'Pair'`
+- FrequencyTable panel: 24px always reserved for FREQ tab; expands to 220px when open; table-screen has `margin-left: 24px` always on 1B
 - `pokersolver` has no official TypeScript types; declaration file at `src/types/pokersolver.d.ts`
 
 ---
@@ -109,11 +114,12 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 ## Open Questions
 
 - **Vivian (Flamingo)** — listed in NPC roster for Table 1B (hot hand fallacy) but not yet introduced. Could appear as a table observer with one coaching line after a 3-win streak, or be deferred to Table 2A.
-- **Table 1B Surveillance Room scope** — currently shows coin-flip simulation demonstrating LLN. Scope-sequence describes poker hand frequency simulation. Coin flips are pedagogically cleaner; future iteration could add a tab for hand-type frequency simulation.
+- **Table 1B Surveillance Room scope** — currently shows coin-flip simulation demonstrating LLN. Scope-sequence describes poker hand frequency simulation. Coin flips are pedagogically cleaner for LLN; a future "Cinematic mode" tab could show hand-type frequency simulation using the Phase 2 `SimulationController` infrastructure already defined in `simulationEngine.ts`.
 - **NPC personality beyond reasoning pattern** — fuller speech patterns, flavor text, win/loss reactions not yet written for individual NPCs.
 - **Table 2A** — next table to build. Lucky and Vivian; classical probability P = f/t; no-draw Five Card Draw variant; connects frequency table from 1B to formal fractions.
 - **Session restoration routing** — `continueSession()` currently routes `gatePassedAt1A → table1b`; when Table 2A exists, add `gatePassedAt1B → table2a`.
 - **Backup NPC dialog pools** — current backup NPCs reuse Lucky/Hank's dialog pools. If they need distinct voice lines in the future, each backup would need entries in the dialog JSON.
+- **Betting rotation** — front room tables (1A, 1B) use "guest bets first" house rule. Position/rotation will be introduced at a later table as its own learning objective.
 
 ---
 
@@ -125,42 +131,44 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 | `assets/svg-cards/` | SVG playing card assets (52 cards + jokers + back) | Complete |
 | `assets/png-cards/` | PNG playing card assets (backup) | Complete |
 | `assets/title-screen-image.png` | Title screen illustration | Complete |
-| `documentation/requirements.md` | User stories (33 stories across 9 themes) | Current |
+| `documentation/requirements.md` | User stories (35+ stories across 9 themes) | Current |
 | `documentation/design.md` | Game design: world, characters, mechanics, NPC roster (incl. backup pool), avatars | Current |
 | `documentation/scope-sequence.md` | Full curriculum: 14 tables, 5 phases, variant justifications, competency gates, CCSS alignment | Current |
-| `documentation/tech-spec.md` | Stack decisions, dialog JSON schema, open backend decisions | Current |
+| `documentation/tech-spec.md` | Stack decisions, dialog JSON schema, naming conventions, simulation architecture | Current |
 | `documentation/dialog-samples.md` | Chief Dodo voice reference: 20 sample lines, interaction type annotations | Current |
 | `documentation/research.md` | Full research report: CCSS, pedagogy, poker precedents, game-based learning | Complete |
 | `documentation/research-scope-sequence.md` | Research report: scope/sequence methodology, poker variant math, competency gate research | Complete |
 | `documentation/handoff.md` | This file | Current |
 | `development/dialog/schema.md` | Dialog tree JSON format reference | Current |
 | `development/dialog/start-of-game.json` | Entry dialog tree (9 nodes) | Current |
-| `development/dialog/table-1a.json` | Table 1A dialog tree (49 nodes — full gate sequence) | Current |
-| `development/dialog/table-1b.json` | Table 1B dialog tree (50 nodes — frequency table, LLN, assessment gate) | Current |
+| `development/dialog/table-1a.json` | Table 1A dialog tree (51 nodes — full gate sequence + house rule + Hank refill) | Current |
+| `development/dialog/table-1b.json` | Table 1B dialog tree (57 nodes — frequency table, LLN, assessment gate, house rule, npc-* action nodes) | Current |
 | `development/src/lib/game/card.ts` | Card type, deck, shuffle, SVG path mapping | Complete |
 | `development/src/lib/game/hand.ts` | Hand evaluation via pokersolver | Complete |
-| `development/src/lib/game/npc.ts` | `hank` (never folds) and `lucky` (personality-driven fold) NPCs | Current |
-| `development/src/lib/game/fiveCardDraw.ts` | Five Card Draw state machine; `playerFold`, `npcFold`; `HandResult.hankFolded` | Current |
-| `development/src/lib/game/storage.ts` | localStorage persistence; includes `currentNpcName`, `usedBackupIds` | Current |
+| `development/src/lib/game/npc.ts` | `hank` (never folds) and `lucky` (3-state fold/check/bet probability table) | Current |
+| `development/src/lib/game/fiveCardDraw.ts` | Five Card Draw state machine; `npc*` GameState fields; `NpcAction` type; `playerCheckNpcCheck()` | Current |
+| `development/src/lib/game/storage.ts` | localStorage persistence; `npcSeeds`, `currentNpcName`, `usedBackupIds` | Current |
 | `development/src/lib/game/assessment.ts` | Evaluation engine: checklist + numeric, 3-attempt scaffolding, assessment log | Complete |
 | `development/src/lib/game/backupNpcs.ts` | 10 backup NPC characters; `getNextBackup(usedIds)` | Current |
 | `development/src/lib/game/frequencyData.ts` | `FrequencyData` interface, update/create/freqPct; `HAND_NAME_MAP` | Current |
 | `development/src/lib/game/observationEngine.ts` | `HandSummary` type, 1A coaching rules, fired-rules persistence | Complete |
-| `development/src/lib/game/scriptedHands.ts` | `ScriptedDeal` interface, `getScriptedDeal()` | Complete |
+| `development/src/lib/game/scriptedHands.ts` | `ScriptedDeal` with `npcCards`; `getScriptedDeal()` | Complete |
+| `development/src/lib/game/simulationEngine.ts` | `runCardDrawSim(n)` Phase 1; `SimMode`, `SimulationController<T>`, `PokerSimHandResult` Phase 2 foundations | Current |
 | `development/src/lib/game/assessment.test.ts` | 18 tests — evaluation branches and log | Complete |
 | `development/src/lib/game/card.test.ts` | 9 tests — deck creation, shuffle, SVG path mapping | Complete |
-| `development/src/lib/game/fiveCardDraw.test.ts` | 22 tests — game state machine including `npcFold` | Current |
+| `development/src/lib/game/fiveCardDraw.test.ts` | 29 tests — game state machine, `playerCheckNpcCheck`, `npcFold`, npc* fields | Current |
 | `development/src/lib/game/hand.test.ts` | 14 tests — hand evaluation and ranking | Complete |
 | `development/src/lib/game/frequencyData.test.ts` | 17 tests — HAND_NAME_MAP coverage, update logic, freqPct | Current |
-| `development/src/lib/game/npc.test.ts` | 6 tests — hank never folds, lucky fold probability and personality behavior | Current |
+| `development/src/lib/game/npc.test.ts` | 10 tests — hank never folds, lucky 3-state probability behavior | Current |
 | `development/src/lib/game/backupNpcs.test.ts` | 6 tests — roster integrity, getNextBackup filtering | Current |
-| `development/src/lib/dialog/engine.ts` | Dialog engine: pool selection, triggers, sequences, getNode(), unmarkFiredOnce() | Current |
+| `development/src/lib/game/simulationEngine.test.ts` | 6 tests — draw count, convergence, sampled points | Current |
+| `development/src/lib/dialog/engine.ts` | Dialog engine; `getTable1bNpcActionNode()`, `getTable1bNpcDrawNode()`; `unmarkFiredOnce()` | Current |
 | `development/src/lib/components/CardImage.svelte` | Card display component (face-up/down, selectable) | Complete |
 | `development/src/lib/components/ReferenceCard.svelte` | Sliding reference card panel: 9 hand blocks, SVG examples | Complete |
 | `development/src/lib/components/FrequencyTable.svelte` | Left-side sliding panel; 24px reserved strip prevents dialog overlap | Current |
-| `development/src/lib/components/SurveillanceRoom.svelte` | Coin-flip LLN simulation with SVG running-frequency chart | Complete |
+| `development/src/lib/components/SurveillanceRoom.svelte` | Card-draw simulation with rAF animation: counter, progressive graph, CSS card stream, CD commentary | Current |
 | `development/src/lib/components/DevPanel.svelte` | Dev panel; table-aware assessment state; 1B jump presets | Current |
-| `development/src/App.svelte` | Full application: all screens, game loop, NPC swap, frequency timing | Current |
+| `development/src/App.svelte` | Full application: all screens, game loop, NPC swap, `speakerLabel` → `currentNpcName` | Current |
 | `development/src/types/pokersolver.d.ts` | TypeScript declaration for pokersolver | Complete |
 
 ---
@@ -177,4 +185,10 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 
 ## Last Updated
 
-2026-06-03 — Post-playtest round of fixes and features: Lucky NPC personality-driven fold behavior (`npc.ts`, `lucky` export; 10% baseline / 35% on hot streak); `npcFold()` in `fiveCardDraw.ts`; backup NPC pool (`backupNpcs.ts`, 10 characters, CD introduction sequence); NPC swap system in `App.svelte` (`currentNpcName`, `usedBackupIds`, `swapNpc()`); frequency table update timing moved to action handlers (updates when hand concludes, before post-hand dialog); FrequencyTable tab positioning fix (24px reserved panel strip, no dialog overlap); `HAND_NAME_MAP` bug fix (`'Pair'` not `'One Pair'`); Lucky seed inheritance fix (Table 1B NPC starts with 200 seeds, not Hank's depleted count); DevPanel table-aware updates (1B assessments, 1B jump presets). Test suite expanded from 63 to 105 tests across 7 files; 3 new test files (`frequencyData.test.ts`, `npc.test.ts`, `backupNpcs.test.ts`).
+2026-06-03 — Naming convention refactor + bug fixes + features:
+
+**Naming convention refactor (complete):** All `hank*` GameState/HandResult fields renamed to `npc*` (`npcHand`, `npcSeeds`, `npcPendingBet`, `npcLastAction`, `npcDrawCount`, `npcHandName`, `npcFolded`, `winner: 'npc'`); `HankAction` type → `NpcAction`; `ScriptedDeal.hankCards` → `npcCards`; `SavedSession.hankSeeds` → `npcSeeds`; `t1b-hank-*` dialog node IDs → `t1b-npc-*`; engine functions `getTable1bHankActionNode/DrawNode` → `getTable1bNpcActionNode/DrawNode`; `getLuckyConsecutiveWins/Losses` → `getNpcConsecutiveWins/Losses`. Review pass confirmed zero stale references.
+
+**Bug fixes:** `speakerLabel()` now maps `'hank'|'lucky'` → `currentNpcName` (backup NPC dialog bubbles now show correct name); assessment queue stash (`pendingPostAssessment`) prevents pre-hand nodes from appearing between assessment text and assessment UI.
+
+**Features:** Lucky's check behavior added (fold/check/bet probability table varies by streak state; check only when student checks first; `playerCheckNpcCheck()` in `fiveCardDraw.ts`; `t1b-npc-check` dialog node); house rule dialog at Table 1A and 1B ("guests bet first in the front room"); Surveillance Room simulation animation (`simulationEngine.ts` with Phase 2 foundations; `SurveillanceRoom.svelte` rewritten with `requestAnimationFrame` counter/graph, CSS card stream, CD commentary); Hank seed refill at Table 1A when busted (`refillNpcAt1A()`, `t1a-hank-refill` dialog node). Test suite expanded to 118 tests across 8 files.

@@ -40,6 +40,20 @@
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
+    {
+      "id": "t1a-hank-refill",
+      "speaker": "chief-dodo",
+      "text": "Hank reached into his jacket. He's still in.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1a-house-rule",
+      "speaker": "chief-dodo",
+      "text": "Here in the front room, guests of the club always bet first.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
 
     {
       "id": "t1a-hand-1-pre",

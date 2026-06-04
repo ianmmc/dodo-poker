@@ -31,12 +31,19 @@
       "speaker": "lucky",
       "text": "Word up. Don't let my record fool you — I'm about to go on a run. I've been losing all week but the cards have to break my way.",
       "responseType": "none",
+      "followUp": { "default": "t1b-house-rule" }
+    },
+    {
+      "id": "t1b-house-rule",
+      "speaker": "chief-dodo",
+      "text": "We're still in the front room, so you still get to bet first on every hand.",
+      "responseType": "none",
       "followUp": { "default": "t1b-approach-004" }
     },
     {
       "id": "t1b-approach-004",
       "speaker": "chief-dodo",
-      "text": "He says that every week. Watch that frequency table — and watch Lucky.",
+      "text": "She says that every week. Watch that frequency table — and watch Lucky.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
@@ -419,42 +426,49 @@
     },
 
     {
-      "id": "t1b-hank-call",
+      "id": "t1b-npc-call",
       "speaker": "lucky",
       "text": "I'm in.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
     {
-      "id": "t1b-hank-bet",
+      "id": "t1b-npc-bet",
       "speaker": "lucky",
       "text": "Bet.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
     {
-      "id": "t1b-hank-draw-0",
+      "id": "t1b-npc-check",
+      "speaker": "lucky",
+      "text": "Check.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t1b-npc-draw-0",
       "speaker": "lucky",
       "text": "Good.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
     {
-      "id": "t1b-hank-draw-1",
+      "id": "t1b-npc-draw-1",
       "speaker": "lucky",
       "text": "One.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
     {
-      "id": "t1b-hank-draw-2",
+      "id": "t1b-npc-draw-2",
       "speaker": "lucky",
       "text": "Two.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
     {
-      "id": "t1b-hank-draw-3",
+      "id": "t1b-npc-draw-3",
       "speaker": "lucky",
       "text": "Three.",
       "responseType": "none",

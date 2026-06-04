@@ -11,31 +11,31 @@ export type Phase =
   | 'bet2'       // second betting round
   | 'done'       // hand complete (fold or showdown)
 
-export type HankAction = 'bet' | 'call' | 'check' | null
+export type NpcAction = 'bet' | 'call' | 'check' | null
 
 export interface HandResult {
-  winner: 'player' | 'hank' | 'tie'
+  winner: 'player' | 'npc' | 'tie'
   playerHandName: string
-  hankHandName: string
+  npcHandName: string
   potWon: number
   playerFolded: boolean
-  hankFolded?: boolean
+  npcFolded?: boolean
 }
 
 export interface GameState {
   phase: Phase
   deck: Card[]
   playerHand: Card[]
-  hankHand: Card[]
+  npcHand: Card[]
   playerSeeds: number
-  hankSeeds: number
+  npcSeeds: number
   pot: number
   betAmount: number
   ante: number
-  // True when Hank has bet in the current round and player must call or fold
-  hankPendingBet: boolean
-  hankLastAction: HankAction
-  hankDrawCount: number
+  // True when the NPC has bet in the current round and player must call or fold
+  npcPendingBet: boolean
+  npcLastAction: NpcAction
+  npcDrawCount: number
   playerDrawCount: number   // -1 = folded/bet out before draw; 0 = stood pat; 1–5 = drawn
   handNumber: number
   handsPlayed: number
@@ -51,15 +51,15 @@ export function createGame(
     phase: 'idle',
     deck: [],
     playerHand: [],
-    hankHand: [],
+    npcHand: [],
     playerSeeds: startingSeeds,
-    hankSeeds: startingSeeds,
+    npcSeeds: startingSeeds,
     pot: 0,
     betAmount,
     ante,
-    hankPendingBet: false,
-    hankLastAction: null,
-    hankDrawCount: 0,
+    npcPendingBet: false,
+    npcLastAction: null,
+    npcDrawCount: 0,
     playerDrawCount: -1,
     handNumber: 0,
     handsPlayed: 0,
@@ -74,13 +74,13 @@ export function startHand(state: GameState): GameState {
     phase: 'bet1',
     deck: deck.slice(10),
     playerHand: deck.slice(0, 5) as Card[],
-    hankHand: deck.slice(5, 10) as Card[],
+    npcHand: deck.slice(5, 10) as Card[],
     pot: state.ante * 2,
     playerSeeds: state.playerSeeds - state.ante,
-    hankSeeds: state.hankSeeds - state.ante,
-    hankPendingBet: false,
-    hankLastAction: null,
-    hankDrawCount: 0,
+    npcSeeds: state.npcSeeds - state.ante,
+    npcPendingBet: false,
+    npcLastAction: null,
+    npcDrawCount: 0,
     playerDrawCount: -1,
     handNumber: state.handNumber + 1,
     result: null
@@ -88,54 +88,65 @@ export function startHand(state: GameState): GameState {
 }
 
 export function startScriptedHand(state: GameState, deal: ScriptedDeal): GameState {
-  const usedCards = new Set([...deal.playerCards, ...deal.hankCards])
+  const usedCards = new Set([...deal.playerCards, ...deal.npcCards])
   const remainingDeck = shuffle(makeDeck().filter(c => !usedCards.has(c)))
   return {
     ...state,
     phase: 'bet1',
     deck: remainingDeck,
     playerHand: deal.playerCards,
-    hankHand: deal.hankCards,
+    npcHand: deal.npcCards,
     pot: state.ante * 2,
     playerSeeds: state.playerSeeds - state.ante,
-    hankSeeds: state.hankSeeds - state.ante,
-    hankPendingBet: false,
-    hankLastAction: null,
-    hankDrawCount: 0,
+    npcSeeds: state.npcSeeds - state.ante,
+    npcPendingBet: false,
+    npcLastAction: null,
+    npcDrawCount: 0,
     playerDrawCount: -1,
     handNumber: state.handNumber + 1,
     result: null,
   }
 }
 
-// Player checks. Hank always bets in response.
+// Player checks; NPC responds with a bet, creating a pending bet for the player.
 export function playerCheck(state: GameState): GameState {
-  const hankBet = state.betAmount
+  const npcBet = state.betAmount
   return {
     ...state,
-    pot: state.pot + hankBet,
-    hankSeeds: state.hankSeeds - hankBet,
-    hankPendingBet: true,
-    hankLastAction: 'bet'
+    pot: state.pot + npcBet,
+    npcSeeds: state.npcSeeds - npcBet,
+    npcPendingBet: true,
+    npcLastAction: 'bet'
   }
 }
 
-// Player bets. Hank always calls.
+// Both players check. Advances to draw (bet1) or resolves showdown (bet2).
+export function playerCheckNpcCheck(state: GameState): GameState {
+  const base = {
+    ...state,
+    npcPendingBet: false,
+    npcLastAction: 'check' as NpcAction
+  }
+  if (state.phase === 'bet2') return resolveShowdown(base)
+  return { ...base, phase: 'draw' }
+}
+
+// Player bets; NPC calls.
 export function playerBet(state: GameState): GameState {
   const amount = state.betAmount
   const nextPhase: Phase = state.phase === 'bet1' ? 'draw' : 'done'
   const base = {
     ...state,
-    pot: state.pot + amount * 2, // player + hank call
+    pot: state.pot + amount * 2, // player bet + npc call
     playerSeeds: state.playerSeeds - amount,
-    hankSeeds: state.hankSeeds - amount,
-    hankPendingBet: false,
-    hankLastAction: 'call' as HankAction
+    npcSeeds: state.npcSeeds - amount,
+    npcPendingBet: false,
+    npcLastAction: 'call' as NpcAction
   }
   return nextPhase === 'done' ? resolveShowdown(base) : { ...base, phase: 'draw' }
 }
 
-// Player calls Hank's pending bet.
+// Player calls the NPC's pending bet.
 export function playerCall(state: GameState): GameState {
   const amount = state.betAmount
   const nextPhase: Phase = state.phase === 'bet1' ? 'draw' : 'done'
@@ -143,23 +154,23 @@ export function playerCall(state: GameState): GameState {
     ...state,
     pot: state.pot + amount,
     playerSeeds: state.playerSeeds - amount,
-    hankPendingBet: false,
-    hankLastAction: null as HankAction
+    npcPendingBet: false,
+    npcLastAction: null as NpcAction
   }
   return nextPhase === 'done' ? resolveShowdown(base) : { ...base, phase: 'draw' }
 }
 
-// Player folds. Hank takes the pot.
+// Player folds. NPC takes the pot.
 export function playerFold(state: GameState): GameState {
   return {
     ...state,
     phase: 'done',
-    hankSeeds: state.hankSeeds + state.pot,
+    npcSeeds: state.npcSeeds + state.pot,
     handsPlayed: state.handsPlayed + 1,
     result: {
-      winner: 'hank',
+      winner: 'npc',
       playerHandName: 'folded',
-      hankHandName: '—',
+      npcHandName: '—',
       potWon: 0,
       playerFolded: true
     }
@@ -181,10 +192,10 @@ export function npcFold(state: GameState): GameState {
     result: {
       winner: 'player',
       playerHandName,
-      hankHandName: '—',
+      npcHandName: '—',
       potWon: state.pot,
       playerFolded: false,
-      hankFolded: true,
+      npcFolded: true,
     }
   }
 }
@@ -198,10 +209,10 @@ export function playerDraw(state: GameState, discardIndices: number[]): GameStat
     playerHand[idx] = deck.pop()!
   }
 
-  const hankDrawDecision = hank.decideDraw(state.hankHand)
-  const hankHand = [...state.hankHand] as Card[]
-  for (const idx of hankDrawDecision.discardIndices) {
-    hankHand[idx] = deck.pop()!
+  const npcDrawDecision = hank.decideDraw(state.npcHand)
+  const npcHand = [...state.npcHand] as Card[]
+  for (const idx of npcDrawDecision.discardIndices) {
+    npcHand[idx] = deck.pop()!
   }
 
   return {
@@ -209,46 +220,46 @@ export function playerDraw(state: GameState, discardIndices: number[]): GameStat
     phase: 'bet2',
     deck,
     playerHand,
-    hankHand,
-    hankDrawCount: hankDrawDecision.discardIndices.length,
+    npcHand,
+    npcDrawCount: npcDrawDecision.discardIndices.length,
     playerDrawCount: discardIndices.length,
-    hankPendingBet: false,
-    hankLastAction: null
+    npcPendingBet: false,
+    npcLastAction: null
   }
 }
 
 function resolveShowdown(state: GameState): GameState {
-  const outcome = pickWinner(state.playerHand, state.hankHand)
+  const outcome = pickWinner(state.playerHand, state.npcHand)
   const playerHandName = evaluateHand(state.playerHand).name
-  const hankHandName = evaluateHand(state.hankHand).name
+  const npcHandName = evaluateHand(state.npcHand).name
 
   let potWon = 0
   let playerSeeds = state.playerSeeds
-  let hankSeeds = state.hankSeeds
+  let npcSeeds = state.npcSeeds
 
   if (outcome === 'player') {
     potWon = state.pot
     playerSeeds += state.pot
   } else if (outcome === 'opponent') {
-    hankSeeds += state.pot
+    npcSeeds += state.pot
   } else {
-    // Tie: split pot (odd seed goes to Hank, consistent rule)
+    // Tie: split pot (odd seed goes to NPC, consistent rule)
     const half = Math.floor(state.pot / 2)
     potWon = half
     playerSeeds += half
-    hankSeeds += state.pot - half
+    npcSeeds += state.pot - half
   }
 
   return {
     ...state,
     phase: 'done',
     playerSeeds,
-    hankSeeds,
+    npcSeeds,
     handsPlayed: state.handsPlayed + 1,
     result: {
-      winner: outcome === 'opponent' ? 'hank' : outcome,
+      winner: outcome === 'opponent' ? 'npc' : outcome,
       playerHandName,
-      hankHandName,
+      npcHandName,
       potWon,
       playerFolded: false
     }
