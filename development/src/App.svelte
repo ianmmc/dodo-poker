@@ -521,7 +521,11 @@
     discardSet = new Set()
     const observations = checkObservationRules(observationLog).flatMap(id => getChain(id))
     const pattern = getPatternReveal(game.handsPlayed)
-    const gamblers = getGamblersReveal(game.handsPlayed)
+    // Only reveal the gambler's fallacy coaching when Hank is on a losing
+    // streak — CD's opening line "He keeps losing" must be literally true.
+    const last3 = observationLog.slice(-3)
+    const hankOnLoseStreak = last3.length === 3 && last3.every(s => s.outcome === 'win')
+    const gamblers = hankOnLoseStreak ? getGamblersReveal(game.handsPlayed) : []
     const preHand = getPreHandNode(game.handNumber)
     enqueue([...observations, ...pattern, ...gamblers, preHand])
     doSave()
