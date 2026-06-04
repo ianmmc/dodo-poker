@@ -25,7 +25,7 @@ The initial experience runs entirely in the browser. No server calls, no backend
 
 - Must be accessible in a standard browser, no install required
 - Text-based UI with SVG card assets; full graphical version planned for a future phase
-- No free text input except wager amounts; all choices are presented as numbered menus or arrow-key navigation
+- No free text input except wager amounts; all choices are clickable buttons rendered by Svelte
 
 ### Deployment: Phase 1
 
@@ -81,7 +81,7 @@ The initial experience runs entirely in the browser. No server calls, no backend
 | Database | Postgres, SQLite | TBD; Supabase simplifies this |
 | Real-time layer | WebSockets, Supabase Realtime | TBD |
 | Auth | Supabase Auth, Auth.js, custom | TBD |
-| CSS approach | TBD | Text-heavy UI; minimal styling in Phase 1 |
+| CSS approach | Inline `<style>` per component | Resolved — no external framework needed; `white-space: pre-line` on `.dialog-text` allows `\n` in JSON node text for mid-line breaks |
 
 ---
 
@@ -194,9 +194,9 @@ The ladder behavior is in the engine; the copy is in JSON. The two can evolve in
 | Path | Contents |
 | --- | --- |
 | `src/lib/game/` | Game logic: card (+ `cardAltText`), hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData, simulationEngine |
-| `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()`, `getChain()`, `firedOnce` registry |
-| `src/lib/components/` | Svelte UI components: CardImage, ReferenceCard, FrequencyTable, SurveillanceRoom, DevPanel |
-| `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state, `isNpc` field on `DisplayLine` |
+| `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()`, `getChain()`, `firedOnce` registry, `firedOnceChain()` helper, TABLE_1B_* threshold constants |
+| `src/lib/components/` | Svelte UI components: CardImage (+ `animState` prop), ReferenceCard, FrequencyTable, SurveillanceRoom, DevPanel |
+| `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state, `isNpc` on `DisplayLine`, NPC draw animation state machine |
 | `dialog/` | JSON dialog trees (content only — no logic) |
 
 ---
@@ -215,6 +215,37 @@ Character names — `hank`, `lucky` — appear only in: NPC module exports (`npc
 
 - Table-specific, character-generic: `t1b-npc-call`, `t1b-npc-bet`, `t1b-npc-draw-0` — used wherever the identity of the Table 1B NPC may change
 - Table-specific, character-specific: `t1a-hank-*` — used only where Hank is permanently the opponent and the dialog text names him explicitly
+
+### GameState fields — notable additions
+
+Two fields added to `GameState` beyond the standard betting/hand state are worth documenting because they serve cross-cutting concerns:
+
+- **`callAmount: number`** — the amount the player must pay to call the NPC's pending bet. Always equals `betAmount` in current fixed-limit tables; tracked explicitly so future variable-bet tables (raises, pot-limit, Hold'Em multi-street) do not require structural changes. Set by `playerCheck()`, reset by every other state transition.
+- **`npcDiscardIndices: number[]`** — indices (0–4) of the cards the NPC discarded in the most recent draw. Set by `playerDraw()`, reset to `[]` by `startHand()`. Used by the draw animation in App.svelte — storing it here avoids calling the NPC decider twice and keeps the animation logic stateless.
+
+### Dialog engine patterns
+
+**`firedOnceChain(id, condition)`** — private helper in `engine.ts` that extracts the identical four-line guard used by all one-shot sequences (pattern reveal, gambler's fallacy, Lucky due, surveillance room intro, Hank retro, gate assessment). Every trigger function is a single call to this helper.
+
+**TABLE_1B threshold constants** — `TABLE_1B_SURV_THRESHOLD`, `TABLE_1B_HANK_RETRO_THRESHOLD`, `TABLE_1B_GATE_THRESHOLD` are exported from `engine.ts` and referenced in both the engine guard functions and `devJumpToHand()` in App.svelte. Changing a threshold in one place propagates everywhere automatically.
+
+**`getPreHandNode(handNumber)` returns `DialogNode[]`** — pre-hand sequences can be multi-node chains. The engine function returns a chain from the first node (`chain('t1a-hand-1-pre')` for hand 1; pool selection wrapped in array for subsequent hands). All callers spread the result with `...getPreHandNode(n)`. Any future multi-node pre-hand sequence works without touching App.svelte.
+
+### NPC draw animation
+
+The draw animation (`CardImage.svelte`) is driven by `animState: 'idle' | 'slide-out' | 'empty' | 'deal-in'` prop. The sequencing in App.svelte uses a `pendingNpcDrawAnim: boolean` flag:
+
+1. `doDraw()` enqueues the draw-declaration dialog (draw comment + "Two." etc.) immediately and sets `pendingNpcDrawAnim = true`
+2. `advance()` checks the flag when the queue empties and starts `startNpcDrawAnimation()`
+3. CSS keyframe animations run; `finishNpcAnim()` resets state
+
+This ensures the NPC declares how many cards they want before the animation plays, matching actual poker etiquette. `NPC_DEAL_INTERVAL_MS` (350ms) and `NPC_SLIDE_OUT_MS` (400ms) are configurable constants at the top of App.svelte.
+
+The template uses inlined ternary expressions rather than a helper function call to compute `animState` — this is required in Svelte 5 so that reactive dependencies (`npcAnimPhase`, `npcAnimDealtCount`, `game.npcDiscardIndices`) are tracked directly in the template's reactive scope.
+
+### Tie handling
+
+`resolveHandOutcome(result)` returns `'win' | 'loss' | 'fold' | 'tie'` — ties are a distinct outcome, not collapsed to `'loss'`. `postHandNodesForOutcome(outcome)` routes ties to `getTie1BNodes()` (first-occurrence chain or brief pool) or `getTie1ANode()` (brief pool). `updateFreqForHand()` passes `'tie'` to `updateFrequencyData()` which already tracked `ties: number`. The Tie row in the frequency table is hidden until `data.ties > 0` — its appearance is the pedagogical moment.
 
 ### Simulation architecture
 
