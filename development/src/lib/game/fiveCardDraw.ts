@@ -40,6 +40,10 @@ export interface GameState {
   handNumber: number
   handsPlayed: number
   result: HandResult | null
+  // Amount the player must put in to call the NPC's pending bet.
+  // Equals betAmount in fixed-limit games; tracked explicitly so future
+  // variable-bet tables (raises, pot-limit) don't require a structural change.
+  callAmount: number
 }
 
 export function createGame(
@@ -63,7 +67,8 @@ export function createGame(
     playerDrawCount: -1,
     handNumber: 0,
     handsPlayed: 0,
-    result: null
+    result: null,
+    callAmount: 0,
   }
 }
 
@@ -83,7 +88,8 @@ export function startHand(state: GameState): GameState {
     npcDrawCount: 0,
     playerDrawCount: -1,
     handNumber: state.handNumber + 1,
-    result: null
+    result: null,
+    callAmount: 0,
   }
 }
 
@@ -105,6 +111,7 @@ export function startScriptedHand(state: GameState, deal: ScriptedDeal): GameSta
     playerDrawCount: -1,
     handNumber: state.handNumber + 1,
     result: null,
+    callAmount: 0,
   }
 }
 
@@ -116,7 +123,8 @@ export function playerCheck(state: GameState): GameState {
     pot: state.pot + npcBet,
     npcSeeds: state.npcSeeds - npcBet,
     npcPendingBet: true,
-    npcLastAction: 'bet'
+    npcLastAction: 'bet',
+    callAmount: npcBet,
   }
 }
 
@@ -125,7 +133,8 @@ export function playerCheckNpcCheck(state: GameState): GameState {
   const base = {
     ...state,
     npcPendingBet: false,
-    npcLastAction: 'check' as NpcAction
+    npcLastAction: 'check' as NpcAction,
+    callAmount: 0,
   }
   if (state.phase === 'bet2') return resolveShowdown(base)
   return { ...base, phase: 'draw' }
@@ -141,21 +150,23 @@ export function playerBet(state: GameState): GameState {
     playerSeeds: state.playerSeeds - amount,
     npcSeeds: state.npcSeeds - amount,
     npcPendingBet: false,
-    npcLastAction: 'call' as NpcAction
+    npcLastAction: 'call' as NpcAction,
+    callAmount: 0,
   }
   return nextPhase === 'done' ? resolveShowdown(base) : { ...base, phase: 'draw' }
 }
 
 // Player calls the NPC's pending bet.
 export function playerCall(state: GameState): GameState {
-  const amount = state.betAmount
+  const amount = state.callAmount
   const nextPhase: Phase = state.phase === 'bet1' ? 'draw' : 'done'
   const base = {
     ...state,
     pot: state.pot + amount,
     playerSeeds: state.playerSeeds - amount,
     npcPendingBet: false,
-    npcLastAction: null as NpcAction
+    npcLastAction: null as NpcAction,
+    callAmount: 0,
   }
   return nextPhase === 'done' ? resolveShowdown(base) : { ...base, phase: 'draw' }
 }
@@ -167,6 +178,7 @@ export function playerFold(state: GameState): GameState {
     phase: 'done',
     npcSeeds: state.npcSeeds + state.pot,
     handsPlayed: state.handsPlayed + 1,
+    callAmount: 0,
     result: {
       winner: 'npc',
       playerHandName: 'folded',
@@ -189,6 +201,7 @@ export function npcFold(state: GameState): GameState {
     phase: 'done',
     playerSeeds: state.playerSeeds + state.pot,
     handsPlayed: state.handsPlayed + 1,
+    callAmount: 0,
     result: {
       winner: 'player',
       playerHandName,
@@ -230,7 +243,8 @@ export function playerDraw(
     npcDrawCount: npcDrawDecision.discardIndices.length,
     playerDrawCount: discardIndices.length,
     npcPendingBet: false,
-    npcLastAction: null
+    npcLastAction: null,
+    callAmount: 0,
   }
 }
 
@@ -262,6 +276,7 @@ function resolveShowdown(state: GameState): GameState {
     playerSeeds,
     npcSeeds,
     handsPlayed: state.handsPlayed + 1,
+    callAmount: 0,
     result: {
       winner: outcome === 'opponent' ? 'npc' : outcome,
       playerHandName,

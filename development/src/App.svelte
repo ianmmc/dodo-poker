@@ -41,11 +41,13 @@
 
     getLuckyDue, getSurveillanceRoomIntro, getSurveillanceRoomReturn,
     getHankRetroAssessment, getTable1bAssessment,
+    TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD,
     // Shared
     restoreFiredOnce, getFiredOnce, getNode, getChain,
     markFiredOnce, unmarkFiredOnce, clearFiredOnce,
   } from './lib/dialog/engine'
   import type { DialogNode } from './lib/dialog/engine'
+  import type { DrawDecision } from './lib/game/npc'
 
   // Dev mode: enabled locally or via ?devmode=1
   const DEV_MODE = import.meta.env.DEV || new URLSearchParams(window.location.search).get('devmode') === '1'
@@ -102,6 +104,9 @@
   // NPC swap system
   let currentNpcName = 'Hank'
   let usedBackupIds: string[] = []
+  // Active NPC draw function — set per table so doDraw is decoupled from screen string.
+  // All Table 1B NPCs (Lucky + backups) share lucky.decideDraw.
+  let npcDrawDecider: (hand: Card[]) => DrawDecision = hank.decideDraw.bind(hank)
 
   // Dialog queue
   let dialogQueue: DisplayLine[] = []
@@ -132,6 +137,23 @@
       e.preventDefault()
       advance()
     }
+  }
+
+  // ── Game outcome helpers ─────────────────────────────────────────────────
+
+  // Outcome for post-hand dialog and frequency tracking (ties → 'loss').
+  function resolveHandOutcome(result: HandResult | null): 'win' | 'loss' | 'fold' {
+    if (!result || result.playerFolded) return 'fold'
+    if (result.winner === 'player') return 'win'
+    return 'loss'
+  }
+
+  // Outcome for the observation log — preserves 'tie' for streak tracking.
+  function currentHandOutcome(g: GameState): HandSummary['outcome'] {
+    if (!g.result || g.result.playerFolded) return 'fold'
+    if (g.result.winner === 'player') return 'win'
+    if (g.result.winner === 'npc') return 'loss'
+    return 'tie'
   }
 
   // ── Dialog helpers ───────────────────────────────────────────────────────
@@ -300,6 +322,7 @@
     }
     if (gatePassedAt1A) {
       screen = 'table1b'
+      npcDrawDecider = lucky.decideDraw.bind(lucky)
       if (handsAt1B === 0) game = { ...game, npcSeeds: 200 }
       currentNpcName = saved.currentNpcName ?? 'Lucky'
       game = startHand(game)
@@ -307,6 +330,7 @@
     } else {
       currentNpcName = saved.currentNpcName ?? 'Hank'
       screen = 'table'
+      npcDrawDecider = hank.decideDraw.bind(hank)
       game = startHand(game)
       enqueue([getPreHandNode(game.handNumber)])
     }
@@ -328,6 +352,7 @@
 
   function moveToTable1B(): void {
     screen = 'table1b'
+    npcDrawDecider = lucky.decideDraw.bind(lucky)
     frequencyData = createFrequencyData()
     handsAt1B = 0
     surveillanceRoomVisited = false
@@ -418,6 +443,7 @@
     const previousName = currentNpcName
     usedBackupIds = [...usedBackupIds, backup.id]
     currentNpcName = backup.name
+    npcDrawDecider = lucky.decideDraw.bind(lucky)  // backups share Lucky's draw strategy
     game = { ...game, npcSeeds: 200 }
     game = startHand(game)
     discardSet = new Set()
@@ -448,10 +474,8 @@
       if (decision.action === 'check') {
         game = playerCheckNpcCheck(game)
         if (game.phase === 'done' && game.result) {
-          const outcome = game.result.winner === 'player' ? 'win'
-            : game.result.winner === 'tie' ? 'tie'
-            : 'loss'
-          updateFreqForHand(outcome === 'tie' ? 'loss' : outcome)
+          const outcome = resolveHandOutcome(game.result)
+          updateFreqForHand(outcome)
           enqueue([getTable1bNpcActionNode('check'), postHandNode(outcome)])
           doSave()
         } else {
@@ -468,10 +492,8 @@
     const hankNode = hankActionNode('call')
     game = playerBet(game)
     if (game.phase === 'done' && game.result) {
-      const outcome = game.result.winner === 'player' ? 'win'
-        : game.result.winner === 'tie' ? 'tie'
-        : 'loss'
-      if (screen === 'table1b') updateFreqForHand(outcome === 'tie' ? 'loss' : outcome)
+      const outcome = resolveHandOutcome(game.result)
+      if (screen === 'table1b') updateFreqForHand(outcome)
       enqueue([hankNode, postHandNode(outcome)])
       doSave()
     } else {
@@ -482,10 +504,8 @@
   function doCall(): void {
     game = playerCall(game)
     if (game.phase === 'done' && game.result) {
-      const outcome = game.result.winner === 'player' ? 'win'
-        : game.result.winner === 'tie' ? 'tie'
-        : 'loss'
-      if (screen === 'table1b') updateFreqForHand(outcome === 'tie' ? 'loss' : outcome)
+      const outcome = resolveHandOutcome(game.result)
+      if (screen === 'table1b') updateFreqForHand(outcome)
       enqueue([postHandNode(outcome)])
       doSave()
     }
@@ -502,8 +522,7 @@
     const indices = [...discardSet]
     discardSet = new Set()
     const drawComment = drawCommentNode(indices.length)
-    const npcDecider = screen === 'table1b' ? lucky.decideDraw.bind(lucky) : hank.decideDraw.bind(hank)
-    game = playerDraw(game, indices, npcDecider)
+    game = playerDraw(game, indices, npcDrawDecider)
     enqueue([drawComment, hankDrawNode(game.npcDrawCount)])
   }
 
@@ -519,10 +538,7 @@
     const summary: HandSummary = {
       handNumber: game.handNumber,
       drawCount: game.playerDrawCount,
-      outcome: !game.result || game.result.playerFolded ? 'fold'
-        : game.result.winner === 'player' ? 'win'
-        : game.result.winner === 'npc'   ? 'loss'
-        : 'tie',
+      outcome: currentHandOutcome(game),
     }
     observationLog = [...observationLog.slice(-9), summary]
     doSave()  // save before startHand so phase='done' is preserved; avoids double-ante on reload
@@ -538,13 +554,14 @@
     discardSet = new Set()
     const observations = checkObservationRules(observationLog).flatMap(id => getChain(id))
     const pattern = getPatternReveal(game.handsPlayed)
-    // Only reveal the gambler's fallacy coaching when Hank is on a losing
+    // Gambler's fallacy coaching requires Hank to be factually on a losing
     // streak — CD's opening line "He keeps losing" must be literally true.
-    // Fallback: fire at handsPlayed >= 15 regardless of streak to ensure
-    // students who fold often still encounter the lesson.
+    // Fallback at hand 15: fires only when Hank is NOT on a clear winning
+    // streak, ensuring the coaching makes sense in context.
     const last3 = observationLog.slice(-3)
     const hankOnLoseStreak = last3.length === 3 && last3.every(s => s.outcome === 'win')
-    const gamblersFallback = game.handsPlayed >= 15
+    const hankOnWinStreak  = last3.length === 3 && last3.every(s => s.outcome === 'loss')
+    const gamblersFallback = game.handsPlayed >= 15 && !hankOnWinStreak
     const gamblers = (hankOnLoseStreak || gamblersFallback) ? getGamblersReveal(game.handsPlayed) : []
     const preHand = getPreHandNode(game.handNumber)
     enqueue([...observations, ...pattern, ...gamblers, preHand])
@@ -553,16 +570,10 @@
   // ── Table 1B next hand ───────────────────────────────────────────────────
 
   function nextHand1B(): void {
-    // Build summary from completed hand
-    const outcome: HandSummary['outcome'] = !game.result || game.result.playerFolded ? 'fold'
-      : game.result.winner === 'player' ? 'win'
-      : game.result.winner === 'npc'   ? 'loss'
-      : 'tie'
-
     const summary: HandSummary = {
       handNumber: game.handNumber,
       drawCount: game.playerDrawCount,
-      outcome,
+      outcome: currentHandOutcome(game),
     }
     observationLog = [...observationLog.slice(-9), summary]
     // frequencyData already updated in the action handler (doBet/doCall/doFold/doCheck)
@@ -605,6 +616,7 @@
     surveillanceRoomVisited = false
     currentNpcName = 'Hank'
     usedBackupIds = []
+    npcDrawDecider = hank.decideDraw.bind(hank)
     clearFiredRules()
     clearFiredOnce()
     clearAssessmentState()
@@ -622,15 +634,18 @@
 
     if (screen === 'table1b') {
       handsAt1B = n
+      npcDrawDecider = lucky.decideDraw.bind(lucky)
       unmarkFiredOnce('t1b-lucky-due')
-      // Surv intro ends with openSurveillanceRoom — only re-fire for hand-10 preset
-      if (n >= 10 && n < 14) unmarkFiredOnce('t1b-surv-intro-001')
-      if (n >= 14 && n < 18) {
-        // Past surv room, hank retro fires here; main gate not yet
+      // Surv intro chain ends with openSurveillanceRoom — only unmark for the
+      // surv-room preset; at retro/gate thresholds we're past it already.
+      if (n >= TABLE_1B_SURV_THRESHOLD && n < TABLE_1B_HANK_RETRO_THRESHOLD) {
+        unmarkFiredOnce('t1b-surv-intro-001')
+      }
+      if (n >= TABLE_1B_HANK_RETRO_THRESHOLD && n < TABLE_1B_GATE_THRESHOLD) {
         surveillanceRoomVisited = true
         unmarkFiredOnce('t1b-hank-retro-001')
       }
-      if (n >= 18) {
+      if (n >= TABLE_1B_GATE_THRESHOLD) {
         surveillanceRoomVisited = true
         unmarkFiredOnce('t1b-assess-intro')
       }
@@ -663,20 +678,20 @@
     assessmentState = null
     pendingPostAssessment = []
     if (table === 'table') {
-      // Unmark 1A sequences so they fire naturally during play
+      npcDrawDecider = hank.decideDraw.bind(hank)
       unmarkFiredOnce('t1a-pattern-001')
       unmarkFiredOnce('t1a-fallacy-001')
       game = startHand(game)
       discardSet = new Set()
       enqueue([getPreHandNode(game.handNumber)])
     } else if (table === 'table1b') {
+      npcDrawDecider = lucky.decideDraw.bind(lucky)
       gatePassedAt1A = true
       frequencyData = createFrequencyData()
       handsAt1B = 0
       surveillanceRoomVisited = false
       currentNpcName = 'Lucky'
       usedBackupIds = []
-      // Unmark all 1B sequences so they fire naturally during play
       unmarkFiredOnce('t1b-lucky-due')
       unmarkFiredOnce('t1b-surv-intro-001')
       unmarkFiredOnce('t1b-hank-retro-001')
@@ -703,6 +718,10 @@
   function devPassAllAssessments(): void {
     if (screen === 'table1b') {
       const log = getAssessmentLog()
+      if (!log.some(r => r.nodeId === 't1b-hank-retro')) {
+        recordAssessment({ nodeId: 't1b-hank-retro', responseType: 'checklist', attempts: 1, correct: true })
+        markFiredOnce('t1b-hank-retro-001')
+      }
       if (!log.some(r => r.nodeId === 't1b-assess-proc')) {
         recordAssessment({ nodeId: 't1b-assess-proc', responseType: 'numeric', attempts: 1, correct: true })
         markFiredOnce('t1b-assess-intro')
@@ -793,8 +812,8 @@
 
   $: broke = game.playerSeeds < game.ante
   $: npcBroke = game.npcSeeds < game.ante
-  $: canBet = game.playerSeeds >= game.betAmount
-  $: canCall = game.playerSeeds >= game.betAmount
+  $: canBet  = game.playerSeeds >= game.betAmount
+  $: canCall = game.npcPendingBet && game.playerSeeds >= game.callAmount
   $: showNpcCards = game.phase === 'done' && game.result && !game.result.playerFolded && !game.result.npcFolded
   $: drawCount = discardSet.size
 
@@ -1082,8 +1101,8 @@
       {:else if game.phase === 'bet1' || game.phase === 'bet2'}
         <p class="prompt">Your move:</p>
         {#if game.npcPendingBet}
-          <p class="hank-bet-notice">{currentNpcName} bet {game.betAmount} seeds.</p>
-          <button class="action-btn" on:click={doCall} disabled={!canCall}>1. Call ({game.betAmount} seeds)</button>
+          <p class="hank-bet-notice">{currentNpcName} bet {game.callAmount} seeds.</p>
+          <button class="action-btn" on:click={doCall} disabled={!canCall}>1. Call ({game.callAmount} seeds)</button>
           <button class="action-btn" on:click={doFold}>2. Fold</button>
         {:else}
           <button class="action-btn" on:click={doCheck}>1. Check</button>
@@ -1270,8 +1289,8 @@
       {:else if game.phase === 'bet1' || game.phase === 'bet2'}
         <p class="prompt">Your move:</p>
         {#if game.npcPendingBet}
-          <p class="hank-bet-notice">{currentNpcName} bet {game.betAmount} seeds.</p>
-          <button class="action-btn" on:click={doCall} disabled={!canCall}>1. Call ({game.betAmount} seeds)</button>
+          <p class="hank-bet-notice">{currentNpcName} bet {game.callAmount} seeds.</p>
+          <button class="action-btn" on:click={doCall} disabled={!canCall}>1. Call ({game.callAmount} seeds)</button>
           <button class="action-btn" on:click={doFold}>2. Fold</button>
         {:else}
           <button class="action-btn" on:click={doCheck}>1. Check</button>

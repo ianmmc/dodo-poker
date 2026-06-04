@@ -37,6 +37,13 @@ export interface DialogNode {
   }
 }
 
+// ── Table 1B hand thresholds — single source of truth ───────────────────────
+// Use these in both the engine guards below and in App.svelte's devJumpToHand
+// so threshold changes propagate everywhere automatically.
+export const TABLE_1B_SURV_THRESHOLD     = 10  // when surveillance room intro fires
+export const TABLE_1B_HANK_RETRO_THRESHOLD = 14  // when Hank retrospective assessment fires
+export const TABLE_1B_GATE_THRESHOLD     = 18  // when gate assessment fires
+
 const nodes = new Map<string, DialogNode>()
 const firedOnce = new Set<string>()
 
@@ -85,6 +92,14 @@ function chain(startId: string): DialogNode[] {
   return seq
 }
 
+// Shared guard: fire a chain exactly once. condition=false prevents firing
+// regardless of firedOnce state.
+function firedOnceChain(id: string, condition: boolean): DialogNode[] {
+  if (firedOnce.has(id) || !condition) return []
+  firedOnce.add(id)
+  return chain(id)
+}
+
 // ── Start of game ───────────────────────────────────────────────────────────
 
 // Returns [sog-001] — chain stops at sog-002 (responseType: 'action')
@@ -131,15 +146,11 @@ export function getPostHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | 
 }
 
 export function getPatternReveal(handsPlayed: number): DialogNode[] {
-  if (firedOnce.has('t1a-pattern-001') || handsPlayed < 3) return []
-  firedOnce.add('t1a-pattern-001')
-  return chain('t1a-pattern-001')
+  return firedOnceChain('t1a-pattern-001', handsPlayed >= 3)
 }
 
 export function getGamblersReveal(handsPlayed: number): DialogNode[] {
-  if (firedOnce.has('t1a-fallacy-001') || handsPlayed < 8) return []
-  firedOnce.add('t1a-fallacy-001')
-  return chain('t1a-fallacy-001')
+  return firedOnceChain('t1a-fallacy-001', handsPlayed >= 8)
 }
 
 export function getHankActionNode(action: 'call' | 'bet' | 'raise'): DialogNode | null {
@@ -184,35 +195,26 @@ export function getTable1bNpcDrawNode(count: number): DialogNode | null {
 }
 
 export function getLuckyDue(consecutiveLosses: number): DialogNode[] {
-  if (firedOnce.has('t1b-lucky-due') || consecutiveLosses < 3) return []
-  firedOnce.add('t1b-lucky-due')
-  return chain('t1b-lucky-due')
+  return firedOnceChain('t1b-lucky-due', consecutiveLosses >= 3)
 }
 
 export function getSurveillanceRoomIntro(handsAt1B: number): DialogNode[] {
-  if (firedOnce.has('t1b-surv-intro-001') || handsAt1B < 10) return []
-  firedOnce.add('t1b-surv-intro-001')
-  return chain('t1b-surv-intro-001')
+  return firedOnceChain('t1b-surv-intro-001', handsAt1B >= TABLE_1B_SURV_THRESHOLD)
 }
 
 export function getSurveillanceRoomReturn(): DialogNode[] {
-  if (firedOnce.has('t1b-surv-return-001')) return []
-  firedOnce.add('t1b-surv-return-001')
-  return chain('t1b-surv-return-001')
+  return firedOnceChain('t1b-surv-return-001', true)
 }
 
-// Fires at hand 14+, after the Surveillance Room visit, to let the student
-// apply their frequency data to explain Hank's Table 1A behaviour.
+// Fires at hand TABLE_1B_HANK_RETRO_THRESHOLD+, after the Surveillance Room
+// visit, to let the student apply their frequency data to explain Hank's
+// Table 1A behaviour.
 export function getHankRetroAssessment(handsAt1B: number, surveillanceRoomVisited: boolean): DialogNode[] {
-  if (firedOnce.has('t1b-hank-retro-001') || handsAt1B < 14 || !surveillanceRoomVisited) return []
-  firedOnce.add('t1b-hank-retro-001')
-  return chain('t1b-hank-retro-001')
+  return firedOnceChain('t1b-hank-retro-001', handsAt1B >= TABLE_1B_HANK_RETRO_THRESHOLD && surveillanceRoomVisited)
 }
 
 export function getTable1bAssessment(handsAt1B: number, surveillanceRoomVisited: boolean): DialogNode[] {
-  if (firedOnce.has('t1b-assess-intro') || handsAt1B < 18 || !surveillanceRoomVisited) return []
-  firedOnce.add('t1b-assess-intro')
-  return chain('t1b-assess-intro')
+  return firedOnceChain('t1b-assess-intro', handsAt1B >= TABLE_1B_GATE_THRESHOLD && surveillanceRoomVisited)
 }
 
 // ── Shared ──────────────────────────────────────────────────────────────────

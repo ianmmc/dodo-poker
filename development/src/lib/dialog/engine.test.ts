@@ -5,6 +5,7 @@ import {
   getSurveillanceRoomIntro, getSurveillanceRoomReturn,
   getLuckyDue, getNode, getChain,
   restoreFiredOnce, clearFiredOnce, getFiredOnce, markFiredOnce,
+  TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD,
 } from './engine'
 
 beforeEach(() => {
@@ -140,6 +141,24 @@ describe('getTable1bAssessment — firedOnce guard', () => {
   it('does not fire twice', () => {
     getTable1bAssessment(18, true)
     expect(getTable1bAssessment(20, true)).toEqual([])
+  })
+})
+
+describe('TABLE_1B threshold constants are exported and consistent', () => {
+  it('SURV < HANK_RETRO < GATE', () => {
+    expect(TABLE_1B_SURV_THRESHOLD).toBeLessThan(TABLE_1B_HANK_RETRO_THRESHOLD)
+    expect(TABLE_1B_HANK_RETRO_THRESHOLD).toBeLessThan(TABLE_1B_GATE_THRESHOLD)
+  })
+
+  it('functions respect the exported thresholds', () => {
+    expect(getSurveillanceRoomIntro(TABLE_1B_SURV_THRESHOLD - 1)).toEqual([])
+    expect(getSurveillanceRoomIntro(TABLE_1B_SURV_THRESHOLD).length).toBeGreaterThan(0)
+    clearFiredOnce()
+    expect(getHankRetroAssessment(TABLE_1B_HANK_RETRO_THRESHOLD - 1, true)).toEqual([])
+    expect(getHankRetroAssessment(TABLE_1B_HANK_RETRO_THRESHOLD, true).length).toBeGreaterThan(0)
+    clearFiredOnce()
+    expect(getTable1bAssessment(TABLE_1B_GATE_THRESHOLD - 1, true)).toEqual([])
+    expect(getTable1bAssessment(TABLE_1B_GATE_THRESHOLD, true).length).toBeGreaterThan(0)
   })
 })
 

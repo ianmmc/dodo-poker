@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { GameState } from '../game/fiveCardDraw'
   import type { AssessmentRecord } from '../game/assessment'
+  import { TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD } from '../dialog/engine'
 
   export let open: boolean = false
   export let game: GameState
@@ -74,11 +75,14 @@
           </div>
           {#if at1B}
           <div class="dev-row wrap">
-            <button class="dev-btn preset" on:click={() => onJumpToHand(10)} title="handsAt1B=10 — triggers Surveillance Room intro if not fired">
-              handsAt1B=10 (Surv. Room)
+            <button class="dev-btn preset" on:click={() => onJumpToHand(TABLE_1B_SURV_THRESHOLD)} title="handsAt1B={TABLE_1B_SURV_THRESHOLD} — triggers Surveillance Room intro if not fired">
+              handsAt1B={TABLE_1B_SURV_THRESHOLD} (Surv. Room)
             </button>
-            <button class="dev-btn preset" on:click={() => onJumpToHand(18)} title="handsAt1B=18 — triggers assessment gate (sets surveillanceRoomVisited=true)">
-              handsAt1B=18 (Assessment)
+            <button class="dev-btn preset" on:click={() => onJumpToHand(TABLE_1B_HANK_RETRO_THRESHOLD)} title="handsAt1B={TABLE_1B_HANK_RETRO_THRESHOLD} — triggers Hank retro assessment (sets surveillanceRoomVisited=true)">
+              handsAt1B={TABLE_1B_HANK_RETRO_THRESHOLD} (Hank Retro)
+            </button>
+            <button class="dev-btn preset" on:click={() => onJumpToHand(TABLE_1B_GATE_THRESHOLD)} title="handsAt1B={TABLE_1B_GATE_THRESHOLD} — triggers assessment gate (sets surveillanceRoomVisited=true)">
+              handsAt1B={TABLE_1B_GATE_THRESHOLD} (Assessment)
             </button>
           </div>
           {:else}

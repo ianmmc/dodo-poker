@@ -71,6 +71,34 @@ describe('playerCheck', () => {
     expect(checked.pot).toBe(state.pot + game.betAmount)
     expect(checked.npcSeeds).toBe(state.npcSeeds - game.betAmount)
   })
+
+  it('sets callAmount to betAmount so player knows the call cost', () => {
+    const game = createGame(100, 5, 5)
+    const checked = playerCheck(startHand(game))
+    expect(checked.callAmount).toBe(game.betAmount)
+  })
+})
+
+describe('startHand / createGame callAmount initialisation', () => {
+  it('callAmount starts at 0', () => {
+    expect(createGame().callAmount).toBe(0)
+  })
+
+  it('startHand resets callAmount to 0', () => {
+    const g = createGame()
+    const mid = { ...g, callAmount: 5 }  // simulate a mid-hand value
+    expect(startHand(mid).callAmount).toBe(0)
+  })
+})
+
+describe('playerCall uses callAmount', () => {
+  it('deducts callAmount from playerSeeds, not betAmount directly', () => {
+    const game = createGame(100, 5, 5)
+    const checked = playerCheck(startHand(game))   // callAmount = betAmount = 5
+    const called = playerCall(checked)
+    expect(called.playerSeeds).toBe(checked.playerSeeds - checked.callAmount)
+    expect(called.callAmount).toBe(0)
+  })
 })
 
 describe('playerBet (round 1)', () => {
