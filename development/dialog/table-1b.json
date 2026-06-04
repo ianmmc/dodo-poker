@@ -29,7 +29,7 @@
     {
       "id": "t1b-lucky-intro",
       "speaker": "lucky",
-      "text": "Word up. Don't let my record fool you — I'm about to go on a run. I've been losing all week but the cards have to break my way.",
+      "text": "Word up. Don't let my record fool you — I'm about to go on a run. I keep getting trash cards — One Pair, High Card, the works. The deck has to deal me something good soon.",
       "responseType": "none",
       "followUp": { "default": "t1b-house-rule" }
     },
@@ -191,21 +191,21 @@
     {
       "id": "t1b-lucky-due",
       "speaker": "lucky",
-      "text": "Man. Three losses in a row. The deck has to balance out — law of averages. I'm due.",
+      "text": "Man. Look at these cards — One Pair again. I've been getting garbage for four hands straight. The deck has to give me something good soon. Law of averages.",
       "responseType": "none",
       "followUp": { "default": "t1b-lucky-due-response-001" }
     },
     {
       "id": "t1b-lucky-due-response-001",
       "speaker": "chief-dodo",
-      "text": "Lucky thinks the deck is keeping score.",
+      "text": "Lucky thinks bad cards mean good cards are coming. That's not how a shuffle works.",
       "responseType": "none",
       "followUp": { "default": "t1b-lucky-due-response-002" }
     },
     {
       "id": "t1b-lucky-due-response-002",
       "speaker": "chief-dodo",
-      "text": "Look at your frequency table. Is there anything in there that suggests the deck remembers the last three hands?",
+      "text": "Look at the hand types in your frequency table — not wins and losses. Is there any sign that getting One Pair a lot makes a better hand more likely next deal?",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
@@ -295,20 +295,20 @@
     {
       "id": "t1b-assess-conceptual-intro",
       "speaker": "chief-dodo",
-      "text": "Now — Lucky. He's had a run of bad hands and he says 'I'm due.' Your frequency table says otherwise. What specifically?",
+      "text": "Now — Lucky. She keeps getting low-ranking cards and says the deck owes her a good hand. Your frequency table says otherwise. What specifically?",
       "responseType": "none",
       "followUp": { "default": "t1b-assess-conceptual" }
     },
     {
       "id": "t1b-assess-conceptual",
       "speaker": "chief-dodo",
-      "text": "Lucky says 'Four losses in a row — the cards have to turn around for me.' What does your frequency table show that contradicts him? Check all that apply.",
+      "text": "Lucky says 'Four bad hands in a row — the deck has to deal me something good soon.' What does your frequency table show that contradicts her? Check all that apply.",
       "responseType": "checklist",
       "options": [
-        { "id": "con-a", "text": "The win/loss frequencies have been roughly consistent — there's no catch-up effect after bad runs.",  "correct": true  },
-        { "id": "con-b", "text": "Since Lucky has lost a lot recently, he's statistically owed wins in the next few hands.",              "correct": false },
-        { "id": "con-c", "text": "Each hand is a fresh deal. The deck doesn't have a debt column.",                                      "correct": true  },
-        { "id": "con-d", "text": "The frequency table shows steady rates — not spikes after losing streaks.",                              "correct": true  }
+        { "id": "con-a", "text": "The hand type frequencies are consistent — getting One Pair often doesn't make a better hand more likely next deal.", "correct": true  },
+        { "id": "con-b", "text": "Since Lucky has been getting bad cards recently, the deck is going to compensate with better ones soon.",             "correct": false },
+        { "id": "con-c", "text": "Each hand is a fresh deal. The deck doesn't have a debt column.",                                                    "correct": true  },
+        { "id": "con-d", "text": "The frequency table shows steady hand type rates — no spike toward better hands after a run of bad ones.",           "correct": true  }
       ],
       "feedback": {
         "correct":       "t1b-assess-conceptual-correct",
@@ -321,7 +321,7 @@
     {
       "id": "t1b-assess-conceptual-correct",
       "speaker": "chief-dodo",
-      "text": "Right. Steady rates, no catch-up. Every hand is independent. Lucky's wrong — and the table proves it.",
+      "text": "Right. Hand type frequencies are steady — no catch-up. Every deal is independent. Lucky's wrong — and your table proves it.",
       "responseType": "none",
       "followUp": { "default": "t1b-assess-transfer-intro" }
     },
@@ -342,7 +342,7 @@
     {
       "id": "t1b-assess-conceptual-reveal",
       "speaker": "chief-dodo",
-      "text": "The frequency table shows steady win/loss rates — no evidence of a catch-up pattern. Each hand is independent. The deck doesn't track debts.",
+      "text": "The frequency table shows steady hand type rates — no sign that bad cards predict better cards coming. Each deal is independent. The deck doesn't track debts.",
       "responseType": "none",
       "followUp": { "default": "t1b-assess-transfer-intro" }
     },
@@ -413,7 +413,7 @@
     {
       "id": "t1b-gate-passed-002",
       "speaker": "chief-dodo",
-      "text": "Lucky still thinks the deck owes him. You know why it doesn't — and you've got the table to prove it.",
+      "text": "Lucky still thinks the deck owes her better cards. You know why it doesn't — and you've got the table to prove it.",
       "responseType": "none",
       "followUp": { "default": "t1b-gate-passed-003" }
     },
