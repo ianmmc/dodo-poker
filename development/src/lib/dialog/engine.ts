@@ -1,3 +1,4 @@
+import startOfGameJson from '../../../dialog/start-of-game.json'
 import table1aJson from '../../../dialog/table-1a.json'
 import table1bJson from '../../../dialog/table-1b.json'
 
@@ -39,6 +40,7 @@ export interface DialogNode {
 const nodes = new Map<string, DialogNode>()
 const firedOnce = new Set<string>()
 
+;(startOfGameJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
 ;(table1aJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
 ;(table1bJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
 
@@ -81,6 +83,18 @@ function chain(startId: string): DialogNode[] {
     id = n.followUp.default
   }
   return seq
+}
+
+// ── Start of game ───────────────────────────────────────────────────────────
+
+// Returns [sog-001] — chain stops at sog-002 (responseType: 'action')
+export function getStartOfGameChain(): DialogNode[] {
+  return chain('sog-001')
+}
+
+// Returns [sog-avatar-{id}, sog-003, sog-004] — avatar-specific response + orientation
+export function getAvatarResponse(avatarId: string): DialogNode[] {
+  return chain(`sog-avatar-${avatarId}`)
 }
 
 // ── Table 1A ────────────────────────────────────────────────────────────────

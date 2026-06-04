@@ -28,6 +28,8 @@
   import { BACKUP_NPCS, getNextBackup } from './lib/game/backupNpcs'
   import type { BackupNpc } from './lib/game/backupNpcs'
   import {
+    // Start of game
+    getStartOfGameChain, getAvatarResponse,
     // Table 1A
     getApproachNodes, getPreHandNode, getDrawComment,
     getPostHandNode, getPatternReveal, getGamblersReveal,
@@ -54,6 +56,7 @@
   interface DisplayLine {
     speaker: string
     text: string
+    responseType: DialogNode['responseType']
     openReferenceCard?: boolean
     openSurveillanceRoom?: boolean
     assessmentNode?: DialogNode
@@ -74,14 +77,6 @@
     { id: 'sparrow', label: 'Sparrow',  desc: 'Understated. Easy to underestimate.' },
     { id: 'crow',    label: 'Crow',     desc: 'Sharp. Remembers everything.' },
   ]
-
-  const AVATAR_RESPONSES: Record<string, string> = {
-    seagull: "Seagull. You'll fit right in — The Nest gets all kinds.",
-    finch:   'Finch. Always watching, always thinking. Good choice.',
-    quail:   "Quail. California's state bird! You're already home.",
-    sparrow: "Sparrow. Don't let anyone underestimate you.",
-    crow:    'Crow. Sharp choice. They remember everything, you know.',
-  }
 
   // ── State ────────────────────────────────────────────────────────────────
 
@@ -155,6 +150,7 @@
     return {
       speaker: speakerLabel(node.speaker),
       text: vars ? interpolate(rawText, vars) : rawText,
+      responseType: node.responseType,
       openReferenceCard: node.followUp.openReferenceCard === true,
       openSurveillanceRoom: node.followUp.openSurveillanceRoom === true,
       assessmentNode: isInteractive ? node : undefined,
@@ -262,7 +258,7 @@
   function freshStart(): void {
     clear()
     screen = 'avatar'
-    dialogQueue = [{ speaker: 'Chief Dodo', text: "Every member here has their bird. What are you?" }]
+    enqueue(getStartOfGameChain())
   }
 
   function continueSession(): void {
@@ -304,6 +300,7 @@
     avatar = id
     dialogQueue = []
     screen = 'intro'
+    enqueue(getAvatarResponse(id))
   }
 
   function sitDown(): void {
@@ -807,18 +804,23 @@
 {:else if screen === 'avatar'}
   <div class="screen with-dodo">
     <div class="dodo-content">
-      {#if currentLine}
-        <div class="dodo-quote">"{currentLine.text}"</div>
+      {#if inDialog && currentLine}
+        <p class="dialog-speaker">Chief Dodo</p>
+        <p class="dialog-text">"{currentLine.text}"</p>
+        {#if currentLine.responseType === 'action'}
+          <div class="avatar-grid">
+            {#each AVATARS as { id, label, desc }, i}
+              <button class="avatar-btn" on:click={() => selectAvatar(id)}>
+                <span class="num">{i + 1}.</span>
+                <span class="label">{label}</span>
+                <span class="desc">{desc}</span>
+              </button>
+            {/each}
+          </div>
+        {:else}
+          <button class="action-btn primary" on:click={advance}>Next</button>
+        {/if}
       {/if}
-      <div class="avatar-grid">
-        {#each AVATARS as { id, label, desc }, i}
-          <button class="avatar-btn" on:click={() => selectAvatar(id)}>
-            <span class="num">{i + 1}.</span>
-            <span class="label">{label}</span>
-            <span class="desc">{desc}</span>
-          </button>
-        {/each}
-      </div>
     </div>
     <div class="dodo-portrait">
       <img src="/chief-dodo.png" alt="Chief Dodo" />
@@ -829,10 +831,13 @@
 {:else if screen === 'intro'}
   <div class="screen with-dodo">
     <div class="dodo-content">
-      <div class="dodo-quote">"{AVATAR_RESPONSES[avatar]}"</div>
-      <div class="dodo-quote">"The Nest has a few different tables. Each one runs a different game. You move through them as you're ready — I'll let you know when."</div>
-      <div class="dodo-quote">"Table 1 is where we start. Come on."</div>
-      <button class="action-btn primary" on:click={sitDown}>Sit down at Table 1</button>
+      {#if inDialog && currentLine}
+        <p class="dialog-speaker">Chief Dodo</p>
+        <p class="dialog-text">"{currentLine.text}"</p>
+        <button class="action-btn primary" on:click={advance}>Next</button>
+      {:else}
+        <button class="action-btn primary" on:click={sitDown}>Sit down at Table 1</button>
+      {/if}
     </div>
     <div class="dodo-portrait">
       <img src="/chief-dodo.png" alt="Chief Dodo" />

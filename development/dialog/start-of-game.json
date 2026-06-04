@@ -7,7 +7,7 @@
     {
       "id": "sog-001",
       "speaker": "chief-dodo",
-      "text": "Like I told you last night — The Nest is the best spot to play in LA. Come on in.",
+      "text": "Yo! You made it! Glad you came. It's like I told you last night — The Nest is the best place to play in LA. Come on in.",
       "responseType": "none",
       "followUp": { "default": "sog-002" }
     },
