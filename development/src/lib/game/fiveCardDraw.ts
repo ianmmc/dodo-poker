@@ -1,7 +1,7 @@
 import { makeDeck, shuffle } from './card'
 import { evaluateHand, pickWinner } from './hand'
-import { hank } from './npc'
 import type { Card } from './card'
+import type { DrawDecision } from './npc'
 import type { ScriptedDeal } from './scriptedHands'
 
 export type Phase =
@@ -201,7 +201,13 @@ export function npcFold(state: GameState): GameState {
 }
 
 // Player draws. discardIndices is 0-based indices of cards to discard (0–4).
-export function playerDraw(state: GameState, discardIndices: number[]): GameState {
+// npcDecider is the active NPC's decideDraw function — caller is responsible
+// for passing the correct NPC module so draw behaviour is table-accurate.
+export function playerDraw(
+  state: GameState,
+  discardIndices: number[],
+  npcDecider: (hand: Card[]) => DrawDecision
+): GameState {
   const deck = [...state.deck]
   const playerHand = [...state.playerHand] as Card[]
 
@@ -209,7 +215,7 @@ export function playerDraw(state: GameState, discardIndices: number[]): GameStat
     playerHand[idx] = deck.pop()!
   }
 
-  const npcDrawDecision = hank.decideDraw(state.npcHand)
+  const npcDrawDecision = npcDecider(state.npcHand)
   const npcHand = [...state.npcHand] as Card[]
   for (const idx of npcDrawDecision.discardIndices) {
     npcHand[idx] = deck.pop()!

@@ -105,3 +105,8 @@ export function restoreAssessmentLog(entries: AssessmentRecord[]): void {
 export function resetAttemptCount(nodeId: string): void {
   attemptCounts.delete(nodeId)
 }
+
+export function clearAssessmentState(): void {
+  attemptCounts.clear()
+  assessmentLog.length = 0
+}

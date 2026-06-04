@@ -8,21 +8,21 @@
     {
       "id": "t1a-approach-001",
       "speaker": "chief-dodo",
-      "text": "This is the simplest version of poker there is. Five cards. You decide how many to trade in. Best hand wins.",
+      "text": "This is Five Card Draw, the simplest version of poker there is. You get five cards. You then decide how many to trade in. Best hand wins.",
       "responseType": "none",
       "followUp": { "default": "t1a-approach-001b" }
     },
     {
       "id": "t1a-approach-001b",
       "speaker": "chief-dodo",
-      "text": "Bets here are fixed — five seeds to open, five seeds to call. Keeps it clean while you're learning the hands.",
+      "text": "Bets here in the front room are fixed — five seeds to open, five seeds to call. Keeps it clean while you're learning the hands.",
       "responseType": "none",
       "followUp": { "default": "t1a-approach-002" }
     },
     {
       "id": "t1a-approach-002",
       "speaker": "chief-dodo",
-      "text": "That's Hank. California Condor. He's been a member here longer than I have. Doesn't mean he knows what he's doing at the table.",
+      "text": "Your first opponent is Hank, a California Condor. He's been a member here longer than I have. Doesn't mean he knows what he's doing at the table.",
       "responseType": "none",
       "followUp": { "default": "t1a-approach-ref" }
     },
@@ -239,7 +239,7 @@
         { "id": "opt-b", "text": "He raises when he has strong cards.",         "correct": false },
         { "id": "opt-c", "text": "He never folds, no matter what.",             "correct": true  },
         { "id": "opt-d", "text": "He folds when his cards are weak.",           "correct": false },
-        { "id": "opt-e", "text": "His bets stay the same regardless of his cards.", "correct": true  }
+        { "id": "opt-e", "text": "He always bets the same way regardless of his cards.", "correct": true  }
       ],
       "feedback": {
         "correct":      "t1a-assess-hank-correct",
@@ -290,7 +290,7 @@
     {
       "id": "t1a-fallacy-002",
       "speaker": "chief-dodo",
-      "text": "Some players think: 'Five bad hands in a row — I must be due for a good one.' Feels true. But the deck doesn't know what just happened.",
+      "text": "Some players think: 'Three bad hands in a row — I must be due for a good one.' Feels true. But the deck doesn't know what just happened.",
       "responseType": "none",
       "followUp": { "default": "t1a-fallacy-003" }
     },
@@ -500,7 +500,7 @@
     {
       "id": "t1a-assess-hank-numeric-correct",
       "speaker": "chief-dodo",
-      "text": "Exactly. Five bets in five hands. Not 'probably five' — definitely five. When you know someone's pattern that well, you don't predict what they'll do. You know.",
+      "text": "Exactly. Five bets in five hands. While probability allows all sorts of possibilities, there's also psychology. When you know someone's pattern that well, you don't predict what they'll do. You know.",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },
