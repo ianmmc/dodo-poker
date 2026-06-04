@@ -17,6 +17,13 @@
       "speaker": "chief-dodo",
       "text": "Every hand you play, I want you to track what you got and what happened. That running record — that's your frequency table. Watch it build.",
       "responseType": "none",
+      "followUp": { "default": "t1b-freq-order" }
+    },
+    {
+      "id": "t1b-freq-order",
+      "speaker": "chief-dodo",
+      "text": "One thing about that table — it lists hands by how often you'll see them, most common at the top. Flip open your reference card and you'll see the same hands in the opposite order: strongest first. Same hands, different order. That difference is the whole lesson.",
+      "responseType": "none",
       "followUp": { "default": "t1b-approach-003" }
     },
     {

@@ -15,7 +15,7 @@
     {
       "id": "t1a-approach-001b",
       "speaker": "chief-dodo",
-      "text": "Bets here in the front room are fixed — five seeds to open, five seeds to call. Keeps it clean while you're learning the hands.",
+      "text": "Bets here in the front room are fixed — five seeds into the pot before the cards come (that's the ante), five seeds to bet, five seeds to call. Keeps it clean while you're learning the hands.",
       "responseType": "none",
       "followUp": { "default": "t1a-approach-002" }
     },

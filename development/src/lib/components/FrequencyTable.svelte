@@ -6,16 +6,20 @@
   export let data: FrequencyData
   export let onToggle: () => void
 
+  // Sorted by theoretical frequency, most common first.
+  // High Card (~17%) sits above Two Pair (~5%) because it is genuinely more
+  // frequent — even though the reference card lists it weakest (below One Pair).
+  // That incongruity is an intentional teaching moment introduced at Table 1B.
   const HAND_ROWS: { key: keyof FrequencyData; label: string }[] = [
-    { key: 'onePair',       label: 'One Pair'        },
-    { key: 'twoPair',       label: 'Two Pair'        },
-    { key: 'threeOfAKind',  label: 'Three of a Kind' },
-    { key: 'straight',      label: 'Straight'        },
-    { key: 'flush',         label: 'Flush'           },
-    { key: 'fullHouse',     label: 'Full House'      },
-    { key: 'fourOfAKind',   label: 'Four of a Kind'  },
-    { key: 'straightFlush', label: 'Straight Flush'  },
-    { key: 'highCard',      label: 'High Card'       },
+    { key: 'onePair',       label: 'One Pair'        },  // ~42%
+    { key: 'highCard',      label: 'High Card'       },  // ~17%
+    { key: 'twoPair',       label: 'Two Pair'        },  // ~4.75%
+    { key: 'threeOfAKind',  label: 'Three of a Kind' },  // ~2.11%
+    { key: 'straight',      label: 'Straight'        },  // ~0.39%
+    { key: 'flush',         label: 'Flush'           },  // ~0.20%
+    { key: 'fullHouse',     label: 'Full House'      },  // ~0.14%
+    { key: 'fourOfAKind',   label: 'Four of a Kind'  },  // ~0.024%
+    { key: 'straightFlush', label: 'Straight Flush'  },  // ~0.001%
   ]
 </script>
 

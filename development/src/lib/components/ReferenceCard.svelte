@@ -4,94 +4,16 @@
 
   const HANDS = [
     {
-      name: 'Straight Flush',
-      rarity: 'Very rare',
-      rarityClass: 'very-rare',
-      desc: 'Five cards in order, all the same suit.',
-      cards: [
-        '/svg-cards/9_of_spades.svg',
-        '/svg-cards/10_of_spades.svg',
-        '/svg-cards/jack_of_spades.svg',
-        '/svg-cards/queen_of_spades.svg',
-        '/svg-cards/king_of_spades.svg',
-      ],
-    },
-    {
-      name: 'Four of a Kind',
-      rarity: 'Very rare',
-      rarityClass: 'very-rare',
-      desc: 'Four cards with the same number or letter.',
-      cards: [
-        '/svg-cards/ace_of_spades.svg',
-        '/svg-cards/ace_of_hearts.svg',
-        '/svg-cards/ace_of_diamonds.svg',
-        '/svg-cards/ace_of_clubs.svg',
-        '/svg-cards/king_of_spades.svg',
-      ],
-    },
-    {
-      name: 'Full House',
-      rarity: 'Rare',
-      rarityClass: 'rare',
-      desc: 'Three matching cards plus two matching cards.',
-      cards: [
-        '/svg-cards/king_of_spades.svg',
-        '/svg-cards/king_of_hearts.svg',
-        '/svg-cards/king_of_diamonds.svg',
-        '/svg-cards/jack_of_spades.svg',
-        '/svg-cards/jack_of_hearts.svg',
-      ],
-    },
-    {
-      name: 'Flush',
-      rarity: 'Rare',
-      rarityClass: 'rare',
-      desc: 'Five cards of the same suit, in any order.',
-      cards: [
-        '/svg-cards/2_of_spades.svg',
-        '/svg-cards/6_of_spades.svg',
-        '/svg-cards/9_of_spades.svg',
-        '/svg-cards/jack_of_spades.svg',
-        '/svg-cards/ace_of_spades.svg',
-      ],
-    },
-    {
-      name: 'Straight',
-      rarity: 'Uncommon',
-      rarityClass: 'uncommon',
-      desc: 'Five cards in order, any suits.',
-      cards: [
-        '/svg-cards/5_of_hearts.svg',
-        '/svg-cards/6_of_spades.svg',
-        '/svg-cards/7_of_diamonds.svg',
-        '/svg-cards/8_of_clubs.svg',
-        '/svg-cards/9_of_spades.svg',
-      ],
-    },
-    {
-      name: 'Three of a Kind',
-      rarity: 'Uncommon',
-      rarityClass: 'uncommon',
-      desc: 'Three cards with the same number or letter.',
-      cards: [
-        '/svg-cards/queen_of_spades.svg',
-        '/svg-cards/queen_of_hearts.svg',
-        '/svg-cards/queen_of_diamonds.svg',
-        '/svg-cards/3_of_clubs.svg',
-        '/svg-cards/7_of_spades.svg',
-      ],
-    },
-    {
-      name: 'Two Pair',
+      name: 'High Card',
       rarity: 'Common',
       rarityClass: 'common',
-      desc: 'Two different pairs of matching cards.',
+      desc: 'No matches, no sequence, no shared suit. Highest card plays.',
       cards: [
-        '/svg-cards/jack_of_spades.svg',
+        '/svg-cards/ace_of_spades.svg',
         '/svg-cards/jack_of_hearts.svg',
         '/svg-cards/8_of_diamonds.svg',
-        '/svg-cards/8_of_clubs.svg',
-        '/svg-cards/ace_of_spades.svg',
+        '/svg-cards/5_of_clubs.svg',
+        '/svg-cards/3_of_spades.svg',
       ],
     },
     {
@@ -108,18 +30,107 @@
       ],
     },
     {
-      name: 'High Card',
+      name: 'Two Pair',
       rarity: 'Common',
       rarityClass: 'common',
-      desc: 'No matches, no sequence, no shared suit. Highest card plays.',
+      desc: 'Two different pairs of matching cards.',
       cards: [
-        '/svg-cards/ace_of_spades.svg',
+        '/svg-cards/jack_of_spades.svg',
         '/svg-cards/jack_of_hearts.svg',
         '/svg-cards/8_of_diamonds.svg',
-        '/svg-cards/5_of_clubs.svg',
-        '/svg-cards/3_of_spades.svg',
+        '/svg-cards/8_of_clubs.svg',
+        '/svg-cards/ace_of_spades.svg',
       ],
     },
+    {
+      name: 'Three of a Kind',
+      rarity: 'Uncommon',
+      rarityClass: 'uncommon',
+      desc: 'Three cards with the same number or letter.',
+      cards: [
+        '/svg-cards/queen_of_spades.svg',
+        '/svg-cards/queen_of_hearts.svg',
+        '/svg-cards/queen_of_diamonds.svg',
+        '/svg-cards/3_of_clubs.svg',
+        '/svg-cards/7_of_spades.svg',
+      ],
+    },
+    {
+      name: 'Straight',
+      rarity: 'Uncommon',
+      rarityClass: 'uncommon',
+      desc: 'Five cards in order, any suits.',
+      cards: [
+        '/svg-cards/5_of_hearts.svg',
+        '/svg-cards/6_of_spades.svg',
+        '/svg-cards/7_of_diamonds.svg',
+        '/svg-cards/8_of_clubs.svg',
+        '/svg-cards/9_of_spades.svg',
+      ],
+    },
+    {
+      name: 'Flush',
+      rarity: 'Rare',
+      rarityClass: 'rare',
+      desc: 'Five cards of the same suit, in any order.',
+      cards: [
+        '/svg-cards/2_of_spades.svg',
+        '/svg-cards/6_of_spades.svg',
+        '/svg-cards/9_of_spades.svg',
+        '/svg-cards/jack_of_spades.svg',
+        '/svg-cards/ace_of_spades.svg',
+      ],
+    },
+    {
+      name: 'Full House',
+      rarity: 'Rare',
+      rarityClass: 'rare',
+      desc: 'Three matching cards plus two matching cards.',
+      cards: [
+        '/svg-cards/king_of_spades.svg',
+        '/svg-cards/king_of_hearts.svg',
+        '/svg-cards/king_of_diamonds.svg',
+        '/svg-cards/jack_of_spades.svg',
+        '/svg-cards/jack_of_hearts.svg',
+      ],
+    },
+    {
+      name: 'Four of a Kind',
+      rarity: 'Very rare',
+      rarityClass: 'very-rare',
+      desc: 'Four cards with the same number or letter.',
+      cards: [
+        '/svg-cards/ace_of_spades.svg',
+        '/svg-cards/ace_of_hearts.svg',
+        '/svg-cards/ace_of_diamonds.svg',
+        '/svg-cards/ace_of_clubs.svg',
+        '/svg-cards/king_of_spades.svg',
+      ],
+    },
+    {
+      name: 'Straight Flush',
+      rarity: 'Very rare',
+      rarityClass: 'very-rare',
+      desc: 'Five cards in order, all the same suit.',
+      cards: [
+        '/svg-cards/9_of_spades.svg',
+        '/svg-cards/10_of_spades.svg',
+        '/svg-cards/jack_of_spades.svg',
+        '/svg-cards/queen_of_spades.svg',
+        '/svg-cards/king_of_spades.svg',
+      ],
+    },
+  ]
+
+  const GLOSSARY = [
+    { term: 'Ante',  def: 'Seeds every player puts in before the deal, to start the pot.' },
+    { term: 'Pot',   def: 'The total seeds in the middle — what you\'re playing for.' },
+    { term: 'Bet',   def: 'Putting seeds in to claim the pot or make your opponent pay to continue.' },
+    { term: 'Check', def: 'Passing without betting — you stay in for free, the pot doesn\'t grow.' },
+    { term: 'Call',  def: 'Matching your opponent\'s bet to stay in the hand.' },
+    { term: 'Fold',  def: 'Giving up your hand — your opponent wins the pot.' },
+    { term: 'Draw',  def: 'Trading cards from your hand for new ones from the deck.' },
+    { term: 'Hand',  def: 'In poker, your \'hand\' means specifically the cards you\'re playing.' },
   ]
 </script>
 
@@ -137,7 +148,7 @@
       <span class="panel-title">Reference Card</span>
       <button class="close-btn" on:click={onToggle} aria-label="Close">←</button>
     </div>
-    <p class="panel-subtitle">Table 1 · Five Card Draw · Best hand wins</p>
+    <p class="panel-subtitle">Table 1 · Five Card Draw · Listed weakest to strongest. Best hand wins.</p>
 
     <div class="hand-list">
       {#each HANDS as { name, rarity, rarityClass, desc, cards }, i}
@@ -157,7 +168,23 @@
       {/each}
     </div>
 
-    <p class="note">Straight Flush is the best possible hand.</p>
+    <p class="note">Straight Flush is the best — and rarest — hand you can hold.</p>
+
+    <div class="glossary-section">
+      <div class="glossary-header">Terms</div>
+      <dl class="glossary-list">
+        {#each GLOSSARY as { term, def }}
+          <dt>{term}</dt>
+          <dd>{def}</dd>
+        {/each}
+      </dl>
+      <a
+        class="glossary-link"
+        href="https://en.wikipedia.org/wiki/Glossary_of_poker_terms"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Full poker glossary (Wikipedia) ↗</a>
+    </div>
   </div>
 </div>
 
@@ -330,5 +357,56 @@
     font-style: italic;
     line-height: 1.5;
     flex-shrink: 0;
+  }
+
+  /* ── Glossary ── */
+  .glossary-section {
+    border-top: 1px solid #1e3a1e;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .glossary-header {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #5a7a5a;
+  }
+
+  .glossary-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 5px 12px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .glossary-list dt {
+    font-size: 0.75rem;
+    color: #c8a84a;
+    font-weight: bold;
+    padding-top: 1px;
+  }
+
+  .glossary-list dd {
+    font-size: 0.75rem;
+    color: #7a9a7a;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .glossary-link {
+    font-size: 0.68rem;
+    color: #4a6a8a;
+    text-decoration: none;
+    padding-top: 2px;
+  }
+
+  .glossary-link:hover {
+    color: #7a9abc;
+    text-decoration: underline;
   }
 </style>
