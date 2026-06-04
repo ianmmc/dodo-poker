@@ -128,6 +128,7 @@
     { term: 'Bet',   def: 'Putting seeds in to claim the pot or make your opponent pay to continue.' },
     { term: 'Check', def: 'Passing without betting — you stay in for free, the pot doesn\'t grow.' },
     { term: 'Call',  def: 'Matching your opponent\'s bet to stay in the hand.' },
+    { term: 'Discard',  def: 'To get rid of a card or a card you\'ve gotten rid of.' },
     { term: 'Fold',  def: 'Giving up your hand — your opponent wins the pot.' },
     { term: 'Draw',  def: 'Trading cards from your hand for new ones from the deck.' },
     { term: 'Hand',  def: 'In poker, your \'hand\' means specifically the cards you\'re playing.' },
