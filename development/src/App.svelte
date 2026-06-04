@@ -108,7 +108,6 @@
   $: currentLine = dialogQueue[0] ?? null
 
   $: if (currentLine?.openReferenceCard) refCardOpen = true
-  $: if (screen === 'intro' && !inDialog) sitDown()
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -183,6 +182,9 @@
       dialogQueue = []
       assessmentState = { node: current.assessmentNode, selectedIds: new Set(), numericInput: '' }
     }
+    // Intro screen: when the last dialog node clears, go directly to Table 1A
+    // without waiting for a reactive cycle (avoids rendering the table with empty queue).
+    if (screen === 'intro' && dialogQueue.length === 0) sitDown()
   }
 
   // ── Assessment ───────────────────────────────────────────────────────────
