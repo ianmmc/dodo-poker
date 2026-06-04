@@ -119,25 +119,14 @@
   let npcAnimPhase: NpcAnimPhase = 'idle'
   let npcAnimDealtCount = 0          // how many replacement cards have appeared so far
   let npcAnimTimers: ReturnType<typeof setTimeout>[] = []
-  let npcAnimPendingDialog: (DialogNode | null)[] = []
-
-  // Per-slot animation state for {#each game.npcHand as card, i}
-  function npcCardAnimState(slotIndex: number): 'idle' | 'slide-out' | 'empty' | 'deal-in' {
-    if (npcAnimPhase === 'idle') return 'idle'
-    const discardPos = game.npcDiscardIndices.indexOf(slotIndex)
-    if (discardPos === -1) return 'idle'  // this card is being kept
-    if (npcAnimPhase === 'sliding-out') return 'slide-out'
-    // empty and dealing-in phases: card appears once its turn comes
-    return discardPos < npcAnimDealtCount ? 'deal-in' : 'empty'
-  }
+  // Set by doDraw() when Hank is discarding; advance() starts the animation
+  // after the draw-declaration dialog ("Two.") has been dismissed.
+  let pendingNpcDrawAnim = false
 
   function finishNpcAnim(): void {
     npcAnimPhase = 'idle'
     npcAnimDealtCount = 0
     npcAnimTimers = []
-    const pending = npcAnimPendingDialog
-    npcAnimPendingDialog = []
-    enqueue(pending)
   }
 
   function skipNpcAnim(): void {
@@ -146,11 +135,10 @@
     finishNpcAnim()
   }
 
-  function startNpcDrawAnimation(pendingDialog: (DialogNode | null)[]): void {
+  function startNpcDrawAnimation(): void {
     const n = game.npcDiscardIndices.length
-    if (n === 0) { enqueue(pendingDialog); return }
+    if (n === 0) return
 
-    npcAnimPendingDialog = pendingDialog
     npcAnimPhase = 'sliding-out'
     npcAnimDealtCount = 0
 
@@ -281,6 +269,11 @@
     // Intro screen: when the last dialog node clears, go directly to Table 1A
     // without waiting for a reactive cycle (avoids rendering the table with empty queue).
     if (screen === 'intro' && dialogQueue.length === 0) sitDown()
+    // NPC draw animation: fire after the draw-declaration dialog is dismissed.
+    if (pendingNpcDrawAnim && dialogQueue.length === 0) {
+      pendingNpcDrawAnim = false
+      startNpcDrawAnimation()
+    }
   }
 
   // ── Assessment ───────────────────────────────────────────────────────────
@@ -305,6 +298,7 @@
       assessmentState = null
       const pending = pendingPostAssessment
       pendingPostAssessment = []
+    pendingNpcDrawAnim = false
     skipNpcAnim()
       if (result.feedbackNodeId) {
         enqueue(getChain(result.feedbackNodeId), result.templateVars)
@@ -339,6 +333,7 @@
       assessmentState = null
       const pending = pendingPostAssessment
       pendingPostAssessment = []
+    pendingNpcDrawAnim = false
     skipNpcAnim()
       if (result.feedbackNodeId) {
         enqueue(getChain(result.feedbackNodeId), result.templateVars)
@@ -604,8 +599,10 @@
     discardSet = new Set()
     const drawComment = drawCommentNode(indices.length)
     game = playerDraw(game, indices, npcDrawDecider)
-    const drawDialog: (DialogNode | null)[] = [drawComment, hankDrawNode(game.npcDrawCount)]
-    startNpcDrawAnimation(drawDialog)
+    // Enqueue the declaration dialog first (player's draw comment + NPC's
+    // "Two." / "Three." line). Animation fires when that dialog is dismissed.
+    enqueue([drawComment, hankDrawNode(game.npcDrawCount)])
+    if (game.npcDiscardIndices.length > 0) pendingNpcDrawAnim = true
   }
 
   function toggleDiscard(idx: number): void {
@@ -689,6 +686,7 @@
     dialogQueue = []
     assessmentState = null
     pendingPostAssessment = []
+    pendingNpcDrawAnim = false
     skipNpcAnim()
     gatePassedAt1A = false
     gatePassedAt1B = false
@@ -715,6 +713,7 @@
     dialogQueue = []
     assessmentState = null
     pendingPostAssessment = []
+    pendingNpcDrawAnim = false
     skipNpcAnim()
 
     if (screen === 'table1b') {
@@ -762,6 +761,7 @@
     dialogQueue = []
     assessmentState = null
     pendingPostAssessment = []
+    pendingNpcDrawAnim = false
     skipNpcAnim()
     if (table === 'table') {
       npcDrawDecider = hank.decideDraw.bind(hank)
