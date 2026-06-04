@@ -258,7 +258,7 @@
   function freshStart(): void {
     clear()
     screen = 'avatar'
-    enqueue(getStartOfGameChain())
+    enqueue([getNode('sog-002')])
   }
 
   function continueSession(): void {
