@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { makeDeck, shuffle, cardToSvgPath } from './card'
+import { makeDeck, shuffle, cardToSvgPath, cardAltText } from './card'
 
 describe('makeDeck', () => {
   it('produces 52 unique cards', () => {
@@ -65,5 +65,39 @@ describe('cardToSvgPath', () => {
   it('maps number cards correctly', () => {
     expect(cardToSvgPath('2d')).toBe('/svg-cards/2_of_diamonds.svg')
     expect(cardToSvgPath('9s')).toBe('/svg-cards/9_of_spades.svg')
+  })
+})
+
+// AX-05: screen reader alt text must be human-readable, not machine code
+describe('cardAltText', () => {
+  it('produces full English names for face cards', () => {
+    expect(cardAltText('Ah')).toBe('Ace of Hearts')
+    expect(cardAltText('Ks')).toBe('King of Spades')
+    expect(cardAltText('Qd')).toBe('Queen of Diamonds')
+    expect(cardAltText('Jc')).toBe('Jack of Clubs')
+  })
+
+  it('names Ten correctly', () => {
+    expect(cardAltText('Th')).toBe('Ten of Hearts')
+  })
+
+  it('names number cards correctly', () => {
+    expect(cardAltText('2c')).toBe('Two of Clubs')
+    expect(cardAltText('9d')).toBe('Nine of Diamonds')
+    expect(cardAltText('5s')).toBe('Five of Spades')
+  })
+
+  it('covers all suits', () => {
+    expect(cardAltText('Ah')).toContain('Hearts')
+    expect(cardAltText('As')).toContain('Spades')
+    expect(cardAltText('Ad')).toContain('Diamonds')
+    expect(cardAltText('Ac')).toContain('Clubs')
+  })
+
+  it('produces text that does not contain raw card codes', () => {
+    // No raw rank char ('A','T','K') or suit char ('h','s','d','c') as standalone words
+    const result = cardAltText('Th')
+    expect(result).not.toMatch(/\bTh?\b/)
+    expect(result).toBe('Ten of Hearts')
   })
 })

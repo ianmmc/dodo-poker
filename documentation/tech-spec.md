@@ -193,10 +193,10 @@ The ladder behavior is in the engine; the copy is in JSON. The two can evolve in
 
 | Path | Contents |
 | --- | --- |
-| `src/lib/game/` | Game logic: card, hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData, simulationEngine |
+| `src/lib/game/` | Game logic: card (+ `cardAltText`), hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData, simulationEngine |
 | `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()`, `getChain()`, `firedOnce` registry |
 | `src/lib/components/` | Svelte UI components: CardImage, ReferenceCard, FrequencyTable, SurveillanceRoom, DevPanel |
-| `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state |
+| `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state, `isNpc` field on `DisplayLine` |
 | `dialog/` | JSON dialog trees (content only — no logic) |
 
 ---
@@ -222,6 +222,16 @@ Character names — `hank`, `lucky` — appear only in: NPC module exports (`npc
 
 - **Phase 1** (`card-stream` mode): `runCardDrawSim(n)` runs the full card-draw simulation instantly; `SurveillanceRoom.svelte` animates display via `requestAnimationFrame` (counter + progressive graph + CSS card stream).
 - **Phase 2 foundation** (`cinematic` mode): `SimMode`, `SimulationController<T>`, `PokerSimHandResult`, `PokerSimConfig` types are defined and stable. The cinematic split-screen (mini table, hand-by-hand replay) will implement `SimulationController` without touching Phase 1 code.
+
+### Accessibility standard
+
+WCAG 2.1 Level AA is the compliance target. Implementation approach:
+
+- **Color contrast**: All text/background pairs meet 4.5:1 (normal) or 3.0:1 (large/UI) ratios. Values are set in component `<style>` blocks; any future color additions must be checked against the relevant background before committing.
+- **ARIA semantics**: Interactive controls carry `aria-label` or visible label; dynamic dialog content uses `aria-live="polite" aria-atomic="true"`; checklist options use `aria-pressed`; the frequency table toggle uses `aria-expanded`; card images use human-readable alt text via `cardAltText()` exported from `card.ts`.
+- **Semantic HTML**: Non-interactive cards render as `<div role="img">`, interactive (draw-phase) cards as `<button>`. Assessment checklist items are `<button aria-pressed>`, not styled checkboxes.
+- **Focus management**: Screen transitions (AX-07) and full keyboard-only gameplay (AX-06) remain in progress; these are tracked in requirements.md.
+- **Testing**: Logic-layer properties testable in isolation (e.g., `cardAltText`) are covered in unit tests. DOM-layer properties (contrast ratios, focus behavior, screen reader announcements) require browser-based audit tooling and are verified manually.
 
 ---
 

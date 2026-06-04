@@ -125,6 +125,22 @@ User stories organized by theme. Each story will gain acceptance criteria before
 
 ---
 
+## Accessibility
+
+This product must be usable by students with visual, motor, and cognitive disabilities. Compliance target: WCAG 2.1 Level AA. Browser-based accessibility (contrast ratios, focus behavior, screen reader announcements) is verified through manual testing and targeted audit tooling; unit tests cover the logic-layer properties that are testable in isolation.
+
+| # | Story | Status |
+| --- | ------- | -------- |
+| AX-01 | As a student with low vision, I want all text and UI elements to meet WCAG 2.1 AA color contrast requirements (4.5:1 for normal text, 3.0:1 for large text and interactive components) so that every element is readable regardless of visual ability. | `done` |
+| AX-02 | As a student using a screen reader, I want all interactive controls (buttons, inputs, toggles) to have accessible names so that I understand the purpose of every element I can interact with. | `done` |
+| AX-03 | As a student using a screen reader, I want dialog and coaching text updates to be announced automatically via an `aria-live` region so that I receive the same coaching as sighted students without having to navigate to it. | `done` |
+| AX-04 | As a student using a screen reader, I want assessment checklist options to communicate their checked state via `aria-pressed` so that I can complete assessments without relying on visual cues alone. | `done` |
+| AX-05 | As a student using a screen reader, I want playing cards to be described in plain language ("Ace of Hearts" rather than "Ah") so that I can follow the game state through audio. | `done` |
+| AX-06 | As a student with limited motor ability, I want to play the entire game using only a keyboard — advancing dialog, making betting decisions, selecting discards, and completing assessments — without requiring a mouse or touch input. | `in-progress` |
+| AX-07 | As a student using a screen reader, I want keyboard focus to be placed on a meaningful landmark when the screen changes, so that I always know where I am after a transition. | `draft` |
+
+---
+
 ## Developer Tooling
 
 | # | Story | Status |

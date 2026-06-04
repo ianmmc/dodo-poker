@@ -34,3 +34,19 @@ export function cardToSvgPath(card: Card): string {
 }
 
 export const CARD_BACK_PATH = '/png-cards/back.png'
+
+const ALT_RANK_NAMES: Record<string, string> = {
+  A: 'Ace', K: 'King', Q: 'Queen', J: 'Jack', T: 'Ten',
+  '9': 'Nine', '8': 'Eight', '7': 'Seven', '6': 'Six',
+  '5': 'Five', '4': 'Four', '3': 'Three', '2': 'Two',
+}
+const ALT_SUIT_NAMES: Record<string, string> = {
+  s: 'Spades', h: 'Hearts', d: 'Diamonds', c: 'Clubs',
+}
+
+/** Returns a human-readable description of a card for screen readers, e.g. "Ace of Hearts". */
+export function cardAltText(card: Card): string {
+  const rank = card.slice(0, -1)
+  const suit = card.slice(-1)
+  return `${ALT_RANK_NAMES[rank] ?? rank} of ${ALT_SUIT_NAMES[suit] ?? suit}`
+}

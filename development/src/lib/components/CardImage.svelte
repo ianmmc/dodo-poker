@@ -1,27 +1,11 @@
 <script lang="ts">
-  import { cardToSvgPath, CARD_BACK_PATH } from '../game/card'
+  import { cardToSvgPath, CARD_BACK_PATH, cardAltText } from '../game/card'
   import type { Card } from '../game/card'
 
   export let card: Card | null = null
   export let faceDown = false
   export let selected = false
   export let clickable = false
-
-  const RANK_NAMES: Record<string, string> = {
-    A: 'Ace', 2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five',
-    6: 'Six', 7: 'Seven', 8: 'Eight', 9: 'Nine', T: 'Ten',
-    J: 'Jack', Q: 'Queen', K: 'King',
-  }
-  const SUIT_NAMES: Record<string, string> = {
-    h: 'Hearts', d: 'Diamonds', c: 'Clubs', s: 'Spades',
-    H: 'Hearts', D: 'Diamonds', C: 'Clubs', S: 'Spades',
-  }
-
-  function cardAltText(c: Card): string {
-    const rank = RANK_NAMES[c[0]] ?? c[0]
-    const suit = SUIT_NAMES[c[c.length - 1]] ?? c[c.length - 1]
-    return `${rank} of ${suit}`
-  }
 </script>
 
 {#if clickable}
