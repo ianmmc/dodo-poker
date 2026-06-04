@@ -269,6 +269,12 @@
     if (!saved) { freshStart(); return }
     avatar = saved.avatar
     restoreFiredOnce(saved.firedOnce)
+    // If an assessment sequence was entered but not completed before saving
+    // (e.g. quit while a checklist was showing), unmark it so it re-fires.
+    const answered = new Set((saved.assessmentLog ?? []).map((r: { nodeId: string }) => r.nodeId))
+    if (!answered.has('t1a-assess-hank-numeric')) unmarkFiredOnce('t1a-pattern-001')
+    if (!answered.has('t1a-assess-gamblers-001')) unmarkFiredOnce('t1a-fallacy-001')
+    if (!answered.has('t1b-assess-proc'))          unmarkFiredOnce('t1b-assess-intro')
     restoreAssessmentLog(saved.assessmentLog ?? [])
     restoreFiredRules(saved.firedRules ?? [])
     observationLog = saved.observationLog ?? []
@@ -948,13 +954,6 @@
           </button>
         {/if}
 
-      {:else if surveillanceRoomVisited && !gatePassedAt1B && !inDialog && !assessmentState && game.phase === 'done'}
-        <!-- Surveillance Room re-entry available post-visit, during done phase -->
-        <div class="surv-link">
-          <button class="action-btn surv-return-btn" on:click={() => screen = 'surveillance'}>
-            Surveillance Room
-          </button>
-        </div>
       {/if}
 
       {#if inDialog && currentLine}
@@ -1036,6 +1035,11 @@
           <div class="result-area">
             <p class="result-text">{resultText()}</p>
             <button class="action-btn primary" on:click={nextHand}>Play next hand</button>
+            {#if surveillanceRoomVisited && !gatePassedAt1B}
+              <button class="action-btn surv-return-btn" on:click={() => screen = 'surveillance'}>
+                Surveillance Room
+              </button>
+            {/if}
           </div>
         {/if}
 
