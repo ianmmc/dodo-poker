@@ -112,8 +112,8 @@
   // ── NPC discard animation ─────────────────────────────────────────────────
   // Adjust NPC_DEAL_INTERVAL_MS to tune the pacing of replacement cards.
   // NPC_SLIDE_OUT_MS must match the CSS @keyframes duration in CardImage.svelte.
-  const NPC_DEAL_INTERVAL_MS  = 200
-  const NPC_SLIDE_OUT_MS      = 300
+  const NPC_DEAL_INTERVAL_MS  = 350
+  const NPC_SLIDE_OUT_MS      = 400
 
   type NpcAnimPhase = 'idle' | 'sliding-out' | 'empty' | 'dealing-in'
   let npcAnimPhase: NpcAnimPhase = 'idle'
@@ -154,22 +154,27 @@
     npcAnimPhase = 'sliding-out'
     npcAnimDealtCount = 0
 
-    // After slide-out, show empty slots then deal in replacement cards
-    npcAnimTimers.push(setTimeout(() => {
+    // After slide-out, show empty slots then deal in replacement cards.
+    // Use reassignment (not .push) so Svelte 5 reactive tracking sees the change.
+    const slideTimer = setTimeout(() => {
       npcAnimPhase = 'empty'
 
-      for (let i = 0; i < n; i++) {
-        npcAnimTimers.push(setTimeout(() => {
+      const dealTimers = Array.from({ length: n }, (_, i) =>
+        setTimeout(() => {
           npcAnimDealtCount = i + 1
           npcAnimPhase = 'dealing-in'
-        }, (i + 1) * NPC_DEAL_INTERVAL_MS))
-      }
+        }, (i + 1) * NPC_DEAL_INTERVAL_MS)
+      )
 
-      npcAnimTimers.push(setTimeout(() => {
+      const finishTimer = setTimeout(() => {
         finishNpcAnim()
-      }, n * NPC_DEAL_INTERVAL_MS + NPC_DEAL_INTERVAL_MS))
+      }, n * NPC_DEAL_INTERVAL_MS + NPC_DEAL_INTERVAL_MS)
 
-    }, NPC_SLIDE_OUT_MS + 50))
+      npcAnimTimers = [...dealTimers, finishTimer]
+
+    }, NPC_SLIDE_OUT_MS + 50)
+
+    npcAnimTimers = [slideTimer]
   }
 
   // Dialog queue
@@ -1048,8 +1053,12 @@
             on:click={skipNpcAnim}
             title={npcAnimPhase !== 'idle' ? 'Click to skip' : undefined}
           >
-            {#each game.npcHand as _card, i}
-              <CardImage faceDown animState={npcCardAnimState(i)} />
+            {#each game.npcHand as _card, i (i)}
+              <CardImage faceDown animState={
+                npcAnimPhase === 'idle' || game.npcDiscardIndices.indexOf(i) === -1 ? 'idle' :
+                npcAnimPhase === 'sliding-out' ? 'slide-out' :
+                game.npcDiscardIndices.indexOf(i) < npcAnimDealtCount ? 'deal-in' : 'empty'
+              } />
             {/each}
           </div>
         {/if}
@@ -1258,8 +1267,12 @@
             on:click={skipNpcAnim}
             title={npcAnimPhase !== 'idle' ? 'Click to skip' : undefined}
           >
-            {#each game.npcHand as _card, i}
-              <CardImage faceDown animState={npcCardAnimState(i)} />
+            {#each game.npcHand as _card, i (i)}
+              <CardImage faceDown animState={
+                npcAnimPhase === 'idle' || game.npcDiscardIndices.indexOf(i) === -1 ? 'idle' :
+                npcAnimPhase === 'sliding-out' ? 'slide-out' :
+                game.npcDiscardIndices.indexOf(i) < npcAnimDealtCount ? 'deal-in' : 'empty'
+              } />
             {/each}
           </div>
         {/if}

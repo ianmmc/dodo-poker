@@ -75,7 +75,7 @@
   /* ── NPC discard animation states ───────────────────────────────────── */
 
   .anim-slide-out {
-    animation: npc-slide-out var(--npc-slide-ms, 300ms) ease-in forwards;
+    animation: npc-slide-out var(--npc-slide-ms, 400ms) ease-in forwards;
     pointer-events: none;
   }
 
