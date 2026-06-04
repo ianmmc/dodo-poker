@@ -6,6 +6,12 @@
   export let faceDown = false
   export let selected = false
   export let clickable = false
+  // Animation state for NPC discard phase.
+  // 'idle'      — normal display
+  // 'slide-out' — card back slides upward and disappears
+  // 'empty'     — invisible placeholder holding the layout slot open
+  // 'deal-in'   — replacement card pops in from above
+  export let animState: 'idle' | 'slide-out' | 'empty' | 'deal-in' = 'idle'
 </script>
 
 {#if clickable}
@@ -26,6 +32,9 @@
   <div
     class="card"
     class:face-down={faceDown || !card}
+    class:anim-slide-out={animState === 'slide-out'}
+    class:anim-empty={animState === 'empty'}
+    class:anim-deal-in={animState === 'deal-in'}
     role="img"
     aria-label={faceDown || !card ? 'Card (face down)' : card ? cardAltText(card) : 'Card'}
   >
@@ -61,5 +70,33 @@
   .selected {
     border-color: #e04a2f;
     transform: translateY(-10px);
+  }
+
+  /* ── NPC discard animation states ───────────────────────────────────── */
+
+  .anim-slide-out {
+    animation: npc-slide-out var(--npc-slide-ms, 300ms) ease-in forwards;
+    pointer-events: none;
+  }
+
+  /* Invisible but keeps the slot in the layout so remaining cards don't reflow */
+  .anim-empty {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .anim-deal-in {
+    animation: npc-deal-in 150ms ease-out both;
+    pointer-events: none;
+  }
+
+  @keyframes npc-slide-out {
+    from { transform: translateY(0);      opacity: 1; }
+    to   { transform: translateY(-100px); opacity: 0; }
+  }
+
+  @keyframes npc-deal-in {
+    from { transform: translateY(-28px) scale(0.85); opacity: 0; }
+    to   { transform: translateY(0)     scale(1);    opacity: 1; }
   }
 </style>

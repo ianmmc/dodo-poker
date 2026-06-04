@@ -109,6 +109,69 @@
   // All Table 1B NPCs (Lucky + backups) share lucky.decideDraw.
   let npcDrawDecider: (hand: Card[]) => DrawDecision = hank.decideDraw.bind(hank)
 
+  // ── NPC discard animation ─────────────────────────────────────────────────
+  // Adjust NPC_DEAL_INTERVAL_MS to tune the pacing of replacement cards.
+  // NPC_SLIDE_OUT_MS must match the CSS @keyframes duration in CardImage.svelte.
+  const NPC_DEAL_INTERVAL_MS  = 200
+  const NPC_SLIDE_OUT_MS      = 300
+
+  type NpcAnimPhase = 'idle' | 'sliding-out' | 'empty' | 'dealing-in'
+  let npcAnimPhase: NpcAnimPhase = 'idle'
+  let npcAnimDealtCount = 0          // how many replacement cards have appeared so far
+  let npcAnimTimers: ReturnType<typeof setTimeout>[] = []
+  let npcAnimPendingDialog: (DialogNode | null)[] = []
+
+  // Per-slot animation state for {#each game.npcHand as card, i}
+  function npcCardAnimState(slotIndex: number): 'idle' | 'slide-out' | 'empty' | 'deal-in' {
+    if (npcAnimPhase === 'idle') return 'idle'
+    const discardPos = game.npcDiscardIndices.indexOf(slotIndex)
+    if (discardPos === -1) return 'idle'  // this card is being kept
+    if (npcAnimPhase === 'sliding-out') return 'slide-out'
+    // empty and dealing-in phases: card appears once its turn comes
+    return discardPos < npcAnimDealtCount ? 'deal-in' : 'empty'
+  }
+
+  function finishNpcAnim(): void {
+    npcAnimPhase = 'idle'
+    npcAnimDealtCount = 0
+    npcAnimTimers = []
+    const pending = npcAnimPendingDialog
+    npcAnimPendingDialog = []
+    enqueue(pending)
+  }
+
+  function skipNpcAnim(): void {
+    if (npcAnimPhase === 'idle') return
+    npcAnimTimers.forEach(t => clearTimeout(t))
+    finishNpcAnim()
+  }
+
+  function startNpcDrawAnimation(pendingDialog: (DialogNode | null)[]): void {
+    const n = game.npcDiscardIndices.length
+    if (n === 0) { enqueue(pendingDialog); return }
+
+    npcAnimPendingDialog = pendingDialog
+    npcAnimPhase = 'sliding-out'
+    npcAnimDealtCount = 0
+
+    // After slide-out, show empty slots then deal in replacement cards
+    npcAnimTimers.push(setTimeout(() => {
+      npcAnimPhase = 'empty'
+
+      for (let i = 0; i < n; i++) {
+        npcAnimTimers.push(setTimeout(() => {
+          npcAnimDealtCount = i + 1
+          npcAnimPhase = 'dealing-in'
+        }, (i + 1) * NPC_DEAL_INTERVAL_MS))
+      }
+
+      npcAnimTimers.push(setTimeout(() => {
+        finishNpcAnim()
+      }, n * NPC_DEAL_INTERVAL_MS + NPC_DEAL_INTERVAL_MS))
+
+    }, NPC_SLIDE_OUT_MS + 50))
+  }
+
   // Dialog queue
   let dialogQueue: DisplayLine[] = []
   let pendingPostAssessment: DisplayLine[] = []
@@ -237,6 +300,7 @@
       assessmentState = null
       const pending = pendingPostAssessment
       pendingPostAssessment = []
+    skipNpcAnim()
       if (result.feedbackNodeId) {
         enqueue(getChain(result.feedbackNodeId), result.templateVars)
       }
@@ -270,6 +334,7 @@
       assessmentState = null
       const pending = pendingPostAssessment
       pendingPostAssessment = []
+    skipNpcAnim()
       if (result.feedbackNodeId) {
         enqueue(getChain(result.feedbackNodeId), result.templateVars)
       }
@@ -534,7 +599,8 @@
     discardSet = new Set()
     const drawComment = drawCommentNode(indices.length)
     game = playerDraw(game, indices, npcDrawDecider)
-    enqueue([drawComment, hankDrawNode(game.npcDrawCount)])
+    const drawDialog: (DialogNode | null)[] = [drawComment, hankDrawNode(game.npcDrawCount)]
+    startNpcDrawAnimation(drawDialog)
   }
 
   function toggleDiscard(idx: number): void {
@@ -618,6 +684,7 @@
     dialogQueue = []
     assessmentState = null
     pendingPostAssessment = []
+    skipNpcAnim()
     gatePassedAt1A = false
     gatePassedAt1B = false
     observationLog = []
@@ -628,6 +695,7 @@
     currentNpcName = 'Hank'
     usedBackupIds = []
     npcDrawDecider = hank.decideDraw.bind(hank)
+    skipNpcAnim()
     clearFiredRules()
     clearFiredOnce()
     clearAssessmentState()
@@ -642,6 +710,7 @@
     dialogQueue = []
     assessmentState = null
     pendingPostAssessment = []
+    skipNpcAnim()
 
     if (screen === 'table1b') {
       handsAt1B = n
@@ -688,6 +757,7 @@
     dialogQueue = []
     assessmentState = null
     pendingPostAssessment = []
+    skipNpcAnim()
     if (table === 'table') {
       npcDrawDecider = hank.decideDraw.bind(hank)
       unmarkFiredOnce('t1a-pattern-001')
@@ -972,9 +1042,16 @@
           {/each}
           <span class="hand-name">{game.result?.npcHandName}</span>
         {:else}
-          {#each Array(5) as _}
-            <CardImage faceDown />
-          {/each}
+          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+          <div
+            class="npc-hand-anim"
+            on:click={skipNpcAnim}
+            title={npcAnimPhase !== 'idle' ? 'Click to skip' : undefined}
+          >
+            {#each game.npcHand as _card, i}
+              <CardImage faceDown animState={npcCardAnimState(i)} />
+            {/each}
+          </div>
         {/if}
       </div>
     </div>
@@ -1175,9 +1252,16 @@
           {/each}
           <span class="hand-name">{game.result?.npcHandName}</span>
         {:else}
-          {#each Array(5) as _}
-            <CardImage faceDown />
-          {/each}
+          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+          <div
+            class="npc-hand-anim"
+            on:click={skipNpcAnim}
+            title={npcAnimPhase !== 'idle' ? 'Click to skip' : undefined}
+          >
+            {#each game.npcHand as _card, i}
+              <CardImage faceDown animState={npcCardAnimState(i)} />
+            {/each}
+          </div>
         {/if}
       </div>
     </div>
@@ -1487,6 +1571,7 @@
   .player   { background: rgba(0,0,0,0.12); }
   .hand-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: #6a9a6a; }
   .cards { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; min-height: 112px; }
+  .npc-hand-anim { display: flex; align-items: flex-end; gap: 8px; cursor: default; }
   .hand-name { font-style: italic; color: #c8a84a; font-size: 0.95rem; margin-left: 10px; align-self: center; }
   .draw-hint { font-size: 0.82rem; color: #a08858; font-style: italic; }
 

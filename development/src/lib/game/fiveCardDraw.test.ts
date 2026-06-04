@@ -161,6 +161,40 @@ describe('playerDraw', () => {
   })
 })
 
+describe('npcDiscardIndices — animation support', () => {
+  it('starts at [] from createGame', () => {
+    expect(createGame().npcDiscardIndices).toEqual([])
+  })
+
+  it('startHand resets to []', () => {
+    const g = createGame()
+    const mid = { ...g, npcDiscardIndices: [3, 4] }
+    expect(startHand(mid).npcDiscardIndices).toEqual([])
+  })
+
+  it('playerDraw stores the NPC discard indices', () => {
+    const state = playerBet(startHand(createGame()))
+    const drawn = playerDraw(state, [], npcDecider)
+    // npcDiscardIndices length matches npcDrawCount
+    expect(drawn.npcDiscardIndices.length).toBe(drawn.npcDrawCount)
+  })
+
+  it('npcDiscardIndices are valid slot indices (0–4)', () => {
+    const state = playerBet(startHand(createGame()))
+    const drawn = playerDraw(state, [], npcDecider)
+    for (const idx of drawn.npcDiscardIndices) {
+      expect(idx).toBeGreaterThanOrEqual(0)
+      expect(idx).toBeLessThanOrEqual(4)
+    }
+  })
+
+  it('each discard index appears at most once', () => {
+    const state = playerBet(startHand(createGame()))
+    const drawn = playerDraw(state, [], npcDecider)
+    expect(new Set(drawn.npcDiscardIndices).size).toBe(drawn.npcDiscardIndices.length)
+  })
+})
+
 describe('npcFold', () => {
   it('gives the pot to the player', () => {
     const state = startHand(createGame(100, 5, 5))

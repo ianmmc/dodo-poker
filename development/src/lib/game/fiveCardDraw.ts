@@ -40,6 +40,11 @@ export interface GameState {
   handNumber: number
   handsPlayed: number
   result: HandResult | null
+  // Indices (0–4) of the cards the NPC discarded in the most recent draw.
+  // Set by playerDraw(); reset to [] by startHand(). Used by the draw animation
+  // in App.svelte so it knows which card slots to animate without re-invoking
+  // the NPC decider.
+  npcDiscardIndices: number[]
   // Amount the player must put in to call the NPC's pending bet.
   // Equals betAmount in fixed-limit games; tracked explicitly so future
   // variable-bet tables (raises, pot-limit) don't require a structural change.
@@ -69,6 +74,7 @@ export function createGame(
     handsPlayed: 0,
     result: null,
     callAmount: 0,
+    npcDiscardIndices: [],
   }
 }
 
@@ -90,6 +96,7 @@ export function startHand(state: GameState): GameState {
     handNumber: state.handNumber + 1,
     result: null,
     callAmount: 0,
+    npcDiscardIndices: [],
   }
 }
 
@@ -112,6 +119,7 @@ export function startScriptedHand(state: GameState, deal: ScriptedDeal): GameSta
     handNumber: state.handNumber + 1,
     result: null,
     callAmount: 0,
+    npcDiscardIndices: [],
   }
 }
 
@@ -241,6 +249,7 @@ export function playerDraw(
     playerHand,
     npcHand,
     npcDrawCount: npcDrawDecision.discardIndices.length,
+    npcDiscardIndices: npcDrawDecision.discardIndices,
     playerDrawCount: discardIndices.length,
     npcPendingBet: false,
     npcLastAction: null,
