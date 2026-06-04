@@ -588,7 +588,10 @@
 
     if (screen === 'table1b') {
       handsAt1B = n
-      if (n >= 10) unmarkFiredOnce('t1b-surv-intro-001')
+      unmarkFiredOnce('t1b-lucky-due')
+      // Surv intro chain ends with openSurveillanceRoom — only re-fire for the
+      // hand-10 preset; for hand-18 we're past it and don't want the detour
+      if (n >= 10 && n < 18) unmarkFiredOnce('t1b-surv-intro-001')
       if (n >= 18) {
         surveillanceRoomVisited = true
         unmarkFiredOnce('t1b-assess-intro')
@@ -603,6 +606,9 @@
       game = { ...game, handsPlayed: n }
       game = startHand(game)
       discardSet = new Set()
+      // Unmark so sequences re-fire at the correct hand thresholds
+      unmarkFiredOnce('t1a-pattern-001')
+      unmarkFiredOnce('t1a-fallacy-001')
       const pattern = getPatternReveal(game.handsPlayed)
       const gamblers = getGamblersReveal(game.handsPlayed)
       const preHand = getPreHandNode(game.handNumber)
@@ -618,6 +624,9 @@
     assessmentState = null
     pendingPostAssessment = []
     if (table === 'table') {
+      // Unmark 1A sequences so they fire naturally during play
+      unmarkFiredOnce('t1a-pattern-001')
+      unmarkFiredOnce('t1a-fallacy-001')
       game = startHand(game)
       discardSet = new Set()
       enqueue([getPreHandNode(game.handNumber)])
@@ -628,6 +637,10 @@
       surveillanceRoomVisited = false
       currentNpcName = 'Lucky'
       usedBackupIds = []
+      // Unmark all 1B sequences so they fire naturally during play
+      unmarkFiredOnce('t1b-lucky-due')
+      unmarkFiredOnce('t1b-surv-intro-001')
+      unmarkFiredOnce('t1b-assess-intro')
       game = { ...game, npcSeeds: 200 }
       game = startHand(game)
       discardSet = new Set()
@@ -791,7 +804,7 @@
     />
     <h1>The Nest</h1>
     <p class="subtitle">A members-only bird social club · Los Angeles</p>
-    <div class="dodo-quote">"Like I told you last night — The Nest is the best spot to play in LA. Come on in."</div>
+    <div class="dodo-quote">"{getNode('sog-001')?.text}"</div>
     <div class="btn-group">
       <button class="action-btn primary" on:click={freshStart}>Enter The Nest</button>
       {#if savedSession}
