@@ -661,10 +661,13 @@
   // doBet accepts an optional amount for variable-bet tables (Table 2A: 5/10/20).
   // Fixed-bet tables pass no argument and use game.betAmount.
   function doBet(betAmount?: number): void {
+    // Guard: Svelte passes a MouseEvent when used as on:click={doBet} directly.
+    // Treat any non-number as undefined so playerBet falls back to game.betAmount.
+    const amount = typeof betAmount === 'number' ? betAmount : undefined
     const npcCallNode = screen === 'table2a'
       ? getTable2aNpcActionNode('call')
       : hankActionNode('call')
-    game = playerBet(game, betAmount)
+    game = playerBet(game, amount)
     if (game.phase === 'done' && game.result) {
       const outcome = resolveHandOutcome(game.result)
       if (screen === 'table1b' || screen === 'table2a') updateFreqForHand(outcome)
@@ -1407,7 +1410,7 @@
           <button class="action-btn" on:click={doFold}>2. Fold</button>
         {:else}
           <button class="action-btn" on:click={doCheck}>1. Check</button>
-          <button class="action-btn" on:click={doBet} disabled={!canBet}>2. Bet {game.betAmount} seeds</button>
+          <button class="action-btn" on:click={() => doBet()} disabled={!canBet}>2. Bet {game.betAmount} seeds</button>
           <button class="action-btn" on:click={doFold}>3. Fold</button>
         {/if}
 
@@ -1786,7 +1789,7 @@
           <button class="action-btn" on:click={doFold}>2. Fold</button>
         {:else}
           <button class="action-btn" on:click={doCheck}>1. Check</button>
-          <button class="action-btn" on:click={doBet} disabled={!canBet}>2. Bet {game.betAmount} seeds</button>
+          <button class="action-btn" on:click={() => doBet()} disabled={!canBet}>2. Bet {game.betAmount} seeds</button>
           <button class="action-btn" on:click={doFold}>3. Fold</button>
         {/if}
 
