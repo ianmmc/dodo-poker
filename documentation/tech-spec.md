@@ -274,7 +274,7 @@ WCAG 2.1 Level AA is the compliance target. Implementation approach:
 | Scripted hands (stacked deck) | Done | `scriptedHands.ts`: `ScriptedDeal` interface, `getScriptedDeal()`; App overrides deal when `pendingScriptedHandId` is set |
 | Numeric input UI | Done | `evaluateNumeric` + UI block in `App.svelte`; used for Table 1B procedural assessment |
 | CSS approach | Inline `<style>` per component | Working well for Phase 1; no external CSS framework needed |
-| Betting rotation (Table 2A+) | Pending implementation | `GameState` needs a `npcActsFirst: boolean` field; `startHand()` toggles it on alternating hands; when true, the NPC's opening bet/check decision fires immediately at hand start (via the existing `npcActionNode` dialog infrastructure) before the player action menu appears |
+| Betting rotation (Table 2A+) | Done | `npcActsFirst: boolean` + `noDraw: boolean` in `GameState`; `startHand()` sets `npcActsFirst = noDraw && handNumber % 2 === 1`; `handleNpcOpens()` in App.svelte computes Vivian's opening decision and enqueues it when `npcActsFirst=true`; future rotation rules change only `startHand()` logic |
 | Backend language | TBD (Phase 2) | Go is a known strength; Node shares TypeScript types with frontend |
 | Backend framework | TBD (Phase 2) | Express, Fastify, or Gin |
 | Database | TBD (Phase 2) | Postgres preferred; Supabase simplifies auth + realtime |

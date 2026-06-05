@@ -49,6 +49,13 @@ export interface GameState {
   // Equals betAmount in fixed-limit games; tracked explicitly so future
   // variable-bet tables (raises, pot-limit) don't require a structural change.
   callAmount: number
+  // When true, bet1 resolves directly to showdown — no draw phase.
+  // Used for no-draw Five Card Draw (Table 2A).
+  noDraw: boolean
+  // When true, the NPC opens betting this hand; the app enqueues the NPC's
+  // opening decision before showing the player action menu.
+  // Alternates each hand (odd handNumber = NPC first) from Table 2A onward.
+  npcActsFirst: boolean
 }
 
 export function createGame(
@@ -75,11 +82,17 @@ export function createGame(
     result: null,
     callAmount: 0,
     npcDiscardIndices: [],
+    noDraw: false,
+    npcActsFirst: false,
   }
 }
 
 export function startHand(state: GameState): GameState {
   const deck = shuffle(makeDeck())
+  // Rotation: in no-draw mode, NPC opens on odd hands (1, 3, 5…).
+  // state.handNumber is still the PREVIOUS hand's number before the +1 below.
+  const nextHandNumber = state.handNumber + 1
+  const npcActsFirst = state.noDraw && nextHandNumber % 2 === 1
   return {
     ...state,
     phase: 'bet1',
@@ -89,6 +102,7 @@ export function startHand(state: GameState): GameState {
     pot: state.ante * 2,
     playerSeeds: state.playerSeeds - state.ante,
     npcSeeds: state.npcSeeds - state.ante,
+    npcActsFirst,
     npcPendingBet: false,
     npcLastAction: null,
     npcDrawCount: 0,
@@ -103,6 +117,8 @@ export function startHand(state: GameState): GameState {
 export function startScriptedHand(state: GameState, deal: ScriptedDeal): GameState {
   const usedCards = new Set([...deal.playerCards, ...deal.npcCards])
   const remainingDeck = shuffle(makeDeck().filter(c => !usedCards.has(c)))
+  const nextHandNumber = state.handNumber + 1
+  const npcActsFirst = state.noDraw && nextHandNumber % 2 === 1
   return {
     ...state,
     phase: 'bet1',
@@ -112,11 +128,12 @@ export function startScriptedHand(state: GameState, deal: ScriptedDeal): GameSta
     pot: state.ante * 2,
     playerSeeds: state.playerSeeds - state.ante,
     npcSeeds: state.npcSeeds - state.ante,
+    npcActsFirst,
     npcPendingBet: false,
     npcLastAction: null,
     npcDrawCount: 0,
     playerDrawCount: -1,
-    handNumber: state.handNumber + 1,
+    handNumber: nextHandNumber,
     result: null,
     callAmount: 0,
     npcDiscardIndices: [],
@@ -136,7 +153,8 @@ export function playerCheck(state: GameState): GameState {
   }
 }
 
-// Both players check. Advances to draw (bet1) or resolves showdown (bet2).
+// Both players check. Advances to draw (bet1 → draw) or resolves showdown.
+// In noDraw mode, bet1 goes directly to showdown.
 export function playerCheckNpcCheck(state: GameState): GameState {
   const base = {
     ...state,
@@ -144,14 +162,15 @@ export function playerCheckNpcCheck(state: GameState): GameState {
     npcLastAction: 'check' as NpcAction,
     callAmount: 0,
   }
-  if (state.phase === 'bet2') return resolveShowdown(base)
+  if (state.phase === 'bet2' || state.noDraw) return resolveShowdown(base)
   return { ...base, phase: 'draw' }
 }
 
 // Player bets; NPC calls.
-export function playerBet(state: GameState): GameState {
-  const amount = state.betAmount
-  const nextPhase: Phase = state.phase === 'bet1' ? 'draw' : 'done'
+// In noDraw mode, bet1 goes directly to showdown instead of draw.
+export function playerBet(state: GameState, betAmount?: number): GameState {
+  const amount = betAmount ?? state.betAmount
+  const nextPhase: Phase = (state.phase === 'bet1' && !state.noDraw) ? 'draw' : 'done'
   const base = {
     ...state,
     pot: state.pot + amount * 2, // player bet + npc call
@@ -165,9 +184,10 @@ export function playerBet(state: GameState): GameState {
 }
 
 // Player calls the NPC's pending bet.
+// In noDraw mode, bet1 goes directly to showdown instead of draw.
 export function playerCall(state: GameState): GameState {
   const amount = state.callAmount
-  const nextPhase: Phase = state.phase === 'bet1' ? 'draw' : 'done'
+  const nextPhase: Phase = (state.phase === 'bet1' && !state.noDraw) ? 'draw' : 'done'
   const base = {
     ...state,
     pot: state.pot + amount,
@@ -177,6 +197,29 @@ export function playerCall(state: GameState): GameState {
     callAmount: 0,
   }
   return nextPhase === 'done' ? resolveShowdown(base) : { ...base, phase: 'draw' }
+}
+
+// NPC opens betting (rotation: NPC acts first). Sets npcPendingBet so the
+// player's action menu shows Call/Fold. Amount is the NPC's chosen bet size.
+export function npcOpensBet(state: GameState, amount: number): GameState {
+  return {
+    ...state,
+    pot: state.pot + amount,
+    npcSeeds: state.npcSeeds - amount,
+    npcPendingBet: true,
+    npcLastAction: 'bet',
+    callAmount: amount,
+  }
+}
+
+// NPC opens by checking (rotation: NPC acts first). Player can now check/bet/fold.
+export function npcOpensCheck(state: GameState): GameState {
+  return {
+    ...state,
+    npcPendingBet: false,
+    npcLastAction: 'check',
+    callAmount: 0,
+  }
 }
 
 // Player folds. NPC takes the pot.

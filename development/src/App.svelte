@@ -7,7 +7,8 @@
   import DevPanel from './lib/components/DevPanel.svelte'
   import {
     createGame, startHand, startScriptedHand,
-    playerCheck, playerCheckNpcCheck, playerBet, playerCall, playerFold, playerDraw, npcFold
+    playerCheck, playerCheckNpcCheck, playerBet, playerCall, playerFold, playerDraw, npcFold,
+    npcOpensBet, npcOpensCheck,
   } from './lib/game/fiveCardDraw'
   import type { GameState } from './lib/game/fiveCardDraw'
   import { save, load, clear } from './lib/game/storage'
@@ -25,7 +26,7 @@
   import { getScriptedDeal } from './lib/game/scriptedHands'
   import { createFrequencyData, updateFrequencyData } from './lib/game/frequencyData'
   import type { FrequencyData } from './lib/game/frequencyData'
-  import { hank, lucky } from './lib/game/npc'
+  import { hank, lucky, vivian } from './lib/game/npc'
   import { BACKUP_NPCS, getNextBackup } from './lib/game/backupNpcs'
   import type { BackupNpc } from './lib/game/backupNpcs'
   import {
@@ -43,6 +44,11 @@
     getHankRetroAssessment, getTable1bAssessment,
     getTie1BNodes, getTie1ANode,
     TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD,
+    // Table 2A
+    getTable2aApproachNodes, getTable2aPreHandNode, getTable2aPostHandNode,
+    getTable2aNpcBetNode, getTable2aNpcActionNode,
+    getVivianHotNodes, getTable2aAssessment,
+    TABLE_2A_GATE_THRESHOLD,
     // Shared
     restoreFiredOnce, getFiredOnce, getNode, getChain,
     markFiredOnce, unmarkFiredOnce, clearFiredOnce,
@@ -55,7 +61,7 @@
 
   // ── Types ────────────────────────────────────────────────────────────────
 
-  type Screen = 'title' | 'avatar' | 'intro' | 'table' | 'table1b' | 'surveillance'
+  type Screen = 'title' | 'avatar' | 'intro' | 'table' | 'table1b' | 'table2a' | 'surveillance'
 
   interface DisplayLine {
     speaker: string
@@ -95,6 +101,7 @@
   let assessmentState: AssessmentState | null = null
   let gatePassedAt1A = false
   let gatePassedAt1B = false
+  let gatePassedAt2A = false
   let devPanelOpen = false
   let observationLog: HandSummary[] = []
   let pendingScriptedHandId: string | null = null
@@ -102,6 +109,10 @@
   let frequencyData: FrequencyData = createFrequencyData()
   let handsAt1B = 0
   let surveillanceRoomVisited = false
+  // Table 2A
+  let handsAt2A = 0
+  // Brief card-scatter animation played once when entering the Main Room
+  let roomTransitionAnim = false
   // NPC swap system
   let currentNpcName = 'Hank'
   let usedBackupIds: string[] = []
@@ -256,6 +267,7 @@
     if (current?.advanceTable) {
       if (screen === 'table')   gatePassedAt1A = true
       if (screen === 'table1b') gatePassedAt1B = true
+      if (screen === 'table2a') gatePassedAt2A = true
     }
     if (current?.openSurveillanceRoom) {
       screen = 'surveillance'
@@ -372,15 +384,18 @@
     if (!answered.has('t1a-assess-gamblers-001')) unmarkFiredOnce('t1a-fallacy-001')
     if (!answered.has('t1b-hank-retro'))           unmarkFiredOnce('t1b-hank-retro-001')
     if (!answered.has('t1b-assess-proc'))          unmarkFiredOnce('t1b-assess-intro')
+    if (!answered.has('t2a-assess-proc'))          unmarkFiredOnce('t2a-assess-intro')
     restoreAssessmentLog(saved.assessmentLog ?? [])
     restoreFiredRules(saved.firedRules ?? [])
     observationLog = saved.observationLog ?? []
     frequencyData = saved.frequencyData ?? createFrequencyData()
     handsAt1B = saved.handsAt1B ?? 0
+    handsAt2A = saved.handsAt2A ?? 0
     surveillanceRoomVisited = saved.surveillanceRoomVisited ?? false
     usedBackupIds = saved.usedBackupIds ?? []
     gatePassedAt1A = (saved.assessmentLog ?? []).some(r => r.nodeId === 't1a-assess-transfer-001')
     gatePassedAt1B = (saved.assessmentLog ?? []).some(r => r.nodeId === 't1b-assess-transfer')
+    gatePassedAt2A = saved.gatePassedAt2A ?? false
     game = {
       ...createGame(saved.playerSeeds, saved.betAmount, saved.ante),
       playerSeeds: saved.playerSeeds,
@@ -388,7 +403,14 @@
       handNumber:  saved.handNumber,
       handsPlayed: saved.handsPlayed,
     }
-    if (gatePassedAt1A) {
+    if (gatePassedAt1B) {
+      screen = 'table2a'
+      npcDrawDecider = vivian.decideDraw.bind(vivian)
+      currentNpcName = 'Vivian'
+      game = { ...game, noDraw: true, ante: 10 }
+      game = startHand(game)
+      enqueue([getTable2aPreHandNode()])
+    } else if (gatePassedAt1A) {
       screen = 'table1b'
       npcDrawDecider = lucky.decideDraw.bind(lucky)
       if (handsAt1B === 0) game = { ...game, npcSeeds: 200 }
@@ -433,9 +455,25 @@
     enqueue([...getTable1bApproachNodes(), getTable1bPreHandNode()])
   }
 
+  function moveToTable2A(): void {
+    roomTransitionAnim = true
+    setTimeout(() => { roomTransitionAnim = false }, 1600)
+    screen = 'table2a'
+    npcDrawDecider = vivian.decideDraw.bind(vivian)
+    frequencyData = createFrequencyData()  // fresh table for 2A
+    handsAt2A = 0
+    currentNpcName = 'Vivian'
+    observationLog = []
+    // Seeds carry over; ante increases to 10 for the Main Room
+    game = { ...game, noDraw: true, ante: 10, betAmount: 10 }
+    game = startHand(game)
+    discardSet = new Set()
+    enqueue([...getTable2aApproachNodes()])
+  }
+
   function returnFromSurveillance(): void {
-    screen = 'table1b'
     surveillanceRoomVisited = true
+    screen = screen === 'table2a' ? 'table2a' : 'table1b'
     enqueue(getSurveillanceRoomReturn())
     doSave()
   }
@@ -455,6 +493,7 @@
   }
 
   function postHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | null {
+    if (screen === 'table2a') return getTable2aPostHandNode(outcome)
     return screen === 'table1b'
       ? getTable1bPostHandNode(outcome)
       : getPostHandNode(outcome)
@@ -475,9 +514,9 @@
       : getDrawComment(count)
   }
 
-  // ── Table 1B helpers ─────────────────────────────────────────────────────
+  // ── Table 1B / 2A NPC streak helpers ────────────────────────────────────────
 
-  // Returns Lucky's consecutive win count (= player's consecutive losses).
+  // Returns NPC consecutive win count (= player's consecutive losses).
   function getNpcConsecutiveWins(): number {
     const recent = observationLog.slice(-2)
     if (recent.length === 2 && recent.every(s => s.outcome === 'loss')) return 2
@@ -485,7 +524,7 @@
     return 0
   }
 
-  // Returns Lucky's consecutive loss count (= player's consecutive wins).
+  // Returns NPC consecutive loss count (= player's consecutive wins).
   function getNpcConsecutiveLosses(): number {
     const recent = observationLog.slice(-3)
     if (recent.length === 3 && recent.every(s => s.outcome === 'win')) return 3
@@ -493,7 +532,16 @@
     return 0
   }
 
-  // Update frequency data immediately when a 1B hand concludes.
+  // Vivian's hot-hand streak: how many times she's won recently (= player losses).
+  // Hot hand fallacy: she bets more when SHE has been winning.
+  function getVivianConsecutiveWins(): number {
+    const recent = observationLog.slice(-3)
+    if (recent.length === 3 && recent.every(s => s.outcome === 'loss')) return 3
+    if (recent.length >= 1 && recent[recent.length - 1].outcome === 'loss') return 1
+    return 0
+  }
+
+  // Update frequency data immediately when a 1B or 2A hand concludes.
   function updateFreqForHand(outcome: 'win' | 'loss' | 'fold' | 'tie'): void {
     frequencyData = updateFrequencyData(
       frequencyData,
@@ -538,6 +586,35 @@
   // ── Game actions ─────────────────────────────────────────────────────────
 
   function doCheck(): void {
+    if (screen === 'table2a') {
+      // At Table 2A, player checks → Vivian responds (bet, check, or fold)
+      const wins = getVivianConsecutiveWins()
+      const decision = vivian.decideBet(0, game.betAmount, wins)
+      if (decision.action === 'fold') {
+        game = npcFold(game)
+        updateFreqForHand('win')
+        enqueue([getTable2aNpcActionNode('fold'), ...postHandNodesForOutcome('win')])
+        doSave()
+        return
+      }
+      if (decision.action === 'check') {
+        game = playerCheckNpcCheck(game)  // noDraw → showdown
+        if (game.phase === 'done' && game.result) {
+          const outcome = resolveHandOutcome(game.result)
+          updateFreqForHand(outcome)
+          enqueue([getTable2aNpcActionNode('check'), ...postHandNodesForOutcome(outcome)])
+          doSave()
+        } else {
+          enqueue([getTable2aNpcActionNode('check')])
+        }
+        return
+      }
+      // Vivian bets after player checks
+      const amount = decision.amount
+      game = playerCheck({ ...game, betAmount: amount })
+      enqueue([getTable2aNpcBetNode(amount)])
+      return
+    }
     if (screen === 'table1b') {
       const decision = lucky.decideBet(0, game.betAmount, getNpcConsecutiveWins(), getNpcConsecutiveLosses())
       if (decision.action === 'fold') {
@@ -564,16 +641,20 @@
     enqueue([hankActionNode('bet')])
   }
 
-  function doBet(): void {
-    const hankNode = hankActionNode('call')
-    game = playerBet(game)
+  // doBet accepts an optional amount for variable-bet tables (Table 2A: 5/10/20).
+  // Fixed-bet tables pass no argument and use game.betAmount.
+  function doBet(betAmount?: number): void {
+    const npcCallNode = screen === 'table2a'
+      ? getTable2aNpcActionNode('call')
+      : hankActionNode('call')
+    game = playerBet(game, betAmount)
     if (game.phase === 'done' && game.result) {
       const outcome = resolveHandOutcome(game.result)
-      if (screen === 'table1b') updateFreqForHand(outcome)
-      enqueue([hankNode, ...postHandNodesForOutcome(outcome)])
+      if (screen === 'table1b' || screen === 'table2a') updateFreqForHand(outcome)
+      enqueue([npcCallNode, ...postHandNodesForOutcome(outcome)])
       doSave()
     } else {
-      enqueue([hankNode])
+      enqueue([npcCallNode])
     }
   }
 
@@ -581,7 +662,7 @@
     game = playerCall(game)
     if (game.phase === 'done' && game.result) {
       const outcome = resolveHandOutcome(game.result)
-      if (screen === 'table1b') updateFreqForHand(outcome)
+      if (screen === 'table1b' || screen === 'table2a') updateFreqForHand(outcome)
       enqueue(postHandNodesForOutcome(outcome))
       doSave()
     }
@@ -589,9 +670,41 @@
 
   function doFold(): void {
     game = playerFold(game)
-    if (screen === 'table1b') updateFreqForHand('fold')
+    if (screen === 'table1b' || screen === 'table2a') updateFreqForHand('fold')
     enqueue([postHandNode('fold')])
     doSave()
+  }
+
+  // NPC opens betting (Table 2A rotation). Vivian decides and we apply state + dialog.
+  function handleNpcOpens(): void {
+    const wins = getVivianConsecutiveWins()
+    const decision = vivian.decideBet(0, game.betAmount, wins)
+    if (decision.action === 'fold') {
+      // Vivian folds before betting (rare; treat as check → both check → done)
+      game = npcOpensCheck(game)
+      // No-draw: both check → showdown immediately
+      game = { ...game, phase: 'done' }
+      // Manually resolve as a showdown
+      const result = game.result  // need to trigger resolveShowdown via playerCheckNpcCheck
+      // Use playerCheckNpcCheck which handles noDraw → showdown
+      game = playerCheckNpcCheck({ ...game, phase: 'bet1' })
+      if (game.phase === 'done' && game.result) {
+        const outcome = resolveHandOutcome(game.result)
+        updateFreqForHand(outcome)
+        enqueue([getTable2aNpcActionNode('check'), ...postHandNodesForOutcome(outcome)])
+        doSave()
+      }
+      return
+    }
+    if (decision.action === 'check') {
+      game = npcOpensCheck(game)
+      enqueue([getTable2aNpcActionNode('check')])
+      return
+    }
+    // Vivian bets
+    const amount = decision.amount
+    game = npcOpensBet(game, amount)
+    enqueue([getTable2aNpcBetNode(amount)])
   }
 
   function doDraw(): void {
@@ -674,8 +787,32 @@
     enqueue([...luckyDueNodes, ...surv, ...hankRetro, ...assessment, preHand])
   }
 
+  function nextHand2A(): void {
+    const summary: HandSummary = {
+      handNumber: game.handNumber,
+      drawCount: 0,  // no draw at Table 2A
+      outcome: currentHandOutcome(game),
+    }
+    observationLog = [...observationLog.slice(-9), summary]
+    handsAt2A++
+    doSave()
+
+    game = startHand(game)  // noDraw persists via ...state spread
+    discardSet = new Set()
+
+    const vivianHot = getVivianHotNodes(getVivianConsecutiveWins())
+    const assessment = getTable2aAssessment(handsAt2A)
+    const preHand = getTable2aPreHandNode()
+
+    enqueue([...vivianHot, ...assessment, preHand])
+
+    // If this hand starts with NPC acting first, immediately resolve their opening decision
+    if (game.npcActsFirst) handleNpcOpens()
+  }
+
   function nextHand(): void {
-    if (screen === 'table1b') nextHand1B()
+    if (screen === 'table2a') nextHand2A()
+    else if (screen === 'table1b') nextHand1B()
     else nextHand1A()
   }
 
@@ -690,10 +827,12 @@
     skipNpcAnim()
     gatePassedAt1A = false
     gatePassedAt1B = false
+    gatePassedAt2A = false
     observationLog = []
     pendingScriptedHandId = null
     frequencyData = createFrequencyData()
     handsAt1B = 0
+    handsAt2A = 0
     surveillanceRoomVisited = false
     currentNpcName = 'Hank'
     usedBackupIds = []
@@ -716,7 +855,20 @@
     pendingNpcDrawAnim = false
     skipNpcAnim()
 
-    if (screen === 'table1b') {
+    if (screen === 'table2a') {
+      handsAt2A = n
+      npcDrawDecider = vivian.decideDraw.bind(vivian)
+      unmarkFiredOnce('t2a-vivian-hot-001')
+      if (n >= TABLE_2A_GATE_THRESHOLD) unmarkFiredOnce('t2a-assess-intro')
+      game = { ...game, noDraw: true, ante: 10 }
+      game = startHand(game)
+      discardSet = new Set()
+      const vivianHot = getVivianHotNodes(getVivianConsecutiveWins())
+      const assessment = getTable2aAssessment(handsAt2A)
+      const preHand = getTable2aPreHandNode()
+      enqueue([...vivianHot, ...assessment, preHand])
+      if (game.npcActsFirst) handleNpcOpens()
+    } else if (screen === 'table1b') {
       handsAt1B = n
       npcDrawDecider = lucky.decideDraw.bind(lucky)
       unmarkFiredOnce('t1b-lucky-due')
@@ -786,6 +938,20 @@
       game = startHand(game)
       discardSet = new Set()
       enqueue([...getTable1bApproachNodes(), getTable1bPreHandNode()])
+    } else if (table === 'table2a') {
+      npcDrawDecider = vivian.decideDraw.bind(vivian)
+      gatePassedAt1A = true
+      gatePassedAt1B = true
+      frequencyData = createFrequencyData()
+      handsAt2A = 0
+      currentNpcName = 'Vivian'
+      unmarkFiredOnce('t2a-vivian-hot-001')
+      unmarkFiredOnce('t2a-assess-intro')
+      game = { ...game, noDraw: true, ante: 10, betAmount: 10 }
+      game = startHand(game)
+      discardSet = new Set()
+      enqueue([...getTable2aApproachNodes()])
+      if (game.npcActsFirst) handleNpcOpens()
     }
     screen = table as Screen
     devPanelOpen = false
@@ -797,12 +963,26 @@
   }
 
   function devPassGate(): void {
-    if (screen === 'table1b') gatePassedAt1B = true
+    if (screen === 'table2a') gatePassedAt2A = true
+    else if (screen === 'table1b') gatePassedAt1B = true
     else gatePassedAt1A = true
   }
 
   function devPassAllAssessments(): void {
-    if (screen === 'table1b') {
+    if (screen === 'table2a') {
+      const log = getAssessmentLog()
+      if (!log.some(r => r.nodeId === 't2a-assess-proc')) {
+        recordAssessment({ nodeId: 't2a-assess-proc', responseType: 'numeric', attempts: 1, correct: true })
+        markFiredOnce('t2a-assess-intro')
+      }
+      if (!log.some(r => r.nodeId === 't2a-assess-conceptual')) {
+        recordAssessment({ nodeId: 't2a-assess-conceptual', responseType: 'checklist', attempts: 1, correct: true })
+      }
+      if (!log.some(r => r.nodeId === 't2a-assess-transfer')) {
+        recordAssessment({ nodeId: 't2a-assess-transfer', responseType: 'checklist', attempts: 1, correct: true })
+      }
+      gatePassedAt2A = true
+    } else if (screen === 'table1b') {
       const log = getAssessmentLog()
       if (!log.some(r => r.nodeId === 't1b-hank-retro')) {
         recordAssessment({ nodeId: 't1b-hank-retro', responseType: 'checklist', attempts: 1, correct: true })
@@ -887,9 +1067,11 @@
       firedRules:            getFiredRules(),
       frequencyData,
       handsAt1B,
+      handsAt2A,
       surveillanceRoomVisited,
       currentNpcName,
       usedBackupIds,
+      gatePassedAt2A,
     })
     savedSession = true
   }
@@ -900,6 +1082,10 @@
   $: npcBroke = game.npcSeeds < game.ante
   $: canBet  = game.playerSeeds >= game.betAmount
   $: canCall = game.npcPendingBet && game.playerSeeds >= game.callAmount
+  // Variable-bet tiers for Table 2A (5 / 10 / 20 seeds)
+  $: canBet5  = game.playerSeeds >= 5
+  $: canBet10 = game.playerSeeds >= 10
+  $: canBet20 = game.playerSeeds >= 20
   $: showNpcCards = game.phase === 'done' && game.result && !game.result.playerFolded && !game.result.npcFolded
   $: drawCount = discardSet.size
 
@@ -928,6 +1114,7 @@
     {screen}
     {gatePassedAt1A}
     {gatePassedAt1B}
+    {gatePassedAt2A}
     assessmentLog={getAssessmentLog()}
     onClose={() => devPanelOpen = false}
     onJumpToHand={devJumpToHand}
@@ -1093,8 +1280,8 @@
 
       {#if gatePassedAt1B && !inDialog && !assessmentState}
         <div class="advance-cta">
-          <p class="advance-label">Chief Dodo: "The Main Room is ahead. More coming soon."</p>
-          <button class="action-btn primary advance-btn" disabled>Table 2A — Coming soon →</button>
+          <p class="advance-label">Chief Dodo: "The Main Room is ahead. Let's go."</p>
+          <button class="action-btn primary advance-btn" on:click={moveToTable2A}>Move to Table 2A →</button>
         </div>
 
         {#if surveillanceRoomVisited}
@@ -1220,6 +1407,186 @@
     </div>
 
     <div class="hand-counter">Hand {game.handNumber} · Hands at 1B: {handsAt1B}</div>
+
+  </div>
+
+<!-- ── TABLE 2A ──────────────────────────────────────────────────────────── -->
+{:else if screen === 'table2a'}
+  <FrequencyTable open={freqTableOpen} data={frequencyData} onToggle={() => freqTableOpen = !freqTableOpen} />
+
+  <div class="table-screen has-freq-panel" class:ref-card-open={refCardOpen} class:freq-table-open={freqTableOpen}>
+
+    <ReferenceCard open={refCardOpen} onToggle={() => refCardOpen = !refCardOpen} />
+
+    <div class="header">
+      <div class="player-info">
+        <span class="player-name you">You ({avatar})</span>
+        <span class="seed-count">🌰 {game.playerSeeds}</span>
+      </div>
+      <div class="center-display">
+        <div class="room-badge">Main Room · Table 2A</div>
+        <div class="pot-display">
+          <span class="pot-label">Pot</span>
+          <span class="pot-amount">🌰 {game.pot}</span>
+        </div>
+        <div class="bet-display">
+          <span class="bet-label">Ante</span>
+          <span class="bet-amount">🌰 {game.ante}</span>
+        </div>
+      </div>
+      <div class="player-info right">
+        <span class="seed-count">🌰 {game.npcSeeds}</span>
+        <span class="player-name lucky">{currentNpcName}</span>
+      </div>
+    </div>
+
+    <!-- NPC hand -->
+    <div class="hand-area opponent">
+      <span class="hand-label">{currentNpcName}'s hand</span>
+      <div class="cards">
+        {#if showNpcCards}
+          {#each game.npcHand as card}
+            <CardImage {card} />
+          {/each}
+          <span class="hand-name">{game.result?.npcHandName}</span>
+        {:else}
+          <div class="npc-hand-anim" on:click={skipNpcAnim} role="presentation">
+            {#each game.npcHand as _card, i (i)}
+              <CardImage faceDown animState={
+                npcAnimPhase === 'idle' || game.npcDiscardIndices.indexOf(i) === -1 ? 'idle' :
+                npcAnimPhase === 'sliding-out' ? 'slide-out' :
+                game.npcDiscardIndices.indexOf(i) < npcAnimDealtCount ? 'deal-in' : 'empty'
+              } />
+            {/each}
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <div class="felt-rule"></div>
+
+    <!-- Player hand -->
+    <div class="hand-area player">
+      <span class="hand-label">Your hand</span>
+      <div class="cards">
+        {#each game.playerHand as card, i}
+          <CardImage
+            {card}
+            clickable={false}
+            on:click={() => {}}
+          />
+        {/each}
+        {#if game.phase === 'done' && game.result && !game.result.playerFolded}
+          <span class="hand-name">{game.result.playerHandName}</span>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Dialog / Action area -->
+    <div class="bottom-area">
+
+      {#if gatePassedAt2A && !inDialog && !assessmentState}
+        <div class="advance-cta">
+          <p class="advance-label">Chief Dodo: "Table 2B is next. More coming soon."</p>
+          <button class="action-btn primary advance-btn" disabled>Table 2B — Coming soon →</button>
+        </div>
+
+      {/if}
+
+      {#if inDialog && currentLine}
+        <button class="dialog-box" on:click={advance} aria-label="Advance dialog">
+          <span class="dialog-speaker" class:speaker-lucky={currentLine.isNpc}>{currentLine.speaker}</span>
+          <div aria-live="polite" aria-atomic="true">
+            <p class="dialog-text">"{currentLine.text}"</p>
+          </div>
+          <span class="dialog-hint">Press Space, Enter, or click to continue</span>
+        </button>
+
+      {:else if assessmentState}
+        {#if assessmentState.node.responseType === 'numeric'}
+          <div class="assessment-area">
+            <p class="assessment-prompt" id="numeric-prompt-2a">"{assessmentState.node.text}"</p>
+            <div class="numeric-row">
+              <input
+                class="numeric-input"
+                type="number"
+                aria-labelledby="numeric-prompt-2a"
+                bind:value={assessmentState.numericInput}
+                on:keydown={e => e.key === 'Enter' && submitNumeric()}
+                placeholder="Enter a number"
+              />
+              <button
+                class="action-btn primary"
+                on:click={submitNumeric}
+                disabled={assessmentState.numericInput === '' || isNaN(parseInt(assessmentState.numericInput, 10))}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        {:else}
+          <div class="assessment-area">
+            <p class="assessment-prompt">"{assessmentState.node.text}"</p>
+            <p class="assessment-hint">Check all that apply.</p>
+            <div class="assessment-options">
+              {#each assessmentState.node.options ?? [] as option}
+                <button
+                  class="checklist-option"
+                  class:selected={assessmentState.selectedIds.has(option.id)}
+                  aria-pressed={assessmentState.selectedIds.has(option.id)}
+                  on:click={() => toggleChecklistOption(option.id)}
+                >
+                  <span class="check-icon" aria-hidden="true">{assessmentState.selectedIds.has(option.id) ? '☑' : '☐'}</span>
+                  {option.text}
+                </button>
+              {/each}
+            </div>
+            <button
+              class="action-btn primary"
+              on:click={submitChecklist}
+              disabled={assessmentState.selectedIds.size === 0}
+            >
+              Submit
+            </button>
+          </div>
+        {/if}
+
+      {:else if game.phase === 'done'}
+        {#if broke}
+          <div class="result-area">
+            <p class="result-text">You're out of seeds.</p>
+            <button class="action-btn primary" on:click={resetGame}>Start over</button>
+          </div>
+        {:else}
+          <div class="result-area">
+            <p class="result-text">{resultText()}</p>
+            <button class="action-btn primary" on:click={nextHand}>Play next hand</button>
+          </div>
+        {/if}
+
+      {:else if game.phase === 'bet1'}
+        <p class="prompt">
+          {game.npcActsFirst ? `${currentNpcName} opened this hand.` : 'Your move:'}
+        </p>
+        {#if game.npcPendingBet}
+          <p class="hank-bet-notice">{currentNpcName} bet {game.callAmount} seeds.</p>
+          <button class="action-btn" on:click={doCall} disabled={!canCall}>1. Call ({game.callAmount} seeds)</button>
+          <button class="action-btn" on:click={doFold}>2. Fold</button>
+        {:else}
+          <button class="action-btn" on:click={doCheck}>1. Check</button>
+          <button class="action-btn" on:click={() => doBet(5)}  disabled={!canBet5}>2. Bet 5 seeds</button>
+          <button class="action-btn" on:click={() => doBet(10)} disabled={!canBet10}>3. Bet 10 seeds</button>
+          <button class="action-btn" on:click={() => doBet(20)} disabled={!canBet20}>4. Bet 20 seeds</button>
+          <button class="action-btn" on:click={doFold}>5. Fold</button>
+        {/if}
+
+      {:else if game.phase === 'idle'}
+        <button class="action-btn primary" on:click={nextHand}>Deal</button>
+      {/if}
+
+    </div>
+
+    <div class="hand-counter">Hand {game.handNumber} · Hands at 2A: {handsAt2A}</div>
 
   </div>
 
@@ -1421,6 +1788,20 @@
     <!-- Hand counter -->
     <div class="hand-counter">Hand {game.handNumber} · Hands played: {game.handsPlayed}</div>
 
+  </div>
+{/if}
+
+<!-- ── Main Room transition animation ───────────────────────────────────── -->
+{#if roomTransitionAnim}
+  <div class="room-transition-overlay" aria-hidden="true">
+    {#each ['♠','♣','♦','♥','♠','♣','♦','♥','♠','♣','♦','♥'] as suit, i}
+      <span class="scatter-suit" style="
+        --angle: {(i / 12) * 360}deg;
+        --delay: {i * 0.08}s;
+        --dist: {80 + (i % 4) * 30}px;
+      ">{suit}</span>
+    {/each}
+    <span class="room-label">Main Room</span>
   </div>
 {/if}
 
@@ -1716,4 +2097,61 @@
     transition: opacity 0.15s;
   }
   .dev-badge:hover { opacity: 1; }
+
+  /* ── Main Room transition overlay ───────────────────────────────────────── */
+  .room-transition-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: overlay-fade 1.6s ease forwards;
+    pointer-events: none;
+  }
+
+  @keyframes overlay-fade {
+    0%   { opacity: 0; }
+    15%  { opacity: 1; }
+    75%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .scatter-suit {
+    position: absolute;
+    font-size: 1.8rem;
+    color: #c8a84a;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    animation: scatter-out 1.2s var(--delay, 0s) ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes scatter-out {
+    0%   { transform: translate(-50%, -50%) rotate(0deg) scale(0.5); opacity: 1; }
+    100% { transform: translate(
+              calc(-50% + cos(var(--angle)) * var(--dist, 80px)),
+              calc(-50% + sin(var(--angle)) * var(--dist, 80px))
+            ) rotate(360deg) scale(0.2); opacity: 0; }
+  }
+
+  .room-label {
+    font-size: 2rem;
+    color: #c8a84a;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: bold;
+    animation: label-pulse 1.6s ease forwards;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes label-pulse {
+    0%   { opacity: 0; transform: scale(0.8); }
+    30%  { opacity: 1; transform: scale(1.05); }
+    70%  { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; }
+  }
 </style>

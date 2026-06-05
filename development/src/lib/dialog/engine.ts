@@ -1,6 +1,7 @@
 import startOfGameJson from '../../../dialog/start-of-game.json'
 import table1aJson from '../../../dialog/table-1a.json'
 import table1bJson from '../../../dialog/table-1b.json'
+import table2aJson from '../../../dialog/table-2a.json'
 
 export interface DialogNode {
   id: string
@@ -38,11 +39,12 @@ export interface DialogNode {
 }
 
 // ── Table 1B hand thresholds — single source of truth ───────────────────────
-// Use these in both the engine guards below and in App.svelte's devJumpToHand
-// so threshold changes propagate everywhere automatically.
-export const TABLE_1B_SURV_THRESHOLD     = 10  // when surveillance room intro fires
+export const TABLE_1B_SURV_THRESHOLD       = 10  // when surveillance room intro fires
 export const TABLE_1B_HANK_RETRO_THRESHOLD = 14  // when Hank retrospective assessment fires
-export const TABLE_1B_GATE_THRESHOLD     = 18  // when gate assessment fires
+export const TABLE_1B_GATE_THRESHOLD       = 18  // when gate assessment fires
+
+// ── Table 2A hand thresholds ─────────────────────────────────────────────────
+export const TABLE_2A_GATE_THRESHOLD       = 20  // minimum hands before gate assessment fires
 
 const nodes = new Map<string, DialogNode>()
 const firedOnce = new Set<string>()
@@ -50,6 +52,7 @@ const firedOnce = new Set<string>()
 ;(startOfGameJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
 ;(table1aJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
 ;(table1bJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
+;(table2aJson as { nodes: DialogNode[] }).nodes.forEach(n => nodes.set(n.id, n))
 
 export function restoreFiredOnce(ids: string[]): void {
   ids.forEach(id => firedOnce.add(id))
@@ -226,6 +229,43 @@ export function getHankRetroAssessment(handsAt1B: number, surveillanceRoomVisite
 
 export function getTable1bAssessment(handsAt1B: number, surveillanceRoomVisited: boolean): DialogNode[] {
   return firedOnceChain('t1b-assess-intro', handsAt1B >= TABLE_1B_GATE_THRESHOLD && surveillanceRoomVisited)
+}
+
+// ── Table 2A ────────────────────────────────────────────────────────────────
+
+export function getTable2aApproachNodes(): DialogNode[] {
+  return chain('t2a-approach-001')
+}
+
+export function getTable2aPreHandNode(): DialogNode | null {
+  return fromPool('t2a-pre-hand')
+}
+
+export function getTable2aPostHandNode(outcome: 'win' | 'loss' | 'fold'): DialogNode | null {
+  const pool = outcome === 'win' ? 't2a-post-win'
+    : outcome === 'fold' ? 't2a-post-fold'
+    : 't2a-post-loss'
+  return fromPool(pool)
+}
+
+// Vivian's action node varies by bet amount so she can say "Ten." or "Twenty."
+export function getTable2aNpcBetNode(amount: number): DialogNode | null {
+  if (amount >= 20) return nodes.get('t2a-npc-bet-20') ?? null
+  if (amount >= 10) return nodes.get('t2a-npc-bet-10') ?? null
+  return nodes.get('t2a-npc-bet-5') ?? null
+}
+
+export function getTable2aNpcActionNode(action: 'call' | 'check' | 'fold'): DialogNode | null {
+  return nodes.get(`t2a-npc-${action}`) ?? null
+}
+
+// Fires once when Vivian has been winning — surfaces her hot hand commentary.
+export function getVivianHotNodes(vivianConsecutiveWins: number): DialogNode[] {
+  return firedOnceChain('t2a-vivian-hot-001', vivianConsecutiveWins >= 2)
+}
+
+export function getTable2aAssessment(handsAt2A: number): DialogNode[] {
+  return firedOnceChain('t2a-assess-intro', handsAt2A >= TABLE_2A_GATE_THRESHOLD)
 }
 
 // ── Shared ──────────────────────────────────────────────────────────────────

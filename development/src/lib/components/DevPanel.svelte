@@ -1,13 +1,14 @@
 <script lang="ts">
   import type { GameState } from '../game/fiveCardDraw'
   import type { AssessmentRecord } from '../game/assessment'
-  import { TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD } from '../dialog/engine'
+  import { TABLE_1B_SURV_THRESHOLD, TABLE_1B_HANK_RETRO_THRESHOLD, TABLE_1B_GATE_THRESHOLD, TABLE_2A_GATE_THRESHOLD } from '../dialog/engine'
 
   export let open: boolean = false
   export let game: GameState
   export let screen: string
   export let gatePassedAt1A: boolean
   export let gatePassedAt1B: boolean = false
+  export let gatePassedAt2A: boolean = false
   export let assessmentLog: AssessmentRecord[] = []
 
   export let onClose: () => void = () => {}
@@ -30,6 +31,10 @@
   $: conceptualPassed = assessmentLog.some(r => r.nodeId === 't1b-assess-conceptual')
   $: lnnPassed = assessmentLog.some(r => r.nodeId === 't1b-assess-transfer')
   $: at1B = screen === 'table1b'
+  $: at2A = screen === 'table2a'
+  $: v2aProcPassed = assessmentLog.some(r => r.nodeId === 't2a-assess-proc')
+  $: v2aConceptualPassed = assessmentLog.some(r => r.nodeId === 't2a-assess-conceptual')
+  $: v2aTransferPassed = assessmentLog.some(r => r.nodeId === 't2a-assess-transfer')
 
   function handleJumpToHand() {
     const n = parseInt(jumpHandInput, 10)
@@ -73,7 +78,13 @@
             />
             <button class="dev-btn" on:click={handleJumpToHand}>Apply</button>
           </div>
-          {#if at1B}
+          {#if at2A}
+          <div class="dev-row wrap">
+            <button class="dev-btn preset" on:click={() => onJumpToHand(TABLE_2A_GATE_THRESHOLD)} title="handsAt2A={TABLE_2A_GATE_THRESHOLD} — triggers assessment gate">
+              handsAt2A={TABLE_2A_GATE_THRESHOLD} (Assessment)
+            </button>
+          </div>
+          {:else if at1B}
           <div class="dev-row wrap">
             <button class="dev-btn preset" on:click={() => onJumpToHand(TABLE_1B_SURV_THRESHOLD)} title="handsAt1B={TABLE_1B_SURV_THRESHOLD} — triggers Surveillance Room intro if not fired">
               handsAt1B={TABLE_1B_SURV_THRESHOLD} (Surv. Room)
@@ -106,13 +117,49 @@
             <button class="dev-btn" class:active={screen === 'intro'}    on:click={() => onJumpToTable('intro')}>Intro</button>
             <button class="dev-btn" class:active={screen === 'table'}    on:click={() => onJumpToTable('table')}>Table 1A</button>
             <button class="dev-btn" class:active={screen === 'table1b'}  on:click={() => onJumpToTable('table1b')}>Table 1B</button>
+            <button class="dev-btn" class:active={screen === 'table2a'}  on:click={() => onJumpToTable('table2a')}>Table 2A</button>
           </div>
         </section>
 
         <!-- Assessment State -->
         <section class="dev-section">
           <h3 class="dev-section-title">Assessment State</h3>
-          {#if at1B}
+          {#if at2A}
+          <div class="dev-assessment-list">
+            <div class="dev-assessment-row">
+              <span class="dev-status" class:passed={v2aProcPassed}>{v2aProcPassed ? '✓' : '○'}</span>
+              <span class="dev-assess-label">Procedural numeric (rel. frequency)</span>
+              <code class="dev-nodeid">t2a-assess-proc</code>
+              {#if !v2aProcPassed}
+                <button class="dev-btn small" on:click={() => onPassAssessment('t2a-assess-proc', 't2a-assess-intro')}>Pass</button>
+              {/if}
+            </div>
+            <div class="dev-assessment-row">
+              <span class="dev-status" class:passed={v2aConceptualPassed}>{v2aConceptualPassed ? '✓' : '○'}</span>
+              <span class="dev-assess-label">Conceptual (Vivian / hot hand rebuttal)</span>
+              <code class="dev-nodeid">t2a-assess-conceptual</code>
+              {#if !v2aConceptualPassed}
+                <button class="dev-btn small" on:click={() => onPassAssessment('t2a-assess-conceptual', null)}>Pass</button>
+              {/if}
+            </div>
+            <div class="dev-assessment-row">
+              <span class="dev-status" class:passed={v2aTransferPassed}>{v2aTransferPassed ? '✓' : '○'}</span>
+              <span class="dev-assess-label">Transfer (coin / independence)</span>
+              <code class="dev-nodeid">t2a-assess-transfer</code>
+              {#if !v2aTransferPassed}
+                <button class="dev-btn small" on:click={() => { onPassAssessment('t2a-assess-transfer', null); onPassGate(); }}>Pass</button>
+              {/if}
+            </div>
+            <div class="dev-assessment-row gate-row">
+              <span class="dev-status" class:passed={gatePassedAt2A}>{gatePassedAt2A ? '✓' : '○'}</span>
+              <span class="dev-assess-label">Gate (Table 2A → 2B CTA)</span>
+              <code class="dev-nodeid">gatePassedAt2A</code>
+              {#if !gatePassedAt2A}
+                <button class="dev-btn small" on:click={onPassGate}>Set</button>
+              {/if}
+            </div>
+          </div>
+          {:else if at1B}
           <div class="dev-assessment-list">
             <div class="dev-assessment-row">
               <span class="dev-status" class:passed={procPassed}>{procPassed ? '✓' : '○'}</span>

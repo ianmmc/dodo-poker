@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { hank, lucky } from './npc'
+import { hank, lucky, vivian } from './npc'
 
 describe('hank.decideBet', () => {
   it('always bets when opening (callAmount = 0)', () => {
@@ -80,5 +80,48 @@ describe('lucky.decideBet', () => {
     expect(foldsStreak).toBeGreaterThan(foldsNeutral)
     expect(foldsNeutral / TRIALS).toBeLessThan(0.20)
     expect(foldsStreak / TRIALS).toBeGreaterThan(0.20)
+  })
+})
+
+describe('vivian.decideBet — hot hand fallacy: bets more when winning', () => {
+  it('always calls when facing a player bet', () => {
+    for (let i = 0; i < 50; i++) {
+      expect(vivian.decideBet(10, 10, 0).action).toBe('call')
+    }
+  })
+
+  it('always bets when opening (never folds or checks)', () => {
+    for (let i = 0; i < 100; i++) {
+      const d = vivian.decideBet(0, 10, 0)
+      expect(d.action).toBe('bet')
+    }
+  })
+
+  it('bets 5 seeds when neutral (no streak)', () => {
+    const d = vivian.decideBet(0, 10, 0)
+    expect(d.amount).toBe(5)
+  })
+
+  it('bets 10 seeds after 1 consecutive win', () => {
+    const d = vivian.decideBet(0, 10, 1)
+    expect(d.amount).toBe(10)
+  })
+
+  it('bets 20 seeds after 2+ consecutive wins (running hot)', () => {
+    expect(vivian.decideBet(0, 10, 2).amount).toBe(20)
+    expect(vivian.decideBet(0, 10, 5).amount).toBe(20)
+  })
+
+  it('bet amounts increase strictly with winning streak (hot hand escalation)', () => {
+    const neutral = vivian.decideBet(0, 10, 0).amount
+    const oneWin  = vivian.decideBet(0, 10, 1).amount
+    const twoWins = vivian.decideBet(0, 10, 2).amount
+    expect(neutral).toBeLessThan(oneWin)
+    expect(oneWin).toBeLessThan(twoWins)
+  })
+
+  it('decideDraw returns empty discards (no-draw table)', () => {
+    const d = vivian.decideDraw(['Ah', '2c', '3d', '4s', '5h'] as any)
+    expect(d.discardIndices).toEqual([])
   })
 })

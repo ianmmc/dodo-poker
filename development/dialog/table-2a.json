@@ -1,0 +1,411 @@
+{
+  "id": "table-2a",
+  "version": "1.0",
+  "description": "Table 2A dialog: No-draw Five Card Draw, Vivian (Flamingo), Phase 2. Classical probability P = f/t, hot hand fallacy. Variable bet sizes 5/10/20. Standard rotation. Gate: procedural fraction, conceptual hot-hand rebuttal, transfer.",
+  "sections": ["approach", "pre-hand-pool", "post-win", "post-loss", "post-fold", "vivian-hot", "assessment", "gate-passed", "npc"],
+  "nodes": [
+
+    {
+      "id": "t2a-approach-001",
+      "speaker": "chief-dodo",
+      "text": "Main Room. Different table, different rules.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-approach-002" }
+    },
+    {
+      "id": "t2a-approach-002",
+      "speaker": "chief-dodo",
+      "text": "Vivian got this idea — no trading cards, just play what you're dealt. Kept bugging management until they gave her a table. So here we are.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-approach-003" }
+    },
+    {
+      "id": "t2a-approach-003",
+      "speaker": "chief-dodo",
+      "text": "One more thing. In the Main Room we rotate — who bets first switches every hand. Vivian opens the first one.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-vivian-intro" }
+    },
+    {
+      "id": "t2a-vivian-intro",
+      "speaker": "vivian",
+      "text": "I've been on a run for three months. Seventeen hands in a row. The cards are with me right now — I can feel it.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-approach-004" }
+    },
+    {
+      "id": "t2a-approach-004",
+      "speaker": "chief-dodo",
+      "text": "Watch how she bets when she's winning. You'll see the pattern.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-approach-005" }
+    },
+    {
+      "id": "t2a-approach-005",
+      "speaker": "chief-dodo",
+      "text": "One more thing — bigger room, bigger stakes. Bets here are 5, 10, or 20 seeds. Your call on how much to put in.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t2a-pre-silent-a",
+      "pool": "t2a-pre-hand",
+      "weight": 5,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-pre-001",
+      "pool": "t2a-pre-hand",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Watch her bet size.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-pre-002",
+      "pool": "t2a-pre-hand",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Keep tracking.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-pre-003",
+      "pool": "t2a-pre-hand",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Notice anything about when she goes big?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t2a-post-win-silent",
+      "pool": "t2a-post-win",
+      "weight": 3,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-post-win-a",
+      "pool": "t2a-post-win",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Good hand.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-post-win-b",
+      "pool": "t2a-post-win",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Vivian's going to remember that.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t2a-post-loss-silent",
+      "pool": "t2a-post-loss",
+      "weight": 3,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-post-loss-a",
+      "pool": "t2a-post-loss",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Vivian had it. Keep going.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-post-loss-b",
+      "pool": "t2a-post-loss",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Mark it. Keep tracking.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t2a-post-fold-silent",
+      "pool": "t2a-post-fold",
+      "weight": 2,
+      "silent": true,
+      "speaker": null,
+      "text": null,
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-post-fold-a",
+      "pool": "t2a-post-fold",
+      "weight": 2,
+      "speaker": "chief-dodo",
+      "text": "Good fold.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-post-fold-b",
+      "pool": "t2a-post-fold",
+      "weight": 1,
+      "speaker": "chief-dodo",
+      "text": "Folded. Sometimes that's right.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t2a-vivian-hot-001",
+      "speaker": "vivian",
+      "text": "See? I told you. When I'm hot, I'm hot. The cards know.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-vivian-hot-002" }
+    },
+    {
+      "id": "t2a-vivian-hot-002",
+      "speaker": "chief-dodo",
+      "text": "She's been betting bigger after each win. Look at your frequency table. Does the data support what she's saying?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+
+    {
+      "id": "t2a-assess-intro",
+      "speaker": "chief-dodo",
+      "text": "You've played enough hands here. Let's look at what your table actually shows.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-assess-proc" }
+    },
+    {
+      "id": "t2a-assess-proc",
+      "speaker": "chief-dodo",
+      "text": "Same calculation your frequency table is doing. Say you've seen 10 High Card hands out of 25 total. What's the relative frequency as a percentage? Enter a whole number.",
+      "responseType": "numeric",
+      "correctAnswer": 40,
+      "tolerance": 0,
+      "feedback": {
+        "correct":       "t2a-assess-proc-correct",
+        "tooHigh":       "t2a-assess-proc-high",
+        "tooLow":        "t2a-assess-proc-low",
+        "attempt3Wrong": "t2a-assess-proc-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-proc-correct",
+      "speaker": "chief-dodo",
+      "text": "That's relative frequency — what you actually observed. Count divided by total. Your frequency table does this math automatically; now you know what it's computing.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-assess-conceptual-intro" }
+    },
+    {
+      "id": "t2a-assess-proc-high",
+      "speaker": "chief-dodo",
+      "text": "A bit high. Check your table — High Card count divided by total hands, then multiply by 100.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-proc-low",
+      "speaker": "chief-dodo",
+      "text": "Lower than expected? Make sure you're using your total hands played, not just a few.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-proc-reveal",
+      "speaker": "chief-dodo",
+      "text": "Relative frequency = count / total, expressed as a percentage. Look at your table: divide your High Card count by total hands and multiply by 100.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-assess-conceptual-intro" }
+    },
+
+    {
+      "id": "t2a-assess-conceptual-intro",
+      "speaker": "chief-dodo",
+      "text": "Now — Vivian. She bets bigger when she's been winning. She thinks the cards are with her. Your frequency table says otherwise.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-assess-conceptual" }
+    },
+    {
+      "id": "t2a-assess-conceptual",
+      "speaker": "chief-dodo",
+      "text": "Vivian says 'I've won three in a row — the cards are with me.' What does your hand type distribution tell you about why that reasoning fails? Check all that apply.",
+      "responseType": "checklist",
+      "options": [
+        { "id": "con-a", "text": "The hand type frequencies are consistent — Three of a Kind doesn't come up more often after a few wins.", "correct": true  },
+        { "id": "con-b", "text": "Since Vivian has been winning, she's more likely to get strong cards next hand.",                    "correct": false },
+        { "id": "con-c", "text": "Each hand is dealt fresh. The deck doesn't know or care what happened last hand.",                   "correct": true  },
+        { "id": "con-d", "text": "The hand type distribution is the same regardless of recent win/loss history.",                       "correct": true  }
+      ],
+      "feedback": {
+        "correct":       "t2a-assess-conceptual-correct",
+        "attempt1Wrong": "t2a-assess-conceptual-hint1",
+        "attempt2Wrong": "t2a-assess-conceptual-hint2",
+        "attempt3Wrong": "t2a-assess-conceptual-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-conceptual-correct",
+      "speaker": "chief-dodo",
+      "text": "Right. Hand type frequencies are steady — no hot streaks. Each deal is independent. Vivian's wrong, and your table proves it.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-assess-transfer-intro" }
+    },
+    {
+      "id": "t2a-assess-conceptual-hint1",
+      "speaker": "chief-dodo",
+      "text": "One of those is Vivian's own belief. Which ones does your frequency table actually back up?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-conceptual-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck. What does the data actually show about whether hand quality changes after wins?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-conceptual-reveal",
+      "speaker": "chief-dodo",
+      "text": "Hand type frequencies don't shift after winning streaks. Each deal is independent. The deck has no memory of whether Vivian won the last three hands.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-assess-transfer-intro" }
+    },
+
+    {
+      "id": "t2a-assess-transfer-intro",
+      "speaker": "chief-dodo",
+      "text": "One more. Same idea, different context.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-assess-transfer" }
+    },
+    {
+      "id": "t2a-assess-transfer",
+      "speaker": "chief-dodo",
+      "text": "A coin has landed heads five times in a row. A player says 'I'm on a hot streak — it's going to be heads again.' Which of these are true? Check all that apply.",
+      "responseType": "checklist",
+      "options": [
+        { "id": "tr-a", "text": "The probability of heads on the next flip is still 1/2.",                                        "correct": true  },
+        { "id": "tr-b", "text": "Five heads in a row means heads is 'running hot' and more likely to continue.",                    "correct": false },
+        { "id": "tr-c", "text": "Each coin flip is independent — past results don't change future probabilities.",                   "correct": true  },
+        { "id": "tr-d", "text": "The coin is 'due' for a tails because it's been heads too many times.",                            "correct": false }
+      ],
+      "feedback": {
+        "correct":       "t2a-assess-transfer-correct",
+        "attempt1Wrong": "t2a-assess-transfer-hint1",
+        "attempt2Wrong": "t2a-assess-transfer-hint2",
+        "attempt3Wrong": "t2a-assess-transfer-reveal"
+      },
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-transfer-correct",
+      "speaker": "chief-dodo",
+      "text": "The hot hand fallacy and the gambler's fallacy are mirror images — one says streaks continue, the other says they correct. Both are wrong for the same reason: independence.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-gate-passed-001" }
+    },
+    {
+      "id": "t2a-assess-transfer-hint1",
+      "speaker": "chief-dodo",
+      "text": "Two of those sound like Vivian — and Lucky. Which ones does probability actually support?",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-transfer-hint2",
+      "speaker": "chief-dodo",
+      "text": "Almost. {{needToCheck}} more to check, {{needToUncheck}} to uncheck. A fair coin doesn't know its own history.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-assess-transfer-reveal",
+      "speaker": "chief-dodo",
+      "text": "Each flip is independent. P(heads) = 1/2 every single time, no matter how many heads came before. Streaks are real — they're just not predictive.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-gate-passed-001" }
+    },
+
+    {
+      "id": "t2a-gate-passed-001",
+      "speaker": "chief-dodo",
+      "text": "You understand independent events. And you know why both Vivian and Lucky are wrong — they're making the same mistake from opposite directions.",
+      "responseType": "none",
+      "followUp": { "default": "t2a-gate-passed-002" }
+    },
+    {
+      "id": "t2a-gate-passed-002",
+      "speaker": "chief-dodo",
+      "text": "The next table gets into how we count all the ways a hand can happen. That's where the fractions come from.",
+      "responseType": "none",
+      "followUp": { "advanceTable": true }
+    },
+
+    {
+      "id": "t2a-npc-bet-5",
+      "speaker": "vivian",
+      "text": "Five.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-npc-bet-10",
+      "speaker": "vivian",
+      "text": "Ten.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-npc-bet-20",
+      "speaker": "vivian",
+      "text": "Twenty. I feel good about this one.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-npc-call",
+      "speaker": "vivian",
+      "text": "I'm in.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-npc-check",
+      "speaker": "vivian",
+      "text": "Check.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    },
+    {
+      "id": "t2a-npc-fold",
+      "speaker": "vivian",
+      "text": "Not this one.",
+      "responseType": "none",
+      "followUp": { "returnToGame": true }
+    }
+
+  ]
+}

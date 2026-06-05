@@ -39,7 +39,7 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 
 ## Current State
 
-**Phase:** Implementation — Table 1A and Table 1B complete end-to-end, including the Hank retrospective assessment at Table 1B. Table 1B gate passes to "coming soon" placeholder (Table 2A not yet built).
+**Phase:** Implementation — Tables 1A, 1B, and 2A complete end-to-end. Table 2A introduces Vivian (Flamingo/hot hand fallacy), no-draw Five Card Draw, betting rotation, and variable bet sizes (5/10/20 seeds). Table 2A gate passes to "coming soon" placeholder (Table 2B not yet built).
 
 ### Completed
 
@@ -73,7 +73,7 @@ The project was inspired by Jacob Kantor — an education technology sales consu
   - **Hank retrospective assessment at hand 14+** (new): CD bridges from Table 1A "always-bet" observation to frequency data — student uses the table to explain why Hank's strategy costs him; incorrect foil deliberately echoes Lucky's gambler's fallacy
   - Gate assessment at hand 18: procedural (relative frequency %) + conceptual (Lucky rebuttal) + transfer (LLN)
   - NPC swap system with 10 backup characters
-- **Test suite**: 169 tests across 11 files — all passing
+- **Test suite**: 212 tests across 11 files — all passing
   - New since last session: `observationEngine.test.ts` (16), `engine.test.ts` (30), `storage.test.ts` (7), `cardAltText` tests in `card.test.ts`
 
 ### Key Implementation Details
@@ -115,9 +115,8 @@ Known open items from review:
 
 ## Open Questions
 
-- **Vivian (Flamingo)** — hot-hand fallacy NPC, listed in scope-sequence for Table 1B but not yet introduced. Could appear as a table observer after a 3-win streak, or deferred to Table 2A.
-- **Table 2A** — next table to build. Lucky and Vivian; classical probability P = f/t; no-draw Five Card Draw variant; connects frequency table from 1B to formal fractions.
-- **Session restoration routing** — `continueSession()` routes `gatePassedAt1A → table1b`; add `gatePassedAt1B → table2a` when Table 2A exists.
+- **Table 2B** — next table to build. Tree diagrams, compound events, dependent draws. Rico (base rate neglect) and Vivian (hot hand, continues) are the NPCs per scope-sequence.
+- **Session restoration routing** — `continueSession()` routes `gatePassedAt1B → table2a`; add `gatePassedAt2A → table2b` when Table 2B exists.
 
 ---
 
@@ -162,14 +161,15 @@ Known open items from review:
 
 ## Recommended Next Steps (in order)
 
-1. **Deploy** — build and push to `dodo-poker.mccullough.com` to share the current state with early testers
-2. **Vivian at Table 1B** — add her as a table observer with one hot-hand fallacy coaching line after a 3-win streak (small addition before Table 2A)
-3. **Table 2A** — Lucky and Vivian; classical probability P = f/t; no-draw Five Card Draw; connects frequency table from 1B to formal fractions
-4. **AX-06/AX-07** — keyboard navigation completeness audit and focus-on-transition implementation
-5. **Session restoration routing** — add `gatePassedAt1B → table2a` to `continueSession()` when Table 2A exists
+1. **Deploy** — build and push to `dodo-poker.mccullough.com`; share Tables 1A, 1B, and 2A with early testers
+2. **Table 2B** — tree diagrams, compound events, dependent draws; Rico (base rate neglect) and Vivian (hot hand, continues) per scope-sequence
+3. **AX-06/AX-07** — keyboard navigation completeness and focus-on-transition implementation
+4. **Session restoration routing** — add `gatePassedAt2A → table2b` to `continueSession()` when Table 2B exists
 
 ---
 
 ## Last Updated
 
-2026-06-03 — Code review pass (fresh-eyes agent): 16 bugs/gaps fixed including double-ante-on-continue, assessment state not cleared on reset, ties collapsed to losses, hank.decideDraw hardcoded in Table 1B, negative seeds edge case, observationLog not reset on table transition. Full WCAG 2.1 AA accessibility pass across all components. New Hank retrospective assessment at Table 1B hand 14 (bridges Table 1A observation to Table 1B frequency data). 169 tests across 11 files. Documentation updated for all identified inconsistencies. `cardAltText()` extracted to `card.ts` as testable utility. Accessibility requirements added to requirements.md (AX-01 through AX-07). tech-spec.md updated with accessibility standard section.
+2026-06-04 — Table 2A (The Fraction Table) built: Vivian (Flamingo, hot hand fallacy) as sole NPC; no-draw Five Card Draw; betting rotation (NPC opens on odd hands); variable bet sizes 5/10/20 seeds; 10-seed ante; frequency table resets on entry; Main Room card-scatter transition animation; competency gate at 20 hands. `noDraw` + `npcActsFirst` added to `GameState`. `vivian` NPC module added (bets 5/10/20 by winning streak). `npcOpensBet`/`npcOpensCheck` new game actions for rotation. `table-2a.json` created (65 nodes). DevPanel gains Table 2A Jump to Table, Jump to Hand, and Assessment State panels. Frequency table High Card corrected to ~50% (was incorrectly stated as ~17%). Reference card sorted weakest→strongest; glossary added with 9 terms + Wikipedia link. 212 tests across 11 files. Documentation updated (requirements L-09/L-10, design fixed-bet and betting-order sections, scope-sequence Table 2A, tech-spec rotation open decision resolved).
+
+2026-06-03 — Code review pass (fresh-eyes agent): 16 bugs/gaps fixed. Full WCAG 2.1 AA accessibility pass. Hank retrospective assessment at Table 1B hand 14. 169 tests across 11 files.

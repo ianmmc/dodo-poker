@@ -23,6 +23,9 @@ export interface SavedSession {
   // NPC swap system
   currentNpcName?: string
   usedBackupIds?: string[]
+  // Table 2A
+  handsAt2A?: number
+  gatePassedAt2A?: boolean
 }
 
 export function save(data: SavedSession): void {

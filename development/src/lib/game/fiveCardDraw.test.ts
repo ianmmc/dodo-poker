@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createGame, startHand, startScriptedHand, playerCheck, playerCheckNpcCheck, playerBet, playerCall, playerFold, playerDraw, npcFold } from './fiveCardDraw'
+import { createGame, startHand, startScriptedHand, playerCheck, playerCheckNpcCheck, playerBet, playerCall, playerFold, playerDraw, npcFold, npcOpensBet, npcOpensCheck } from './fiveCardDraw'
 import { hank } from './npc'
 import { getScriptedDeal } from './scriptedHands'
 
@@ -335,5 +335,129 @@ describe('getScriptedDeal', () => {
     expect(deal).not.toBeNull()
     expect(deal?.playerCards).toHaveLength(5)
     expect(deal?.npcCards).toHaveLength(5)
+  })
+})
+
+// ── Betting rotation ─────────────────────────────────────────────────────────
+// Design principle: rotation is controlled entirely by noDraw + npcActsFirst
+// in GameState. Future variants with different rotation rules (e.g. dealer-
+// button position, fixed opener) set these fields accordingly — the action
+// functions are agnostic to who is opening.
+
+describe('rotation — Tables 1A and 1B (noDraw=false: no rotation)', () => {
+  it('noDraw defaults to false on createGame', () => {
+    expect(createGame().noDraw).toBe(false)
+  })
+
+  it('npcActsFirst defaults to false on createGame', () => {
+    expect(createGame().npcActsFirst).toBe(false)
+  })
+
+  it('startHand preserves noDraw=false and sets npcActsFirst=false', () => {
+    const g = startHand(createGame())
+    expect(g.noDraw).toBe(false)
+    expect(g.npcActsFirst).toBe(false)
+  })
+
+  it('player always opens when noDraw=false regardless of hand number', () => {
+    let g = createGame()
+    for (let i = 0; i < 6; i++) {
+      g = startHand(g)
+      expect(g.npcActsFirst).toBe(false)
+    }
+  })
+})
+
+describe('rotation — Table 2A (noDraw=true: odd/even alternation)', () => {
+  function makeTable2AGame() {
+    return { ...createGame(), noDraw: true }
+  }
+
+  it('hand 1 (odd): NPC acts first', () => {
+    const g = startHand(makeTable2AGame())
+    expect(g.handNumber).toBe(1)
+    expect(g.npcActsFirst).toBe(true)
+  })
+
+  it('hand 2 (even): player acts first', () => {
+    let g = startHand(makeTable2AGame())  // hand 1 (odd → NPC first)
+    g = startHand(g)                      // hand 2 (even → player first)
+    expect(g.handNumber).toBe(2)
+    expect(g.npcActsFirst).toBe(false)
+  })
+
+  it('hand 3 (odd): NPC acts first again', () => {
+    let g = startHand(makeTable2AGame())  // hand 1
+    g = startHand(g)                      // hand 2
+    g = startHand(g)                      // hand 3
+    expect(g.handNumber).toBe(3)
+    expect(g.npcActsFirst).toBe(true)
+  })
+
+  it('alternation continues correctly for 10 hands', () => {
+    let g = makeTable2AGame()
+    for (let i = 1; i <= 10; i++) {
+      g = startHand(g)
+      const expectedNpcFirst = i % 2 === 1  // NPC first on odd hands
+      expect(g.npcActsFirst).toBe(expectedNpcFirst)
+    }
+  })
+})
+
+describe('noDraw phase transitions', () => {
+  it('bet1 → done (no draw phase) when noDraw=true', () => {
+    const g = { ...startHand(createGame()), noDraw: true }
+    const afterBet = playerBet(g)
+    expect(afterBet.phase).toBe('done')
+  })
+
+  it('bet1 → draw when noDraw=false (normal Five Card Draw)', () => {
+    const g = startHand(createGame())  // noDraw=false by default
+    const afterBet = playerBet(g)
+    expect(afterBet.phase).toBe('draw')
+  })
+
+  it('mutual check in bet1 → done when noDraw=true', () => {
+    const g = { ...startHand(createGame()), noDraw: true }
+    const afterCheck = playerCheckNpcCheck(g)
+    expect(afterCheck.phase).toBe('done')
+  })
+
+  it('mutual check in bet1 → draw when noDraw=false', () => {
+    const g = startHand(createGame())
+    const afterCheck = playerCheckNpcCheck(g)
+    expect(afterCheck.phase).toBe('draw')
+  })
+
+  it('player call in bet1 → done when noDraw=true', () => {
+    const g = { ...startHand(createGame()), noDraw: true }
+    const withPendingBet = playerCheck(g)   // NPC bets, player must call
+    const afterCall = playerCall(withPendingBet)
+    expect(afterCall.phase).toBe('done')
+  })
+
+  it('seeds preserved after noDraw showdown', () => {
+    const g = { ...startHand(createGame(100, 5, 5)), noDraw: true }
+    const result = playerBet(g)
+    expect(result.playerSeeds + result.npcSeeds).toBe(200)
+  })
+})
+
+describe('npcOpensBet / npcOpensCheck (rotation support)', () => {
+  it('npcOpensBet sets npcPendingBet and callAmount', () => {
+    const g = startHand(createGame())
+    const after = npcOpensBet(g, 10)
+    expect(after.npcPendingBet).toBe(true)
+    expect(after.callAmount).toBe(10)
+    expect(after.pot).toBe(g.pot + 10)
+    expect(after.npcSeeds).toBe(g.npcSeeds - 10)
+  })
+
+  it('npcOpensCheck clears npcPendingBet', () => {
+    const g = startHand(createGame())
+    const after = npcOpensCheck(g)
+    expect(after.npcPendingBet).toBe(false)
+    expect(after.callAmount).toBe(0)
+    expect(after.npcLastAction).toBe('check')
   })
 })

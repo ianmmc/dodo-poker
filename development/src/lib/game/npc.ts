@@ -76,6 +76,32 @@ function luckyOpeningDecision(
   return { action: 'bet', amount: betAmount }
 }
 
+// Vivian's hot hand fallacy: when she's been winning, she thinks she's "running
+// hot" and bets the maximum. When neutral or losing, she bets moderately.
+// Bet sizes map to the Table 2A variable-bet tiers: 5 / 10 / 20 seeds.
+// Always calls when facing a player bet — she's confident the cards are with her.
+function vivianBetAmount(consecutiveWins: number): number {
+  if (consecutiveWins >= 2) return 20  // "I'm on fire"
+  if (consecutiveWins >= 1) return 10  // "Things are going well"
+  return 5                              // neutral / losing
+}
+
+export const vivian = {
+  decideBet(callAmount: number, _betAmount: number, vivianConsecutiveWins = 0): BetDecision {
+    if (callAmount > 0) return { action: 'call', amount: callAmount }
+    return { action: 'bet', amount: vivianBetAmount(vivianConsecutiveWins) }
+  },
+
+  // No draw at Table 2A; empty discards maintain interface compatibility.
+  decideDraw(_hand: Card[]): DrawDecision {
+    return { discardIndices: [] }
+  },
+
+  drawDialogNodeId(_count: number): string {
+    return 't2a-npc-draw-0'
+  }
+}
+
 export const lucky = {
   decideBet(
     callAmount: number,
