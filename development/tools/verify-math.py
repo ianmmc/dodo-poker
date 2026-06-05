@@ -186,13 +186,28 @@ assert_eq("P(quads on draw | 3oaK held, 47 unseen) = 1/47",   Fraction(1, 47), q
 # When a new numeric node is added to any dialog JSON file, add it here
 # before the commit. Unregistered numeric nodes produce a warning.
 
+# Static numeric nodes: correctAnswer is a fixed value we can verify here.
+# live-numeric nodes have correctAnswerKey instead — no static value to check.
 NUMERIC_ASSESSMENT_ANSWERS: dict[str, tuple[int | float, str]] = {
     # Table 1A
     "t1a-assess-hank-numeric": (5,  "Hank bets every hand — 5 of 5 expected bets"),
     # Table 1B
     "t1b-assess-proc":         (40, "20 pairs / 50 hands = 40% relative frequency"),
-    # Table 2A
-    "t2a-assess-proc":         (40, "10 High Cards / 25 total = 40%"),
+}
+
+# Known correctAnswerKey values for live-numeric nodes (must match LiveDataKey in liveData.ts).
+# Unrecognised keys produce a warning — they can still work at runtime but should be added here
+# once confirmed correct so the closed enum stays in sync.
+KNOWN_LIVE_DATA_KEYS = {
+    "totalHands",
+    "highCardCount",   "onePairCount",        "twoPairCount",      "threeOfAKindCount",
+    "straightCount",   "flushCount",          "fullHouseCount",    "fourOfAKindCount",
+    "straightFlushCount",
+    "winCount",        "lossCount",           "tieCount",          "foldCount",
+    "highCardPercent", "onePairPercent",       "twoPairPercent",    "threeOfAKindPercent",
+    "straightPercent", "flushPercent",         "fullHousePercent",  "fourOfAKindPercent",
+    "straightFlushPercent",
+    "winPercent",      "lossPercent",         "tiePercent",
 }
 
 section("Assessment correctAnswer values in dialog JSON")
@@ -207,11 +222,12 @@ for json_file in sorted(DIALOG_DIR.glob("table-*.json")):
         continue
 
     for node in data.get("nodes", []):
-        if node.get("responseType") == "numeric" and "correctAnswer" in node:
-            node_id  = node["id"]
-            ca       = node["correctAnswer"]
-            found_numeric_nodes.append(node_id)
+        node_id  = node.get("id", "")
+        response = node.get("responseType", "")
 
+        if response == "numeric" and "correctAnswer" in node:
+            ca = node["correctAnswer"]
+            found_numeric_nodes.append(node_id)
             if node_id in NUMERIC_ASSESSMENT_ANSWERS:
                 expected_ca, desc = NUMERIC_ASSESSMENT_ANSWERS[node_id]
                 assert_eq(f"{node_id}: {desc}", expected_ca, ca)
@@ -220,6 +236,18 @@ for json_file in sorted(DIALOG_DIR.glob("table-*.json")):
                     f"{node_id}: correctAnswer={ca} not registered in "
                     f"NUMERIC_ASSESSMENT_ANSWERS — add it to verify-math.py"
                 )
+
+        elif response == "live-numeric":
+            key = node.get("correctAnswerKey", "")
+            if not key:
+                warn(f"{node_id}: live-numeric node missing correctAnswerKey")
+            elif key not in KNOWN_LIVE_DATA_KEYS:
+                warn(
+                    f"{node_id}: correctAnswerKey='{key}' not in KNOWN_LIVE_DATA_KEYS — "
+                    f"add it to verify-math.py and liveData.ts"
+                )
+            else:
+                ok(f"{node_id}: live-numeric key '{key}' recognised")
 
 # Flag registered entries with no matching dialog node (stale registrations)
 for node_id in NUMERIC_ASSESSMENT_ANSWERS:

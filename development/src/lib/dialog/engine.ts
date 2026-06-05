@@ -7,7 +7,7 @@ export interface DialogNode {
   id: string
   speaker: string | null
   text: string | null
-  responseType: 'none' | 'action' | 'checklist' | 'numeric' | 'single-select' | 'estimate' | 'prediction'
+  responseType: 'none' | 'action' | 'checklist' | 'numeric' | 'live-numeric' | 'single-select' | 'estimate' | 'prediction'
   silent?: boolean
   pool?: string
   weight?: number
@@ -28,6 +28,10 @@ export interface DialogNode {
   }
   correctAnswer?: number
   tolerance?: number
+  // live-numeric nodes: text and correctAnswer are resolved at enqueue time
+  // from the current FrequencyData via liveData.ts.
+  textTemplate?: string    // {{key}} placeholders filled from DataContext
+  correctAnswerKey?: string  // named key from LiveDataKey enum
   followUp: {
     default?: string
     returnToGame?: boolean

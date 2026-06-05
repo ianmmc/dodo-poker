@@ -26,6 +26,7 @@
   import { getScriptedDeal } from './lib/game/scriptedHands'
   import { createFrequencyData, updateFrequencyData } from './lib/game/frequencyData'
   import type { FrequencyData } from './lib/game/frequencyData'
+  import { buildDataContext, renderTemplate, resolveKey } from './lib/game/liveData'
   import { hank, lucky, vivian } from './lib/game/npc'
   import { BACKUP_NPCS, getNextBackup } from './lib/game/backupNpcs'
   import type { BackupNpc } from './lib/game/backupNpcs'
@@ -254,9 +255,25 @@
     }
   }
 
+  // Resolve a live-numeric node into a concrete numeric node using the current
+  // frequency table. Called at enqueue time so the assessment system always
+  // receives a fully-populated node with text and correctAnswer filled in.
+  function resolveLiveNode(node: DialogNode): DialogNode {
+    if (node.responseType !== 'live-numeric') return node
+    const ctx = buildDataContext(frequencyData)
+    return {
+      ...node,
+      responseType: 'numeric',
+      text: renderTemplate(node.textTemplate ?? '', ctx),
+      correctAnswer: resolveKey(node.correctAnswerKey ?? '', ctx),
+    }
+  }
+
   function enqueue(nodes: (DialogNode | null)[], vars?: Record<string, string | number>): void {
     const lines = nodes
-      .filter((n): n is DialogNode => n !== null && !n.silent && n.text !== null)
+      .filter((n): n is DialogNode => n !== null)
+      .map(n => resolveLiveNode(n))
+      .filter(n => !n.silent && n.text !== null)
       .map(n => toLine(n, vars))
     if (lines.length) dialogQueue = [...dialogQueue, ...lines]
   }

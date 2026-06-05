@@ -150,7 +150,8 @@ Full reference at `development/dialog/schema.md`. Implemented fields:
 
 - `none` — statement only; engine advances to `followUp.default` or returns to game
 - `checklist` — multi-select from `options`; `feedback` nodes receive `{{needToCheck}}` and `{{needToUncheck}}` template vars
-- `numeric` — single number entry; `feedback.tooHigh` / `tooLow` / `correct` routing; feedback nodes receive `{{entered}}` and `{{correct}}` vars
+- `numeric` — single number entry with a static `correctAnswer`; `feedback.tooHigh` / `tooLow` / `correct` routing
+- `live-numeric` — numeric assessment where the question text and correct answer are derived from the current `FrequencyData` at enqueue time. Uses `textTemplate` (with `{{key}}` placeholders) and `correctAnswerKey` (a named key from the `LiveDataKey` enum in `liveData.ts`). `resolveLiveNode()` in App.svelte converts it to a concrete `numeric` node before it enters the dialog queue — the assessment system sees only `numeric` nodes; `live-numeric` never reaches the queue directly. Add new keys to `LiveDataKey` in `liveData.ts` and to `KNOWN_LIVE_DATA_KEYS` in `verify-math.py` simultaneously.
 - `single-select`, `estimate`, `prediction` — reserved for future implementation
 
 **Pool / weighted random:** nodes sharing a `pool` name are sampled by weight. `silent: true` nodes return null (no dialog shown) — used to introduce probability of silence.

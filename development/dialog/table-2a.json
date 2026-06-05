@@ -198,10 +198,11 @@
     {
       "id": "t2a-assess-proc",
       "speaker": "chief-dodo",
-      "text": "Same calculation your frequency table is doing. Say you've seen 10 High Card hands out of 25 total. What's the relative frequency as a percentage? Enter a whole number.",
-      "responseType": "numeric",
-      "correctAnswer": 40,
-      "tolerance": 0,
+      "text": null,
+      "textTemplate": "Look at your frequency table. You've seen {{highCardCount}} High Card hands out of {{totalHands}} total. What's the relative frequency as a percentage? Enter a whole number.",
+      "responseType": "live-numeric",
+      "correctAnswerKey": "highCardPercent",
+      "tolerance": 1,
       "feedback": {
         "correct":       "t2a-assess-proc-correct",
         "tooHigh":       "t2a-assess-proc-high",
