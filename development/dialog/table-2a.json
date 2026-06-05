@@ -199,8 +199,9 @@
       "id": "t2a-assess-proc",
       "speaker": "chief-dodo",
       "text": null,
-      "textTemplate": "Look at your frequency table. You've seen {{highCardCount}} High Card hands out of {{totalHands}} total. What's the relative frequency as a percentage? Enter a whole number.",
+      "textTemplate": "Look at your frequency table. You've seen {{highCardCount}} High Card hands out of {{totalHands}} total. What's the relative frequency as a percentage?",
       "responseType": "live-numeric",
+      "numericFormat": "percent-integer",
       "correctAnswerKey": "highCardPercent",
       "tolerance": 1,
       "feedback": {

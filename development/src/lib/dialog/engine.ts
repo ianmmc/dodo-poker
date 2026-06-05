@@ -28,6 +28,10 @@ export interface DialogNode {
   }
   correctAnswer?: number
   tolerance?: number
+  // Controls input type, suffix display, and sanitization for numeric assessments.
+  // Omit (or use 'count') for plain integer answers with no suffix.
+  // 'percent-decimal', 'decimal', 'fraction' reserved for future tables.
+  numericFormat?: 'count' | 'percent-integer' | 'percent-decimal' | 'decimal' | 'fraction'
   // live-numeric nodes: text and correctAnswer are resolved at enqueue time
   // from the current FrequencyData via liveData.ts.
   textTemplate?: string    // {{key}} placeholders filled from DataContext

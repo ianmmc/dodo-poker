@@ -299,8 +299,9 @@
     {
       "id": "t1b-assess-proc",
       "speaker": "chief-dodo",
-      "text": "Quick one. Say you tracked 50 hands and pairs showed up 20 times. What's the relative frequency of pairs as a percentage? Enter a whole number.",
+      "text": "Quick one. Say you tracked 50 hands and pairs showed up 20 times. What's the relative frequency of pairs as a percentage?",
       "responseType": "numeric",
+      "numericFormat": "percent-integer",
       "correctAnswer": 40,
       "tolerance": 0,
       "feedback": {

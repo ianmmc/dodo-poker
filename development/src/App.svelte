@@ -200,6 +200,8 @@
   let pendingPostAssessment: DisplayLine[] = []
   $: inDialog = dialogQueue.length > 0
   $: currentLine = dialogQueue[0] ?? null
+  $: numericIsPercent = assessmentState?.node.numericFormat === 'percent-integer' ||
+                        assessmentState?.node.numericFormat === 'percent-decimal'
 
   $: if (currentLine?.openReferenceCard) refCardOpen = true
 
@@ -1387,16 +1389,23 @@
             <div class="numeric-row">
               <input
                 class="numeric-input"
-                type="number"
+                type="text"
+                inputmode="numeric"
+                pattern="\d*"
                 aria-labelledby="numeric-prompt-1b"
-                bind:value={assessmentState.numericInput}
+                value={assessmentState.numericInput}
+                on:input={(e) => {
+                  const cleaned = (e.currentTarget as HTMLInputElement).value.replace(/[^0-9]/g, '')
+                  ;(e.currentTarget as HTMLInputElement).value = cleaned
+                  assessmentState = { ...assessmentState!, numericInput: cleaned }
+                }}
                 on:keydown={e => e.key === 'Enter' && submitNumeric()}
-                placeholder="Enter a number"
               />
+              {#if numericIsPercent}<span class="numeric-suffix" aria-hidden="true">%</span>{/if}
               <button
                 class="action-btn primary"
                 on:click={submitNumeric}
-                disabled={assessmentState.numericInput === '' || isNaN(parseInt(assessmentState.numericInput, 10))}
+                disabled={assessmentState.numericInput === ''}
               >
                 Submit
               </button>
@@ -1583,16 +1592,23 @@
             <div class="numeric-row">
               <input
                 class="numeric-input"
-                type="number"
+                type="text"
+                inputmode="numeric"
+                pattern="\d*"
                 aria-labelledby="numeric-prompt-2a"
-                bind:value={assessmentState.numericInput}
+                value={assessmentState.numericInput}
+                on:input={(e) => {
+                  const cleaned = (e.currentTarget as HTMLInputElement).value.replace(/[^0-9]/g, '')
+                  ;(e.currentTarget as HTMLInputElement).value = cleaned
+                  assessmentState = { ...assessmentState!, numericInput: cleaned }
+                }}
                 on:keydown={e => e.key === 'Enter' && submitNumeric()}
-                placeholder="Enter a number"
               />
+              {#if numericIsPercent}<span class="numeric-suffix" aria-hidden="true">%</span>{/if}
               <button
                 class="action-btn primary"
                 on:click={submitNumeric}
-                disabled={assessmentState.numericInput === '' || isNaN(parseInt(assessmentState.numericInput, 10))}
+                disabled={assessmentState.numericInput === ''}
               >
                 Submit
               </button>
@@ -1775,16 +1791,23 @@
             <div class="numeric-row">
               <input
                 class="numeric-input"
+                type="text"
+                inputmode="numeric"
+                pattern="\d*"
                 aria-labelledby="numeric-prompt-1a"
-                type="number"
-                bind:value={assessmentState.numericInput}
+                value={assessmentState.numericInput}
+                on:input={(e) => {
+                  const cleaned = (e.currentTarget as HTMLInputElement).value.replace(/[^0-9]/g, '')
+                  ;(e.currentTarget as HTMLInputElement).value = cleaned
+                  assessmentState = { ...assessmentState!, numericInput: cleaned }
+                }}
                 on:keydown={e => e.key === 'Enter' && submitNumeric()}
-                placeholder="Enter a number"
               />
+              {#if numericIsPercent}<span class="numeric-suffix" aria-hidden="true">%</span>{/if}
               <button
                 class="action-btn primary"
                 on:click={submitNumeric}
-                disabled={assessmentState.numericInput === '' || isNaN(parseInt(assessmentState.numericInput, 10))}
+                disabled={assessmentState.numericInput === ''}
               >
                 Submit
               </button>
@@ -2111,7 +2134,7 @@
   .check-icon { color: #c8a84a; font-size: 1.05rem; flex-shrink: 0; }
 
   /* ── Numeric assessment ── */
-  .numeric-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+  .numeric-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
   .numeric-input {
     background: #1a2a1a;
     border: 1px solid #3a5a3a;
@@ -2120,9 +2143,16 @@
     font-size: 1rem;
     font-family: inherit;
     color: #f0ead6;
-    width: 160px;
+    width: 100px;
   }
   .numeric-input:focus { outline: 2px solid #c8a84a; outline-offset: 2px; }
+  .numeric-suffix {
+    font-size: 1rem;
+    font-family: inherit;
+    color: #f0ead6;
+    opacity: 0.75;
+    user-select: none;
+  }
 
   .result-area { display: flex; flex-direction: column; gap: 14px; }
   .result-text { font-size: 1.15rem; color: #c8a84a; }
