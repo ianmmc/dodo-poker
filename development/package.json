@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify-math": "python3 tools/verify-math.py",
+    "setup-hooks": "ln -sf \"$(pwd)/.hooks/pre-commit\" \"$(pwd)/../.git/hooks/pre-commit\" && chmod +x .hooks/pre-commit && echo 'Pre-commit hook installed.'"
   },
   "dependencies": {
     "pokersolver": "^2.1.3"

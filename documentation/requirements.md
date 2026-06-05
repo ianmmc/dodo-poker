@@ -164,3 +164,4 @@ This product must be usable by students with visual, motor, and cognitive disabi
 | DT-02 | As a developer, I want to mark individual assessment checkpoints as passed and set the competency gate from the dev panel, so I can test post-gate states without completing the full assessment sequence. | `done` |
 | DT-03 | As a developer, I want to dump all current game state to the browser console and clear localStorage from the dev panel, so I can debug session and persistence issues. | `done` |
 | DT-04 | As a developer, I want to force-enqueue any dialog node by ID from the dev panel, so I can test specific coaching moments in isolation. | `done` |
+| DT-05 | As a developer, I want a mathematical accuracy verification script that checks every numerical claim in the game — hand frequencies, assessment answers, probability tree values — from first principles before each commit, so that factual errors in game content are caught before they reach production. | `done` |

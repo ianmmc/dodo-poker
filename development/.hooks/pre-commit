@@ -1,0 +1,32 @@
+#!/bin/sh
+# dodo-poker pre-commit hook
+# Runs TypeScript checks, the test suite, and mathematical accuracy
+# verification before every commit.
+#
+# Install once:  npm run setup-hooks   (from development/)
+# After install: runs automatically on every `git commit`
+
+set -e
+
+# Always run from the development/ directory regardless of where git is invoked.
+# Use git to find the repo root rather than resolving $0, which may be a symlink.
+GIT_ROOT="$(git rev-parse --show-toplevel)"
+cd "$GIT_ROOT/development"
+
+echo ""
+echo "Pre-commit checks"
+echo "─────────────────"
+
+echo "→ TypeScript..."
+./node_modules/.bin/tsc --noEmit
+echo "  ok"
+
+echo "→ Tests..."
+./node_modules/.bin/vitest run --reporter=dot
+echo "  ok"
+
+echo "→ Math verification..."
+python3 tools/verify-math.py
+echo ""
+echo "All pre-commit checks passed."
+echo ""
