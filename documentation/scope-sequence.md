@@ -143,7 +143,6 @@ Completing both the conceptual and transfer checklists (correctly or after three
 
 | NPC | Bird | Reasoning Pattern | Flaw / Lesson |
 | --- | --- | --- | --- |
-| Hank | California Condor | Always bets (returns from 1A) | With frequency data in hand, the student can now see that Hank's always-bet strategy loses in the long run |
 | Lucky | Rock Pigeon | Gambler's fallacy | After several losses: "I'm due, man. Five bad hands in a row — the cards owe me." Chief Dodo points at the frequency table: does the deck know? Lucky's betting behavior reflects her fallacy: she folds more often when she's been *winning* (thinking she's due to lose) — a personality-driven behavior students can observe and exploit. |
 
 **CCSS**: 7.SP.C.6 (approximate probability through repeated experiments; observe long-run relative frequency — **focus**); 7.SP.C.7b (non-uniform probability model from observed frequencies); 7.SP.C.8c (simulation — Surveillance Room)
@@ -207,35 +206,37 @@ Completing both the conceptual and transfer checklists (correctly or after three
 
 ### Table 2B — The Tree Table
 
-**Variant**: Five Card Draw (two sequential cards dealt explicitly; student enumerates the two-stage sample space)
+**Variant**: Texas Hold'Em (two hole cards dealt sequentially; primary analytical focus is the two-card deal as a two-stage dependent sample space; community cards are played but the tree diagram work centers on the hole card deal)
 
-**Why this variant, not another**: The deal of two sequential cards from a single deck creates a natural two-stage process where stage-two outcomes depend on stage one — the deck has one fewer card. This is the cleanest introduction to compound events using a physical process the student already understands. Tree diagrams emerge directly from the branching structure of the deal: what are all the possible first cards? For each, what are all the possible second cards? The "drawing without replacement reduces the deck" mechanic is a simple, concrete first version of dependent events without requiring conditional probability formalism yet.
+**Why this variant, not another**: The Texas Hold'Em deal creates a natural two-stage process. The first hole card comes from a deck of 52; the second comes from the 51 remaining after the first is drawn. Unlike a coin or a die — where each outcome is independent of the last — the second card's probability depends on what was drawn first. This is the conceptual core of Table 2B: sequential draws that are *not* independent, and a tree diagram that makes the dependence visible.
+
+Texas Hold'Em also serves a second purpose: this is the game the student will play in depth at Tables 3C and beyond. The progressive introduction here gives them Hold'Em mechanics through play before the math is formally introduced, so the game is familiar before the complexity increases.
+
+**Note on table structure**: The first several hands are spent learning the game — hole cards, community cards, the betting structure. The tree diagram is introduced when Chief Dodo surfaces a natural mid-hand question ("What were the chances of getting exactly those two cards?"), not as a predetermined lesson. The addition rule for mutually exclusive events *(P(A or B) = P(A) + P(B) for mutually exclusive cases)* is the simpler compound case and is introduced before the multiplication rule for sequential dependent events.
 
 **Learning Objectives**
 
+- Recognize that drawing without replacement creates dependent stages: the second hole card's probability changes based on the first
 - Enumerate two-stage sample spaces using organized lists and tree diagrams
-- Compute probabilities of compound events by multiplying across branches
-- Distinguish mutually exclusive events: P(A or B) = P(A) + P(B)
-- Recognize that drawing without replacement creates dependent stages: the second draw's probability changes based on the first
-- Connect tree diagram branch multiplication to the multiplication of fractions
+- Compute probabilities of compound events by multiplying across branches (Multiplication Rule for dependent events)
+- Apply the addition rule for mutually exclusive events before extending to the multiplication rule for sequential events
+- Identify the independence assumption error: explain why P(second ace) ≠ 4/52 when an ace was already dealt
 
-**Chief Dodo's Focus**: Making the tree diagram a thinking tool, not a memorized procedure. "When you see the tree, you're seeing all the ways things can go. Once you see all the ways, you can count the ones you want."
+**Chief Dodo's Focus**: Rex's independence assumption is the foil. "Rex thinks every card is drawn from a fresh deck of 52. Let me show you why that's wrong — and exactly how wrong." The tree diagram is the tool that makes Rex's specific error visible: his calculation ignores the branch that accounts for what the first card was. Students learn to construct the tree and then locate exactly where Rex went wrong in it.
 
 **NPCs**
 
 | NPC | Bird | Reasoning Pattern | Flaw / Lesson |
 | --- | --- | --- | --- |
-| Lucky | Rock Pigeon | Gambler's fallacy (continues) | Now analyzable at the compound event level using the tree |
-| Vivian | Flamingo | Hot hand fallacy (continues) | |
-| Rico | Sulfur-crested Cockatoo | Base rate neglect + recency bias | Adjusts bets based on the last 2–3 hands; ignores the long-run tree structure. "What just happened" dominates his reasoning. Chief Dodo: where in the tree does "what just happened" live? |
+| Rex | Ruffed Grouse | Independence assumption error | Always uses 52 as the denominator regardless of what was drawn first. Believes each sequential card draw is independent — P(second ace) = 4/52 whether or not an ace came first. A longtime Nest member who correctly applies independence rules from dice and coins but has never distinguished sampling with vs. without replacement. Charming, vocal, confidently wrong about this specific thing. Chief Dodo's running correction: "Rex, how many cards are left in the deck?" |
 
 **CCSS**: 7.SP.C.8a (compound event probability using organized lists, tables, tree diagrams — **focus**); 7.SP.C.8b (sample spaces for compound events — **focus**)
 
 **Competency Gate**
 
-- *Procedural*: Draw the complete tree diagram for two sequential card draws without replacement; compute the probability of drawing an ace followed by a king
-- *Conceptual*: Explain why the probability of the second draw changes after the first card is removed; identify Rico's specific reasoning error using the tree as evidence
-- *Transfer*: Apply tree diagram reasoning to a two-stage non-card scenario (drawing two seeds from a bag of known composition without replacement)
+- *Procedural*: Draw the complete two-stage tree for the probability of being dealt two aces as hole cards (Stage 1: first card from 52, Stage 2: second card from 51 given Stage 1); compute the probability at each relevant branch and multiply across the path
+- *Conceptual*: Explain why the denominator changes from 52 to 51 for the second hole card; identify Rex's specific independence assumption error and state what he should compute instead
+- *Transfer*: Apply the same dependent-draw reasoning to a non-card scenario — drawing two marbles from a bag of known composition without replacement
 
 ---
 
@@ -260,7 +261,6 @@ Completing both the conceptual and transfer checklists (correctly or after three
 | NPC | Bird | Reasoning Pattern | Flaw / Lesson |
 | --- | --- | --- | --- |
 | Rico | Sulfur-crested Cockatoo | Base rate neglect (continues) | Doesn't realize how rare his current hand type actually is; the combination count puts a number on his error |
-| Vivian | Flamingo | Hot hand fallacy (continues) | |
 | Maestro | Great Blue Heron | Equiprobability bias — assumes common hands are rarer than they are | Appears for the first time; acts over-cautiously with strong hands because he has not computed the actual probability. A subtle version of treating all hands as equally likely. |
 
 **CCSS**: S-CP.B.9 (permutations and combinations to compute probabilities — **focus**)
@@ -305,7 +305,6 @@ The pedagogical risk in this phase: conditional probability is the concept most 
 | --- | --- | --- | --- |
 | Maestro | Great Blue Heron | Anchoring — never updates probability estimate after cards are revealed | Assesses his starting position and never recomputes as cards flip. Because No Peek makes all cards public, students can observe Maestro's estimate staying frozen while the actual probability changes. |
 | Rico | Sulfur-crested Cockatoo | Recency bias in visible cards | Over-weights the most recently flipped card; ignores the full set of what has been revealed |
-| Vivian | Flamingo | Hot hand fallacy (continues) | |
 
 **CCSS**: S-CP.A.3 (conditional probability — *introduced* informally here)
 
@@ -617,12 +616,13 @@ The pedagogical risk in this phase: conditional probability is the concept most 
 
 | NPC | Bird | Phases | Tables | Reasoning Pattern | Flaw / Lesson |
 | --- | --- | --- | --- | --- | --- |
-| Hank | California Condor | 1 | 1A, 1B | Always bets, never folds | Complete disregard for probability — shows what purely action-driven play looks like |
+| Hank | California Condor | 1 | 1A | Always bets, never folds | Complete disregard for probability — shows what purely action-driven play looks like |
 | Lucky | Rock Pigeon | 1 | 1B | Gambler's fallacy | After losses: "I'm due." Believes losing streaks make future wins more probable. |
-| Vivian | Flamingo | 1–3 | 2A, 2B, 2C, 3A | Hot hand fallacy | Recent wins make her bet larger. Mirror image of gambler's fallacy — opposite sign, same structure. |
-| Rico | Sulfur-crested Cockatoo | 2–3 | 2B, 2C, 3A, 3B | Base rate neglect + recency bias | Only attends to what just happened; ignores long-run base rates entirely |
+| Vivian | Flamingo | 1–2 | 2A | Hot hand fallacy | Recent wins make her bet larger. Mirror image of gambler's fallacy — opposite sign, same structure. Stays at Table 2A, the no-draw variant she proposed. |
+| Rex | Ruffed Grouse | 2 | 2B | Independence assumption error | Treats sequential card draws as independent — always uses 52 as the denominator regardless of what was drawn first. Correctly applies independence rules from dice and coins; has never distinguished sampling with vs. without replacement. |
+| Rico | Sulfur-crested Cockatoo | 2–3 | 2C, 3A | Base rate neglect + recency bias | Only attends to what just happened; ignores long-run base rates entirely |
 | Maestro | Great Blue Heron | 2–5 | 2C, 3A, 3B, 3C, 4A, 4B, 5A | Anchoring — never updates | Assesses initial hand strength; does not revise as new information appears. Appears across the most tables of any NPC. |
-| Carlos | Keel-billed Toucan | 2–4 | 2B, 3B, 3C, 4C | Independence fallacy | Treats every card draw as independent of what has already been dealt; always uses the wrong denominator |
+| Carlos | Keel-billed Toucan | 3–4 | 3B, 3C, 4C | Independence fallacy | Treats every card draw as independent of what has already been dealt; always uses the wrong denominator. Note: Rex makes the same class of error at the simpler two-card level (2B); Carlos represents the same fallacy at greater complexity. |
 | Pelican Pete | Brown Pelican | 3–4 | 3C, 4A | Outs miscounting | Double-counts outs by not removing cards already visible on the board or in opponent upcards |
 | Pharaoh | African Sacred Ibis | 3–5 | 3B, 4A, 5B, 5C | Ignores dead cards / opponent information | Counts from the full deck; never adjusts denominator for opponent-visible cards |
 | Grace | Great Egret | 4–5 | 4A, 4B, 4C, 5A | Addition Rule error | Double-counts probability of overlapping events: P(A or B) = P(A) + P(B) without subtracting P(A and B) |
