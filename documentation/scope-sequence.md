@@ -214,6 +214,8 @@ Texas Hold'Em also serves a second purpose: this is the game the student will pl
 
 **Note on table structure**: The first several hands are spent learning the game — hole cards, community cards, the betting structure. The tree diagram is introduced when Chief Dodo surfaces a natural mid-hand question ("What were the chances of getting exactly those two cards?"), not as a predetermined lesson. The addition rule for mutually exclusive events *(P(A or B) = P(A) + P(B) for mutually exclusive cases)* is the simpler compound case and is introduced before the multiplication rule for sequential dependent events.
 
+**Rotation constraint on teaching moments**: Table 2B uses standard betting rotation (established at Table 2A). Chief Dodo's tree diagram coaching — and all hole-card probability discussions — are triggered only on hands where the student opens the betting. When Rex opens, the student is reacting to Rex's action, which is the wrong cognitive moment to introduce tree analysis. Mechanically: the student's hole cards are always modeled as drawn first from the deck (positions 0–1 before any NPC cards), so the tree is always 52 → 51 from the student's perspective. Restricting coaching to student-opens hands (`npcActsFirst = false`) maintains this clarity regardless of future dealing implementation changes.
+
 **Learning Objectives**
 
 - Recognize that drawing without replacement creates dependent stages: the second hole card's probability changes based on the first
