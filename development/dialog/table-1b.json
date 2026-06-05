@@ -239,7 +239,7 @@
     {
       "id": "t1b-lucky-due",
       "speaker": "lucky",
-      "text": "Man. Look at these cards — One Pair again. I've been getting garbage for four hands straight. The deck has to give me something good soon. Law of averages.",
+      "text": "Man. Look at these cards — {{luckyLastHand}} again. I've been getting garbage for three hands straight. The deck has to give me something good soon. Law of averages.",
       "responseType": "none",
       "followUp": { "default": "t1b-lucky-due-response-001" }
     },
@@ -253,7 +253,7 @@
     {
       "id": "t1b-lucky-due-response-002",
       "speaker": "chief-dodo",
-      "text": "Look at the hand types in your frequency table — not wins and losses. Is there any sign that getting One Pair a lot makes a better hand more likely next deal?",
+      "text": "Look at the hand types in your frequency table — not wins and losses. Is there any sign that getting {{luckyLastHand}} a lot makes a better hand more likely next deal?",
       "responseType": "none",
       "followUp": { "returnToGame": true }
     },

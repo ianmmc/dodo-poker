@@ -636,8 +636,10 @@
       const decision = lucky.decideBet(0, game.betAmount, getNpcConsecutiveWins(), getNpcConsecutiveLosses())
       if (decision.action === 'fold') {
         game = npcFold(game)
+        const [luckyDueNodes, luckyVars] = getLuckyDuePostHand('win')
         updateFreqForHand('win')
         enqueue([postHandNode('win')])
+        if (luckyDueNodes.length) enqueue(luckyDueNodes, luckyVars)
         doSave()
         return
       }
@@ -645,8 +647,10 @@
         game = playerCheckNpcCheck(game)
         if (game.phase === 'done' && game.result) {
           const outcome = resolveHandOutcome(game.result)
+          const [luckyDueNodes, luckyVars] = getLuckyDuePostHand(outcome)
           updateFreqForHand(outcome)
           enqueue([getTable1bNpcActionNode('check'), ...postHandNodesForOutcome(outcome)])
+          if (luckyDueNodes.length) enqueue(luckyDueNodes, luckyVars)
           doSave()
         } else {
           enqueue([getTable1bNpcActionNode('check')])
@@ -656,6 +660,23 @@
     }
     game = playerCheck(game)
     enqueue([hankActionNode('bet')])
+  }
+
+  // Returns [luckyDueNodes, vars] if Lucky's gambler's fallacy monologue should fire at
+  // the end of this hand. Called at post-hand time, before nextHand1B() logs the current
+  // outcome — so observationLog contains only previous hands. game.result is live, giving
+  // us Lucky's actual losing hand name while the cards are still face-up on screen.
+  function getLuckyDuePostHand(outcome: 'win' | 'loss' | 'fold' | 'tie'): [DialogNode[], Record<string, string>] {
+    if (screen !== 'table1b' || outcome !== 'win') return [[], {}]
+    // 3 consecutive wins total: current win + last 2 logged wins
+    const recent = observationLog.slice(-2)
+    const threeConsecutive = recent.length === 2 && recent.every(s => s.outcome === 'win')
+    const nodes = getLuckyDue(threeConsecutive ? 3 : 0)
+    if (!nodes.length) return [[], {}]
+    const raw = game.result?.npcHandName ?? ''
+    // '—' means Lucky folded (cards never shown); fall back to a generic term
+    const luckyLastHand = (raw && raw !== '—') ? raw : 'garbage'
+    return [nodes, { luckyLastHand }]
   }
 
   // doBet accepts an optional amount for variable-bet tables (Table 2A: 5/10/20).
@@ -670,8 +691,10 @@
     game = playerBet(game, amount)
     if (game.phase === 'done' && game.result) {
       const outcome = resolveHandOutcome(game.result)
+      const [luckyDueNodes, luckyVars] = getLuckyDuePostHand(outcome)
       if (screen === 'table1b' || screen === 'table2a') updateFreqForHand(outcome)
       enqueue([npcCallNode, ...postHandNodesForOutcome(outcome)])
+      if (luckyDueNodes.length) enqueue(luckyDueNodes, luckyVars)
       doSave()
     } else {
       enqueue([npcCallNode])
@@ -682,8 +705,10 @@
     game = playerCall(game)
     if (game.phase === 'done' && game.result) {
       const outcome = resolveHandOutcome(game.result)
+      const [luckyDueNodes, luckyVars] = getLuckyDuePostHand(outcome)
       if (screen === 'table1b' || screen === 'table2a') updateFreqForHand(outcome)
       enqueue(postHandNodesForOutcome(outcome))
+      if (luckyDueNodes.length) enqueue(luckyDueNodes, luckyVars)
       doSave()
     }
   }
@@ -795,16 +820,12 @@
     game = startHand(game)
     discardSet = new Set()
 
-    // Progressive reveals — lucky here is the getLuckyDue dialog trigger, not the NPC
-    const last3 = observationLog.slice(-3)
-    const luckyConsecutiveLosses = last3.length === 3 && last3.every(s => s.outcome === 'win') ? 3 : 0
-    const luckyDueNodes = getLuckyDue(luckyConsecutiveLosses)
     const surv = getSurveillanceRoomIntro(handsAt1B)
     const hankRetro = getHankRetroAssessment(handsAt1B, surveillanceRoomVisited)
     const assessment = getTable1bAssessment(handsAt1B, surveillanceRoomVisited)
     const preHand = getTable1bPreHandNode()
 
-    enqueue([...luckyDueNodes, ...surv, ...hankRetro, ...assessment, preHand])
+    enqueue([...surv, ...hankRetro, ...assessment, preHand])
   }
 
   function nextHand2A(): void {
