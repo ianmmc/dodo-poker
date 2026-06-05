@@ -116,7 +116,25 @@
   let roomTransitionAnim = false
   // NPC swap system
   let currentNpcName = 'Hank'
+  // Speaker ID of the primary NPC at the current table — matches the `speaker` field
+  // used in dialog JSON for that NPC's lines. Backup NPCs reuse the primary NPC's
+  // speaker ID, so speakerLabel() resolves them to currentNpcName correctly.
+  // Secondary NPCs at multi-player tables (3C+) have their own speaker IDs and are
+  // resolved via NPC_DISPLAY_NAMES instead.
+  let currentNpcSpeakerId = 'hank'
   let usedBackupIds: string[] = []
+
+  // Static display-name registry for all NPCs. Add each NPC here when building
+  // their table. The key is the speaker ID used in dialog JSON.
+  const NPC_DISPLAY_NAMES: Record<string, string> = {
+    hank:    'Hank',
+    lucky:   'Lucky',
+    vivian:  'Vivian',
+    rex:     'Rex',
+    rico:    'Rico',
+    maestro: 'Maestro',
+    carlos:  'Carlos',
+  }
   // Active NPC draw function — set per table so doDraw is decoupled from screen string.
   // All Table 1B NPCs (Lucky + backups) share lucky.decideDraw.
   let npcDrawDecider: (hand: Card[]) => DrawDecision = hank.decideDraw.bind(hank)
@@ -234,9 +252,12 @@
   }
 
   function speakerLabel(speaker: string | null): string {
+    if (!speaker) return 'Narrator'
     if (speaker === 'chief-dodo') return 'Chief Dodo'
-    if (speaker === 'hank' || speaker === 'lucky') return currentNpcName
-    return 'Narrator'
+    // Primary NPC (and any backup swapped in) — currentNpcName holds the right display name
+    if (speaker === currentNpcSpeakerId) return currentNpcName
+    // Secondary NPCs at multi-player tables — look up canonical display name
+    return NPC_DISPLAY_NAMES[speaker] ?? speaker
   }
 
   function toLine(node: DialogNode, vars?: Record<string, string | number>): DisplayLine {
@@ -246,7 +267,7 @@
       speaker: speakerLabel(node.speaker),
       text: vars ? interpolate(rawText, vars) : rawText,
       responseType: node.responseType,
-      isNpc: node.speaker === 'hank' || node.speaker === 'lucky',
+      isNpc: !!node.speaker && node.speaker !== 'chief-dodo',
       openReferenceCard: node.followUp.openReferenceCard === true,
       openSurveillanceRoom: node.followUp.openSurveillanceRoom === true,
       assessmentNode: isInteractive ? node : undefined,
@@ -424,6 +445,7 @@
       screen = 'table2a'
       npcDrawDecider = vivian.decideDraw.bind(vivian)
       currentNpcName = 'Vivian'
+      currentNpcSpeakerId = 'vivian'
       game = { ...game, noDraw: true, ante: 10 }
       game = startHand(game)
       enqueue([getTable2aPreHandNode()])
@@ -432,10 +454,12 @@
       npcDrawDecider = lucky.decideDraw.bind(lucky)
       if (handsAt1B === 0) game = { ...game, npcSeeds: 200 }
       currentNpcName = saved.currentNpcName ?? 'Lucky'
+      currentNpcSpeakerId = 'lucky'
       game = startHand(game)
       enqueue([getTable1bPreHandNode()])
     } else {
       currentNpcName = saved.currentNpcName ?? 'Hank'
+      currentNpcSpeakerId = 'hank'
       screen = 'table'
       npcDrawDecider = hank.decideDraw.bind(hank)
       game = startHand(game)
@@ -452,6 +476,8 @@
 
   function sitDown(): void {
     screen = 'table'
+    currentNpcName = 'Hank'
+    currentNpcSpeakerId = 'hank'
     game = startHand(game)
     discardSet = new Set()
     enqueue([...getApproachNodes(), getNode('t1a-house-rule'), ...getPreHandNode(game.handNumber)])
@@ -464,6 +490,7 @@
     handsAt1B = 0
     surveillanceRoomVisited = false
     currentNpcName = 'Lucky'
+    currentNpcSpeakerId = 'lucky'
     usedBackupIds = []
     observationLog = []
     game = { ...game, npcSeeds: 200 }
@@ -480,6 +507,7 @@
     frequencyData = createFrequencyData()  // fresh table for 2A
     handsAt2A = 0
     currentNpcName = 'Vivian'
+    currentNpcSpeakerId = 'vivian'
     observationLog = []
     // Seeds carry over; ante increases to 10 for the Main Room
     game = { ...game, noDraw: true, ante: 10, betAmount: 10 }
@@ -876,6 +904,7 @@
     handsAt2A = 0
     surveillanceRoomVisited = false
     currentNpcName = 'Hank'
+    currentNpcSpeakerId = 'hank'
     usedBackupIds = []
     npcDrawDecider = hank.decideDraw.bind(hank)
     skipNpcAnim()
@@ -958,6 +987,8 @@
     skipNpcAnim()
     if (table === 'table') {
       npcDrawDecider = hank.decideDraw.bind(hank)
+      currentNpcName = 'Hank'
+      currentNpcSpeakerId = 'hank'
       unmarkFiredOnce('t1a-pattern-001')
       unmarkFiredOnce('t1a-fallacy-001')
       game = startHand(game)
@@ -970,6 +1001,7 @@
       handsAt1B = 0
       surveillanceRoomVisited = false
       currentNpcName = 'Lucky'
+      currentNpcSpeakerId = 'lucky'
       usedBackupIds = []
       unmarkFiredOnce('t1b-lucky-due')
       unmarkFiredOnce('t1b-surv-intro-001')
@@ -986,6 +1018,7 @@
       frequencyData = createFrequencyData()
       handsAt2A = 0
       currentNpcName = 'Vivian'
+      currentNpcSpeakerId = 'vivian'
       unmarkFiredOnce('t2a-vivian-hot-001')
       unmarkFiredOnce('t2a-assess-intro')
       game = { ...game, noDraw: true, ante: 10, betAmount: 10 }

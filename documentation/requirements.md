@@ -95,6 +95,7 @@ User stories organized by theme. Each story will gain acceptance criteria before
 | A-07 | As a student, I want my assessment responses to be saved so the system can recognize what I've already demonstrated across sessions. | `done` |
 | A-08 | As a student, I want the game to sometimes put me in a specific hand situation to test a concept directly, rather than waiting for it to come up by chance. | `draft` |
 | A-09 | As a student, I want assessment questions to arise naturally during gameplay — interleaved with play, not batched at the end — so coaching feels like conversation, not a quiz. | `done` |
+| A-10 | As a student, I want numeric assessment questions to reference my actual observed frequency data (e.g. "you've seen 7 High Card hands out of 20") rather than a hypothetical scenario, so the question is grounded in my own experience at the table. | `done` |
 
 ---
 

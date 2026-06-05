@@ -194,11 +194,13 @@ The ladder behavior is in the engine; the copy is in JSON. The two can evolve in
 
 | Path | Contents |
 | --- | --- |
-| `src/lib/game/` | Game logic: card (+ `cardAltText`), hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData, simulationEngine |
-| `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()`, `getChain()`, `firedOnce` registry, `firedOnceChain()` helper, TABLE_1B_* threshold constants |
+| `src/lib/game/` | Game logic: card (+ `cardAltText`), hand evaluation, Five Card Draw state machine, NPC, storage, assessment, observationEngine, scriptedHands, frequencyData, simulationEngine, **liveData** |
+| `src/lib/dialog/` | Dialog engine: node loading, pool selection, trigger logic, `getNode()`, `getChain()`, `firedOnce` registry, `firedOnceChain()` helper, TABLE_1B_* / TABLE_2A_* threshold constants |
 | `src/lib/components/` | Svelte UI components: CardImage (+ `animState` prop), ReferenceCard, FrequencyTable, SurveillanceRoom, DevPanel |
-| `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state, `isNpc` on `DisplayLine`, NPC draw animation state machine |
+| `src/App.svelte` | Application shell: all screens, game loop, dialog queue, assessment state, `resolveLiveNode()`, NPC draw animation state machine |
 | `dialog/` | JSON dialog trees (content only — no logic) |
+| `tools/verify-math.py` | Pre-commit math verification: 31 checks covering hand frequencies, hole-card probabilities, draw outs, and all `correctAnswer` values in dialog JSON. Run via `npm run verify-math`. |
+| `.hooks/pre-commit` | Git pre-commit hook (symlinked via `npm run setup-hooks`): runs `tsc --noEmit`, `vitest run`, and `verify-math.py` before every commit. Lives in the repo, versioned alongside code. |
 
 ---
 
@@ -210,7 +212,13 @@ The ladder behavior is in the engine; the copy is in JSON. The two can evolve in
 
 Character names — `hank`, `lucky` — appear only in: NPC module exports (`npc.ts`), dialog node `speaker` fields, dialog node IDs at the table where that character permanently resides (e.g. `t1a-hank-*` nodes stay Hank-specific because Hank is Table 1A's permanent NPC).
 
-`speakerLabel()` in App.svelte maps `speaker === 'hank' || speaker === 'lucky'` to `currentNpcName`, so dialog bubbles always display whoever is currently sitting across from the student — correct even when a backup NPC has replaced the original.
+`speakerLabel()` in App.svelte resolves dialog bubble speaker labels using two cooperating mechanisms built for single-NPC and multi-NPC tables:
+
+1. **`currentNpcSpeakerId`** — the dialog JSON `speaker` ID of the primary NPC at the current table (`'hank'`, `'lucky'`, `'vivian'`, `'rex'`, etc.). Any node whose `speaker` matches this ID displays as `currentNpcName`. This preserves backup NPC swap behavior: backup NPCs at Table 1B reuse `speaker: 'lucky'` nodes, so they automatically display as whatever name `currentNpcName` holds (e.g. `'Morty'`).
+
+2. **`NPC_DISPLAY_NAMES`** — a static registry in App.svelte mapping every NPC's speaker ID to their canonical display name. Used for secondary NPCs at multi-player tables (Table 3C+) who have their own speaker IDs and must each show their own name. Add an entry when building each new NPC's table.
+
+Backup NPCs are handled correctly: `swapNpc()` updates `currentNpcName` to the backup's name but leaves `currentNpcSpeakerId` unchanged — their dialog nodes still use the primary NPC's speaker ID.
 
 ### Dialog node ID convention
 

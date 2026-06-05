@@ -39,7 +39,7 @@ The project was inspired by Jacob Kantor — an education technology sales consu
 
 ## Current State
 
-**Phase:** Implementation — Tables 1A, 1B, and 2A complete end-to-end. Table 2A introduces Vivian (Flamingo/hot hand fallacy), no-draw Five Card Draw, betting rotation, and variable bet sizes (5/10/20 seeds). Table 2A gate passes to "coming soon" placeholder (Table 2B not yet built).
+**Phase:** Implementation — Tables 1A, 1B, and 2A complete end-to-end, play-tested, and bug-fixed. Table 2B (Texas Hold'Em, Rex the Ruffed Grouse) is the next build target.
 
 ### Completed
 
@@ -73,25 +73,24 @@ The project was inspired by Jacob Kantor — an education technology sales consu
   - **Hank retrospective assessment at hand 14+** (new): CD bridges from Table 1A "always-bet" observation to frequency data — student uses the table to explain why Hank's strategy costs him; incorrect foil deliberately echoes Lucky's gambler's fallacy
   - Gate assessment at hand 18: procedural (relative frequency %) + conceptual (Lucky rebuttal) + transfer (LLN)
   - NPC swap system with 10 backup characters
-- **Test suite**: 212 tests across 11 files — all passing
-  - New since last session: `observationEngine.test.ts` (16), `engine.test.ts` (30), `storage.test.ts` (7), `cardAltText` tests in `card.test.ts`
+- **Test suite**: 228 tests across 12 files — all passing
+  - `liveData.test.ts` added (16 tests): `buildDataContext`, `renderTemplate`, `resolveKey`, full assessment scenario, NaN-safety edge case
 
 ### Key Implementation Details
 
 - `publicDir: '../assets'` in `vite.config.ts` serves card SVGs at `/svg-cards/` and images at root
 - Svelte 5 legacy mode (no runes); `mount()` not `new App()` in `main.ts`
 - Dialog queue drives game rhythm; `pendingPostAssessment` stash prevents pre-hand nodes from appearing mid-assessment
-- `isNpc: boolean` on `DisplayLine` (set in `toLine()` when `node.speaker === 'hank' || node.speaker === 'lucky'`) drives speaker color for both primary NPCs and any backup replacements
-- `doSave()` in `nextHand1A/1B()` runs BEFORE `startHand()` — saves updated `observationLog`/`handsAt1B` while `phase` is still `'done'`; `continueSession()` calls `startHand()` once → correct single ante deduction
+- **NPC speaker resolution**: `currentNpcSpeakerId` (primary NPC's dialog speaker ID) + `NPC_DISPLAY_NAMES` (static registry). `speakerLabel()`: matches `currentNpcSpeakerId` → `currentNpcName` (handles backup swaps); other speaker IDs → `NPC_DISPLAY_NAMES` lookup (secondary NPCs at multi-player tables). `isNpc: !!speaker && speaker !== 'chief-dodo'` covers all NPCs past and future.
+- **`live-numeric` assessment type**: question text and correct answer resolved from current `FrequencyData` at enqueue time via `resolveLiveNode()`. `textTemplate` uses `{{key}}` placeholders; `correctAnswerKey` names a `LiveDataKey`. Resolved to a concrete `numeric` node before entering the queue — assessment system unchanged. `liveData.ts` owns `DataContext`, `buildDataContext`, `renderTemplate`, `resolveKey`.
+- **`t1b-lucky-due` timing**: fires at end-of-hand (post-hand dialog, before "Play next hand"), not at start of next hand. `getLuckyDuePostHand(outcome)` checks current win + 2 prior wins in `observationLog` (not yet updated for current hand). Uses `game.result.npcHandName` while Lucky's cards are still face-up. `{{luckyLastHand}}` template var; fallback `'garbage'` when Lucky folded (`npcHandName === '—'`).
+- **`doBet()` event guard**: `typeof betAmount === 'number'` check prevents `MouseEvent` (passed by Svelte when using `on:click={doBet}` directly) from producing NaN. Templates use `() => doBet()` arrow functions. Both defenses in place.
+- **Pre-commit hook** (`.hooks/pre-commit`, symlinked via `npm run setup-hooks`): runs `tsc --noEmit`, `vitest run`, and `python3 tools/verify-math.py` before every commit. `verify-math.py` has 31 checks: hand frequencies from C(52,5), hole-card probabilities, draw outs, all `correctAnswer` values. `live-numeric` nodes verified by key recognition against `KNOWN_LIVE_DATA_KEYS`.
+- `doSave()` in `nextHand1A/1B/2A()` runs BEFORE `startHand()` — avoids double-ante on reload
 - `resetGame()` calls `clearFiredOnce()`, `clearFiredRules()`, `clearAssessmentState()` — all module state fully cleared
-- `playerDraw()` accepts `npcDecider` parameter; `doDraw()` in App.svelte selects `lucky.decideDraw` vs `hank.decideDraw` based on table
-- `continueSesion()` unmarks firedOnce entries for any assessment sequence not yet completed in log — prevents mid-assessment quits from permanently skipping content
-- Pattern reveal (3A) and gambler's fallacy coaching (8+) have `firedOnce` guards; dev jumps unmark appropriately
 - Gambler's fallacy coaching requires student's last 3 hands to be wins (Hank factually losing); fallback fires at hand 15
-- Hank retrospective fires at `handsAt1B >= 14 && surveillanceRoomVisited`; added to devJumpToHand firedOnce reset
-- Assessment nodes marked in assessmentLog by their `nodeId`; `continueSession` checks specific terminal assessment IDs to determine whether a sequence was completed
-- `cardAltText()` exported from `card.ts`; used in `CardImage.svelte` for screen reader alt text
-- WCAG contrast: all color values >= 4.5:1 against their backgrounds; numeric focus uses `outline: 2px solid` not `outline: none`
+- Assessment nodes marked in `assessmentLog` by `nodeId`; `continueSession` checks specific terminal IDs to determine whether a sequence was completed
+- WCAG contrast: all color values >= 4.5:1 against their backgrounds
 
 ---
 
@@ -115,8 +114,7 @@ Known open items from review:
 
 ## Open Questions
 
-- **Table 2B** — next table to build. Tree diagrams, compound events, dependent draws. Rico (base rate neglect) and Vivian (hot hand, continues) are the NPCs per scope-sequence.
-- **Session restoration routing** — `continueSession()` routes `gatePassedAt1B → table2a`; add `gatePassedAt2A → table2b` when Table 2B exists.
+- **Session restoration routing** — `continueSession()` routes `gatePassedAt1B → table2a`; add `gatePassedAt2A → table2b` when Table 2B is built.
 
 ---
 
@@ -133,12 +131,14 @@ Known open items from review:
 | `documentation/scope-sequence.md` | Full curriculum: 14 tables, 5 phases, competency gates | Current |
 | `documentation/tech-spec.md` | Stack decisions, naming conventions, accessibility standard, open decisions | Current |
 | `documentation/handoff.md` | This file | Current |
-| `development/dialog/start-of-game.json` | Entry experience (9 nodes); dead followUp keys removed | Current |
-| `development/dialog/table-1a.json` | Table 1A (51 nodes — full gate + house rule + Hank refill) | Current |
-| `development/dialog/table-1b.json` | Table 1B (65 nodes — includes t1b-hank-retro-* assessment) | Current |
+| `development/dialog/start-of-game.json` | Entry experience (9 nodes) | Current |
+| `development/dialog/table-1a.json` | Table 1A — Hank, never-fold pattern, gambler's fallacy | Current |
+| `development/dialog/table-1b.json` | Table 1B — Lucky, frequency table, LLN, Surv Room. `t1b-lucky-due` uses `{{luckyLastHand}}` template var; fires end-of-hand | Current |
+| `development/dialog/table-2a.json` | Table 2A — Vivian, hot hand fallacy, variable bets, rotation | Current |
 | `development/src/lib/game/card.ts` | Card type, deck, shuffle, SVG path, `cardAltText()` | Current |
-| `development/src/lib/game/fiveCardDraw.ts` | Five Card Draw state machine; `npc*` fields; `playerDraw(npcDecider)` | Current |
-| `development/src/lib/game/npc.ts` | `hank` and `lucky` NPC modules | Current |
+| `development/src/lib/game/fiveCardDraw.ts` | Five Card Draw state machine; `noDraw`, `npcActsFirst`; `npcOpensBet/npcOpensCheck` | Current |
+| `development/src/lib/game/npc.ts` | `hank`, `lucky`, `vivian` NPC modules | Current |
+| `development/src/lib/game/liveData.ts` | `DataContext`, `buildDataContext`, `renderTemplate`, `resolveKey` — powers `live-numeric` assessments | Current |
 | `development/src/lib/game/storage.ts` | localStorage with defensive defaults | Current |
 | `development/src/lib/game/assessment.ts` | Evaluation engine; `clearAssessmentState()` | Current |
 | `development/src/lib/game/backupNpcs.ts` | 10 backup NPCs; `getNextBackup()` | Current |
@@ -146,30 +146,35 @@ Known open items from review:
 | `development/src/lib/game/observationEngine.ts` | Observation rules + firedRules persistence | Current |
 | `development/src/lib/game/scriptedHands.ts` | `ScriptedDeal`, `getScriptedDeal()` | Current |
 | `development/src/lib/game/frequencyData.ts` | Frequency tracking + `HAND_NAME_MAP` | Current |
-| `development/src/lib/dialog/engine.ts` | Dialog engine; all Table 1A/1B functions + `getHankRetroAssessment()` | Current |
-| `development/src/lib/components/App.svelte` | Full application shell | Current |
+| `development/src/lib/dialog/engine.ts` | Dialog engine; all Table 1A/1B/2A functions; `live-numeric` responseType | Current |
+| `development/src/App.svelte` | Full application shell; `currentNpcSpeakerId` + `NPC_DISPLAY_NAMES`; `resolveLiveNode()` | Current |
 | `development/src/lib/components/CardImage.svelte` | Button/div[role=img] split; `cardAltText` | Current |
 | `development/src/lib/components/ReferenceCard.svelte` | Sliding reference card panel | Current |
 | `development/src/lib/components/FrequencyTable.svelte` | Left-side panel with ARIA toggle | Current |
 | `development/src/lib/components/SurveillanceRoom.svelte` | Card-draw simulation with animation | Current |
-| `development/src/lib/components/DevPanel.svelte` | Dev tools panel | Current |
-| `development/src/lib/game/*.test.ts` | 8 test files: card, hand, fiveCardDraw, npc, assessment, backupNpcs, frequencyData, observationEngine, simulationEngine, storage | Current |
-| `development/src/lib/dialog/engine.test.ts` | Dialog engine test suite (30 tests) | Current |
-| `development/quality-assurance/code-review-2026-06-03.md` | Full code review report (gitignored — local only) | Current |
+| `development/src/lib/components/DevPanel.svelte` | Dev tools; Table 2A jump, hand presets, assessment state | Current |
+| `development/src/lib/game/*.test.ts` | 9 test files: card, hand, fiveCardDraw, npc, assessment, backupNpcs, frequencyData, liveData, observationEngine, simulationEngine, storage | Current |
+| `development/src/lib/dialog/engine.test.ts` | Dialog engine test suite | Current |
+| `development/tools/verify-math.py` | Pre-commit math verification (31 checks); `npm run verify-math` | Current |
+| `development/.hooks/pre-commit` | Git pre-commit hook: tsc + vitest + verify-math; install via `npm run setup-hooks` | Current |
 
 ---
 
 ## Recommended Next Steps (in order)
 
-1. **Deploy** — build and push to `dodo-poker.mccullough.com`; share Tables 1A, 1B, and 2A with early testers
-2. **Table 2B** — tree diagrams, compound events, dependent draws; Rico (base rate neglect) and Vivian (hot hand, continues) per scope-sequence
+1. **Deploy** — build and push current state to `dodo-poker.mccullough.com`
+2. **Table 2B** — Texas Hold'Em, Rex (Ruffed Grouse, independence assumption error). Two-stage hole card deal as dependent sample space; tree diagrams; addition rule before multiplication rule. See scope-sequence.md for full spec including rotation constraint (tree coaching only on student-opens hands).
 3. **AX-06/AX-07** — keyboard navigation completeness and focus-on-transition implementation
-4. **Session restoration routing** — add `gatePassedAt2A → table2b` to `continueSession()` when Table 2B exists
+4. **Session restoration routing** — add `gatePassedAt2A → table2b` to `continueSession()` when Table 2B is built
 
 ---
 
 ## Last Updated
 
-2026-06-04 — Table 2A (The Fraction Table) built: Vivian (Flamingo, hot hand fallacy) as sole NPC; no-draw Five Card Draw; betting rotation (NPC opens on odd hands); variable bet sizes 5/10/20 seeds; 10-seed ante; frequency table resets on entry; Main Room card-scatter transition animation; competency gate at 20 hands. `noDraw` + `npcActsFirst` added to `GameState`. `vivian` NPC module added (bets 5/10/20 by winning streak). `npcOpensBet`/`npcOpensCheck` new game actions for rotation. `table-2a.json` created (65 nodes). DevPanel gains Table 2A Jump to Table, Jump to Hand, and Assessment State panels. Frequency table High Card corrected to ~50% (was incorrectly stated as ~17%). Reference card sorted weakest→strongest; glossary added with 9 terms + Wikipedia link. 212 tests across 11 files. Documentation updated (requirements L-09/L-10, design fixed-bet and betting-order sections, scope-sequence Table 2A, tech-spec rotation open decision resolved).
+2026-06-04 (session 2) — Play-testing bug fixes and infrastructure hardening. `live-numeric` assessment type: question text and answer resolved from live `FrequencyData` at enqueue time (`liveData.ts`; `resolveLiveNode()` in App.svelte); `t2a-assess-proc` converted — now reads student's actual High Card count and total hands. `t1b-lucky-due` reworked: fires at end-of-hand (not start of next), uses `{{luckyLastHand}}` template var from `game.result.npcHandName`, fixes hardcoded 'One Pair' and 'four hands straight'. NPC speaker label fix: `currentNpcSpeakerId` + `NPC_DISPLAY_NAMES` registry; `speakerLabel()` now handles all current and future NPCs including multi-NPC tables (3C+); Vivian was showing as 'Narrator'. `doBet()` NaN fix: MouseEvent guard + arrow functions in templates. Pre-commit hook (`.hooks/pre-commit`): tsc + vitest + `verify-math.py` (31 math checks). Table 1B dialog revisions: Lucky's intro voice, lucky-due chain split, `t1b-surv-intro-002` rewritten (Socratic, no broken template var). scope-sequence updated: Rex (Ruffed Grouse) at Table 2B, NPC assignments for 2B/2C/3A/3B corrected, rotation constraint documented. 228 tests across 12 files.
+
+2026-06-04 (session 1) — Table 2A (The Fraction Table) built. 212 tests across 11 files.
+
+2026-06-03 — Code review pass: 16 bugs/gaps fixed. Full WCAG 2.1 AA accessibility pass. Hank retrospective assessment at Table 1B hand 14. 169 tests across 11 files.
 
 2026-06-03 — Code review pass (fresh-eyes agent): 16 bugs/gaps fixed. Full WCAG 2.1 AA accessibility pass. Hank retrospective assessment at Table 1B hand 14. 169 tests across 11 files.
